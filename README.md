@@ -7,8 +7,8 @@ FlashInv (flashinv.com) investit l'argent de ses clients en crypto. Le client ch
 - [x] Logo et design system
 - [x] Écrans du site public
 - [x] Développement du site public
-- [ ] Écrans : app, admin
-- [ ] Développement : app, admin
+- [x] Écrans : app, admin
+- [x] Développement : app (PWA sous `/account`) et admin (`/admin`)
 
 ## Design system
 
@@ -24,7 +24,7 @@ Version interactive : https://claude.ai/artifact/CwLeYWz8c2FBXiqD19GSMj
 
 > Batica Sans est sous licence d'usage personnel : une licence commerciale est nécessaire avant la mise en production.
 
-## Stack prévue
+## Stack
 
 Next.js, Tailwind CSS, shadcn/ui, GSAP, Better Auth, Prisma, Neon PostgreSQL, Cloudinary. Gestionnaire de paquets : pnpm.
 
@@ -35,16 +35,32 @@ Next.js, Tailwind CSS, shadcn/ui, GSAP, Better Auth, Prisma, Neon PostgreSQL, Cl
 ## Développement
 
 ```bash
-pnpm install
-pnpm dev        # http://localhost:3000
-pnpm build      # build de production
+pnpm install                 # génère aussi le client Prisma
+cp .env.example .env.local   # puis renseignez les variables
+pnpm db:migrate              # crée les tables (première fois : --name init)
+pnpm db:seed                 # cryptos, répartitions des profils, réglages par défaut
+pnpm dev                     # http://localhost:3000
+pnpm build
 pnpm lint
 ```
 
-Copiez `.env.example` en `.env.local` et renseignez `RESEND_API_KEY`, `EMAIL_FROM` et `CONTACT_TO_EMAIL` pour activer le formulaire de contact.
+Créez ensuite votre compte sur `/account/inscription` avec une adresse listée dans `ADMIN_EMAILS` : il reçoit le rôle administrateur et accède à `/admin`.
 
-- `src/app/globals.css` : tokens du design system (thèmes clair et sombre), mapping Tailwind (`bg-flash`, `text-ink`, `rounded-lg`…) et variables shadcn/ui.
-- `src/lib/site-config.ts` : coordonnées (e-mail, téléphone, adresse), mentions légales, délais et frais. Ces valeurs seront gérées dans le dashboard admin.
-- `src/lib/landing-data.ts` : contenus de la landing (profils, étapes, FAQ, cours indicatifs).
-- `src/components/ui/` : logo, boutons, éléments financiers, décors (pièces, barres, éclair).
-- `src/components/landing/` : sections de la page d'accueil et animations GSAP au scroll.
+Sans `RESEND_API_KEY`, les e-mails (dont les codes de vérification) s'affichent dans la console du serveur.
+
+### Organisation
+
+- `/` et pages publiques : `src/app/(public)`. Contact, mentions légales, frais et délais viennent des réglages de l'admin.
+- `/account` : espace client (PWA, portée `/account/`). Connexion, inscription, confirmation de l'e-mail, code à chaque connexion, vérification d'identité, choix du profil, accueil, portefeuille, dépôt, retrait (code par e-mail), activité, notifications, réglages, comptes bancaires.
+- `/admin` : tableau de bord, clients, vérifications d'identité, rapprochement des dépôts, envoi des retraits, répartition des profils et rééquilibrage, réglages (société, coordonnées bancaires confirmées par code, frais et délais, contact, équipe), journal.
+- `src/lib/server/` : base (`db.ts`), authentification Better Auth (`auth.ts`), réglages, cours CoinGecko, logique de portefeuille, notifications (base + Web Push + e-mail), codes de confirmation, pièces d'identité (Cloudinary).
+- `prisma/schema.prisma` et `prisma/seed.ts`.
+- `public/account/` : manifeste, service worker, icônes et page hors ligne de la PWA.
+
+### Fonctionnement
+
+- **Valorisation** : chaque client détient des quantités de cryptos. La valeur affichée vaut quantité × cours CoinGecko (rafraîchi toutes les 2 minutes au plus, dernier cours connu conservé en cas d'indisponibilité).
+- **Dépôt** : le client annonce son virement, l'admin saisit le montant reçu (et le taux EUR → USD pour un virement en euros). Le montant est réparti selon le profil du client, aux cours du moment.
+- **Retrait** : confirmé par un code envoyé par e-mail. Le montant et les frais sont vendus proportionnellement sur chaque ligne, puis l'admin envoie le virement et le marque comme envoyé. Un retrait refusé est replacé sur le profil.
+- **Rééquilibrage** : en modifiant la répartition d'un profil, l'admin peut rééquilibrer tous les portefeuilles concernés. Un changement de profil par le client rééquilibre son portefeuille.
+- **Tâche planifiée** : `vercel.json` appelle `/api/cron/prices` chaque jour (avec `CRON_SECRET`) pour mettre à jour les cours et enregistrer la valeur quotidienne des portefeuilles.

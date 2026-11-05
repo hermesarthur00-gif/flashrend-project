@@ -1,5 +1,3 @@
-import { siteConfig } from "./site-config";
-
 export type CryptoSymbol = "BTC" | "ETH" | "BNB" | "DOGE" | "USDT" | "SOL";
 
 export type ProfileId = "careful" | "balanced" | "bold";
@@ -81,7 +79,7 @@ export const security = [
   { icon: "eye", title: "Tout est visible", text: "Solde, répartition et frais en temps réel dans l'app." },
 ] as const;
 
-export const faq = [
+export const getFaq = (siteConfig: { withdrawalDelay: string; fees: string }) => [
   {
     q: "Faut-il s'y connaître en crypto ?",
     a: "Non. Vous choisissez un profil, FlashInv s'occupe de la répartition et des ajustements. Vous suivez l'évolution depuis l'app.",

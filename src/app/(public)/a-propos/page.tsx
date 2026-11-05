@@ -88,7 +88,7 @@ export default function AboutPage() {
       <section className="mx-auto max-w-[1200px] px-4 pb-16 md:px-8 md:pb-24">
         <div data-reveal className="flex flex-col items-start gap-6 border-t border-line pt-10 md:flex-row md:items-end md:justify-between">
           <h2 className="text-h1 max-w-[18ch] md:text-display-lg">Prêt à faire travailler votre argent ?</h2>
-          <ButtonLink href="/inscription" size="lg">
+          <ButtonLink href="/account/inscription" size="lg">
             Ouvrir un compte <IconArrowRight size={20} {...iconProps} />
           </ButtonLink>
         </div>

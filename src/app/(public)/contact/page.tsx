@@ -4,14 +4,15 @@ import { PageHero } from "@/components/landing/page-shell";
 import { ContactForm } from "@/components/landing/contact-form";
 import { Stripes } from "@/components/ui/decor";
 import { IconBell, IconMapPin, IconPhone, IconShieldCheck, iconProps } from "@/components/ui/icons";
-import { siteConfig } from "@/lib/site-config";
+import { getPublicConfig } from "@/lib/server/public-config";
 
 export const metadata: Metadata = {
   title: "Contact",
   description: "Une question sur FlashInv ? Écrivez-nous.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const siteConfig = await getPublicConfig();
   return (
     <>
       <PageHero eyebrow="Contact" title="Parlons-en." lead="Une question sur FlashInv, votre compte ou un partenariat ? Écrivez-nous, on vous répond par e-mail." glyph="doge" />

@@ -1,8 +1,8 @@
 "use server";
 
 import { z } from "zod";
-import { emailFrom, escapeHtml, getResend } from "@/lib/email";
-import { siteConfig } from "@/lib/site-config";
+import { emailFrom, escapeHtml, getResend } from "@/lib/server/email";
+import { getSettings } from "@/lib/server/settings";
 import { CONTACT_SUBJECTS, type ContactState } from "@/lib/contact";
 
 
@@ -37,6 +37,7 @@ export async function sendContactMessage(_prev: ContactState, formData: FormData
     return { status: "error", message: "Vérifiez les champs signalés.", errors, values };
   }
 
+  const siteConfig = await getSettings();
   const resend = getResend();
   if (!resend) {
     console.error("[contact] RESEND_API_KEY manquante");

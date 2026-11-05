@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/landing/page-shell";
-import { siteConfig } from "@/lib/site-config";
+import { getPublicConfig } from "@/lib/server/public-config";
 
 export const metadata: Metadata = { title: "Mentions légales" };
 
-const { legal } = siteConfig;
-
-export default function LegalNoticePage() {
+export default async function LegalNoticePage() {
+  const siteConfig = await getPublicConfig();
+  const { legal } = siteConfig;
   return (
     <LegalPage
       eyebrow="Légal"
@@ -36,6 +36,11 @@ export default function LegalNoticePage() {
           id: "hebergement",
           title: "Hébergement",
           body: <p>{legal.host}</p>,
+        },
+        {
+          id: "mediation",
+          title: "Médiation de la consommation",
+          body: <p>En cas de litige non résolu avec notre service client, vous pouvez saisir gratuitement le médiateur : {legal.mediator}.</p>,
         },
         {
           id: "propriete",

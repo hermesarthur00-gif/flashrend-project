@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { AllocationDonut } from "@/components/ui/finance";
 import { FloatingGlyph, Stripes } from "@/components/ui/decor";
-import { profiles, type ProfileId } from "@/lib/landing-data";
+import { profiles, type CryptoSymbol, type ProfileId } from "@/lib/landing-data";
 import { cn } from "@/lib/utils";
 
 const ORDER: ProfileId[] = ["careful", "balanced", "bold"];
 
-export function Profiles() {
+export function Profiles({ allocations }: { allocations?: Record<ProfileId, { symbol: CryptoSymbol; value: number }[]> }) {
   const [id, setId] = useState<ProfileId>("balanced");
   const p = profiles[id];
+  const allocation = allocations?.[id] ?? p.allocation;
 
   function onKey(e: React.KeyboardEvent<HTMLDivElement>) {
     const i = ORDER.indexOf(id);
@@ -70,7 +71,7 @@ export function Profiles() {
 
         <div className="relative flex justify-center">
           <div className="w-full max-w-[460px] rounded-md border border-line bg-surface px-4 py-5 md:rounded-lg md:p-8">
-            <AllocationDonut items={p.allocation} size={180} />
+            <AllocationDonut items={allocation} size={180} />
           </div>
         </div>
         <p className="text-caption text-ink-muted md:hidden">Répartition indicative, ajustée par FlashInv selon le marché.</p>

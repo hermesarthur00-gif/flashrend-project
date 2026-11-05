@@ -27,7 +27,7 @@ export function Hero() {
               Vous choisissez un profil et un montant. FlashInv répartit votre argent sur les cryptos qui vous correspondent et suit tout pour vous.
             </p>
             <div className="flex flex-col gap-2 md:mt-2 md:flex-row md:flex-wrap">
-              <ButtonLink href="/inscription" variant="band" size="lg">
+              <ButtonLink href="/account/inscription" variant="band" size="lg">
                 Ouvrir un compte <IconArrowRight size={20} {...iconProps} />
               </ButtonLink>
               <ButtonLink href="#comment" variant="ghost" size="lg">

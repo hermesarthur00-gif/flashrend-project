@@ -63,10 +63,10 @@ export function SiteHeader() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1 lg:ml-0 lg:gap-2">
-            <ButtonLink href="/connexion" variant="ghost" className="hidden lg:inline-flex">
+            <ButtonLink href="/account/connexion" variant="ghost" className="hidden lg:inline-flex">
               Se connecter
             </ButtonLink>
-            <ButtonLink href="/inscription" variant="primary" size="sm" className="lg:h-11 lg:rounded-md lg:px-5 lg:text-[15px]">
+            <ButtonLink href="/account/inscription" variant="primary" size="sm" className="lg:h-11 lg:rounded-md lg:px-5 lg:text-[15px]">
               Ouvrir un compte
             </ButtonLink>
             <Button
@@ -98,7 +98,7 @@ export function SiteHeader() {
                 {l.label}
               </Link>
             ))}
-            <ButtonLink href="/connexion" variant="secondary" block className="mt-2">
+            <ButtonLink href="/account/connexion" variant="secondary" block className="mt-2">
               Se connecter
             </ButtonLink>
           </nav>

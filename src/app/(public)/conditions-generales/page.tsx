@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage } from "@/components/landing/page-shell";
-import { siteConfig } from "@/lib/site-config";
+import { getPublicConfig } from "@/lib/server/public-config";
 
 export const metadata: Metadata = { title: "Conditions générales" };
 
-const { legal } = siteConfig;
-
-export default function TermsPage() {
+export default async function TermsPage() {
+  const siteConfig = await getPublicConfig();
+  const { legal } = siteConfig;
   return (
     <LegalPage
       eyebrow="Légal"
