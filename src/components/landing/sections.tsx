@@ -1,10 +1,11 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 import { ButtonLink } from "@/components/ui/button";
-import { CryptoIcon, PriceChange } from "@/components/ui/finance";
+import { ASSETS, CryptoIcon, PriceChange } from "@/components/ui/finance";
 import { BoltWatermark, Coin, FloatingGlyph, Stripes } from "@/components/ui/decor";
-import { IconArrowRight, IconBuildingBank, IconCamera, IconCircleCheck, IconEye, IconId, IconShieldCheck, iconProps } from "@/components/ui/icons";
-import { faq, security, steps, ticker } from "@/lib/landing-data";
+import { IconArrowRight, IconBuildingBank, IconCircleCheck, IconEye, IconId, IconShieldCheck, iconProps } from "@/components/ui/icons";
+import { faq, profiles, security, steps, ticker } from "@/lib/landing-data";
 import { navLinks, siteConfig } from "@/lib/site-config";
 import { formatUSD } from "@/lib/utils";
 
@@ -81,16 +82,42 @@ export function HowItWorks() {
         <p className="text-ink-muted md:text-body-lg md:max-w-[36ch]">
           Pas de jargon, pas de graphiques à surveiller. Vous décidez du niveau de risque, on s&apos;occupe du reste.
         </p>
-        {/* Emplacement photo */}
+        {/* Visuel : confirmation d'un investissement */}
         <div className="relative mt-4 mr-3 mb-6 md:mt-6 md:mr-0 md:mb-0">
           <div className="absolute inset-[16px_-12px_-12px_16px] rounded-lg bg-flash md:inset-[24px_-16px_-16px_24px] md:rounded-xl" />
-          <div className="relative flex aspect-[4/3] flex-col justify-end gap-1.5 rounded-lg border border-line bg-surface-sunken p-4 md:aspect-[4/5] md:rounded-xl md:p-6">
-            <IconCamera size={24} {...iconProps} />
-            <p className="text-caption max-w-[32ch] text-ink-muted">
-              [PHOTO] Jeune femme qui consulte l&apos;app sur son téléphone, lumière naturelle, couleurs chaudes, une touche de jaune dans le décor.
-            </p>
+          <div
+            role="img"
+            aria-label="Écran de l'app : investissement de 250 dollars confirmé sur le profil équilibré"
+            className="relative flex h-[500px] items-end justify-center overflow-hidden rounded-lg bg-band px-6 pt-10 md:h-auto md:aspect-[4/5] md:rounded-xl"
+          >
+            <Stripes count={5} height={120} color="var(--flash)" className="absolute top-6 left-6" />
+            <div className="relative w-[250px] rounded-t-[34px] bg-[#111110] px-2 pt-2 shadow-float md:w-[280px]">
+              <div className="flex flex-col items-center gap-3 rounded-t-[27px] bg-surface px-4 pt-6 pb-5 text-center">
+                <span className="grid size-14 place-items-center rounded-full bg-up-soft text-up">
+                  <IconCircleCheck size={30} {...iconProps} />
+                </span>
+                <span className="text-sm font-bold">Investissement confirmé</span>
+                <span className="text-[34px] leading-10 font-bold tracking-tight tabular-nums">250,00 $</span>
+                <span className="rounded-xs bg-flash-soft px-2 py-0.5 text-xs font-semibold text-flash-text">Profil équilibré · risque 3/5</span>
+                <div className="mt-1 w-full text-left">
+                  {profiles.balanced.allocation.map((a) => (
+                    <div key={a.symbol} className="flex items-center gap-2 border-t border-line py-2 text-xs">
+                      <CryptoIcon symbol={a.symbol} size={22} />
+                      <span className="flex-1 font-semibold">{ASSETS[a.symbol].name}</span>
+                      <span className="h-1.5 w-14 overflow-hidden rounded-full bg-surface-sunken">
+                        <span className="block h-full rounded-full" style={{ width: `${a.value}%`, background: ASSETS[a.symbol].color }} />
+                      </span>
+                      <span className="w-8 text-right font-semibold tabular-nums">{a.value}&nbsp;%</span>
+                    </div>
+                  ))}
+                </div>
+                <span className="mt-1 flex h-11 w-full items-center justify-center rounded-md bg-flash text-sm font-semibold text-on-flash">Voir mon portefeuille</span>
+              </div>
+            </div>
           </div>
           <FloatingGlyph name="btc" size={96} rotate={10} className="-top-8 -right-5 size-[72px] md:-top-10 md:-right-10 md:size-24" />
+          <FloatingGlyph name="eth" size={80} rotate={-14} className="bottom-24 -left-6 size-16 md:-left-10 md:size-20" />
+          <Coin tone="yellow" size={64} tilt={48} spin={-16} className="absolute top-10 right-10 hidden md:block" />
         </div>
       </div>
 
@@ -259,21 +286,22 @@ export function SiteFooter() {
           <nav aria-label="Produit" className="flex flex-col gap-2.5 text-sm">
             <span className="text-overline text-flash">Produit</span>
             {navLinks.slice(0, 3).map((l) => (
-              <a key={l.href} href={l.href} className="text-on-band no-underline hover:text-flash">
+              <Link key={l.href} href={l.href} className="text-on-band no-underline hover:text-flash">
                 {l.label}
-              </a>
+              </Link>
             ))}
           </nav>
           <nav aria-label="Entreprise" className="flex flex-col gap-2.5 text-sm">
             <span className="text-overline text-flash">Entreprise</span>
-            <a href="/a-propos" className="text-on-band no-underline hover:text-flash">À propos</a>
-            <a href={`mailto:${siteConfig.contactEmail}`} className="text-on-band no-underline hover:text-flash">Contact</a>
+            <Link href="/a-propos" className="text-on-band no-underline hover:text-flash">À propos</Link>
+            <Link href="/contact" className="text-on-band no-underline hover:text-flash">Contact</Link>
           </nav>
           <nav aria-label="Légal" className="flex flex-col gap-2.5 text-sm">
             <span className="text-overline text-flash">Légal</span>
-            <a href="/conditions-generales" className="text-on-band no-underline hover:text-flash">Conditions générales</a>
-            <a href="/confidentialite" className="text-on-band no-underline hover:text-flash">Confidentialité</a>
-            <a href="/risques" className="text-on-band no-underline hover:text-flash">Avertissement sur les risques</a>
+            <Link href="/conditions-generales" className="text-on-band no-underline hover:text-flash">Conditions générales</Link>
+            <Link href="/confidentialite" className="text-on-band no-underline hover:text-flash">Confidentialité</Link>
+            <Link href="/risques" className="text-on-band no-underline hover:text-flash">Avertissement sur les risques</Link>
+            <Link href="/mentions-legales" className="text-on-band no-underline hover:text-flash">Mentions légales</Link>
           </nav>
         </div>
         <p aria-hidden="true" className="m-0 font-display text-[96px] leading-[.8] tracking-[-0.04em] text-on-band/7 md:text-[200px]">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { IconMenu2, IconX, iconProps } from "@/components/ui/icons";
@@ -12,14 +13,14 @@ export function SiteHeader() {
   return (
     <header className="relative z-20">
       <div className="mx-auto flex max-w-[1200px] items-center gap-10 px-4 py-3 md:px-8 md:py-5">
-        <a href="#top" aria-label="FlashInv, accueil" className="flex">
+        <Link href="/" aria-label="FlashInv, accueil" className="flex">
           <Logo size={30} />
-        </a>
+        </Link>
         <nav aria-label="Navigation du site" className="hidden flex-1 gap-7 text-[15px] font-semibold lg:flex">
           {navLinks.map((l) => (
-            <a key={l.href} href={l.href} className="text-ink no-underline hover:text-ink-muted">
+            <Link key={l.href} href={l.href} className="text-ink no-underline hover:text-ink-muted">
               {l.label}
-            </a>
+            </Link>
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-1 lg:ml-0 lg:gap-2">
@@ -49,14 +50,14 @@ export function SiteHeader() {
           className="absolute inset-x-0 top-full flex flex-col border-y border-line bg-surface-raised px-4 pt-2 pb-4 shadow-overlay lg:hidden"
         >
           {navLinks.map((l) => (
-            <a
+            <Link
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
               className="border-b border-line py-3.5 text-lg font-bold text-ink no-underline last-of-type:border-b-0"
             >
               {l.label}
-            </a>
+            </Link>
           ))}
           <ButtonLink href="/connexion" variant="secondary" block className="mt-2">
             Se connecter

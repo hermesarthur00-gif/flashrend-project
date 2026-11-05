@@ -51,6 +51,7 @@ export function ScrollAnimations({ children }: { children: React.ReactNode }) {
         });
 
         // Hero : entrée orchestrée au chargement
+        if (!root.current?.querySelector("[data-hero-copy]")) return;
         const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
         tl.from("[data-hero-copy] > *", { y: 28, opacity: 0, duration: 0.6, stagger: 0.08 })
           .from("[data-hero-phone]", { y: 60, opacity: 0, duration: 0.8, stagger: 0.12 }, "-=0.4")

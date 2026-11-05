@@ -2,7 +2,6 @@ export {
   IconArrowRight,
   IconBell,
   IconBuildingBank,
-  IconCamera,
   IconCircleCheck,
   IconEye,
   IconId,

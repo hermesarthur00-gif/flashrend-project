@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
@@ -29,8 +30,8 @@ export function Button({ className, variant, size, block, type = "button", ...pr
   return <button type={type} className={cn(buttonVariants({ variant, size, block }), className)} {...props} />;
 }
 
-type ButtonLinkProps = React.ComponentProps<"a"> & VariantProps<typeof buttonVariants>;
+type ButtonLinkProps = React.ComponentProps<typeof Link> & VariantProps<typeof buttonVariants>;
 
 export function ButtonLink({ className, variant, size, block, ...props }: ButtonLinkProps) {
-  return <a className={cn(buttonVariants({ variant, size, block }), className)} {...props} />;
+  return <Link className={cn(buttonVariants({ variant, size, block }), className)} {...props} />;
 }
