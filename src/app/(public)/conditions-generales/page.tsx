@@ -19,7 +19,7 @@ export default function TermsPage() {
           title: "Objet",
           body: (
             <p>
-              Les présentes conditions générales régissent l&apos;accès et l&apos;utilisation du site flashinv.com et de l&apos;application FlashInv, édités par {legal.companyName}, {legal.legalForm}, dont le siège est situé {legal.address} (« FlashInv »). En créant un compte, vous les acceptez sans réserve.
+              Les présentes conditions générales régissent l&apos;accès et l&apos;utilisation du site flashinv.com et de l&apos;application FlashInv, édités par {legal.companyName}, {legal.legalForm} au capital de {legal.shareCapital}, immatriculée au {legal.registration}, dont le siège est situé {legal.address} (« FlashInv »). En créant un compte, vous les acceptez sans réserve.
             </p>
           ),
         },
@@ -89,7 +89,7 @@ export default function TermsPage() {
           body: (
             <p>
               Le client est responsable de la confidentialité de ses identifiants et codes. FlashInv ne les demandera jamais par e-mail, téléphone ou message. Toute opération suspecte doit être signalée sans délai à{" "}
-              <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>.
+              <a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a>.
             </p>
           ),
         },
@@ -101,7 +101,7 @@ export default function TermsPage() {
         {
           id: "droit",
           title: "Droit applicable",
-          body: <p>Les présentes conditions sont soumises au droit [PAYS]. En cas de litige, une solution amiable sera recherchée avant toute action devant les juridictions compétentes de [VILLE].</p>,
+          body: <p>Les présentes conditions sont soumises au droit français. En cas de litige, le client peut contacter FlashInv pour rechercher une solution amiable, puis recourir gratuitement à un médiateur de la consommation : [NOM ET COORDONNÉES DU MÉDIATEUR]. À défaut d&apos;accord, les tribunaux français sont compétents.</p>,
         },
       ]}
     />

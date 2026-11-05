@@ -16,7 +16,7 @@ export default function PrivacyPage() {
           title: "Responsable du traitement",
           body: (
             <p>
-              Les données personnelles sont traitées par {siteConfig.legal.companyName}, {siteConfig.legal.address}. Pour toute question : <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>.
+              Les données personnelles sont traitées par {siteConfig.legal.companyName}, {siteConfig.legal.address}. Pour toute question : <a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a>.
             </p>
           ),
         },
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
           title: "Avec qui nous les partageons",
           body: (
             <p>
-              Vos données ne sont jamais vendues. Elles sont partagées uniquement avec nos prestataires techniques (hébergement, vérification d&apos;identité, envoi d&apos;e-mails, stockage de fichiers), nos partenaires bancaires et les autorités lorsque la loi l&apos;exige. Chaque prestataire est tenu à la confidentialité.
+              Vos données ne sont jamais vendues. Elles sont partagées uniquement avec nos prestataires techniques (hébergement, vérification d&apos;identité, envoi d&apos;e-mails avec Resend, stockage de fichiers), nos partenaires bancaires et les autorités lorsque la loi l&apos;exige. Chaque prestataire est tenu à la confidentialité.
             </p>
           ),
         },
@@ -64,9 +64,12 @@ export default function PrivacyPage() {
           title: "Vos droits",
           body: (
             <>
-              <p>Vous pouvez à tout moment accéder à vos données, les faire rectifier ou supprimer, vous opposer à certains traitements ou demander leur portabilité, dans les limites prévues par la loi.</p>
+              <p>Conformément au Règlement général sur la protection des données (RGPD) et à la loi Informatique et Libertés, vous pouvez accéder à vos données, les faire rectifier ou effacer, limiter ou vous opposer à certains traitements, et demander leur portabilité, dans les limites prévues par la loi.</p>
               <p>
-                Écrivez-nous à <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a> en précisant votre demande. Une pièce d&apos;identité pourra vous être demandée.
+                Écrivez-nous à <a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a> en précisant votre demande. Une pièce d&apos;identité pourra vous être demandée. Nous répondons sous un mois.
+              </p>
+              <p>
+                Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (<a href="https://www.cnil.fr" target="_blank" rel="noreferrer">cnil.fr</a>).
               </p>
             </>
           ),

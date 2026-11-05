@@ -28,6 +28,10 @@ Version interactive : https://claude.ai/artifact/CwLeYWz8c2FBXiqD19GSMj
 
 Next.js, Tailwind CSS, shadcn/ui, GSAP, Better Auth, Prisma, Neon PostgreSQL, Cloudinary. Gestionnaire de paquets : pnpm.
 
+- **E-mails** (contact et transactionnels) : Resend.
+- **Notifications internes** : Sonner (composant shadcn/ui).
+- **Notifications de l'app** : Web Push (PWA).
+
 ## Développement
 
 ```bash
@@ -37,8 +41,10 @@ pnpm build      # build de production
 pnpm lint
 ```
 
+Copiez `.env.example` en `.env.local` et renseignez `RESEND_API_KEY`, `EMAIL_FROM` et `CONTACT_TO_EMAIL` pour activer le formulaire de contact.
+
 - `src/app/globals.css` : tokens du design system (thèmes clair et sombre), mapping Tailwind (`bg-flash`, `text-ink`, `rounded-lg`…) et variables shadcn/ui.
-- `src/lib/site-config.ts` : e-mail de contact, délais et frais. Ces valeurs passeront dans les réglages de l'admin.
+- `src/lib/site-config.ts` : coordonnées (e-mail, téléphone, adresse), mentions légales, délais et frais. Ces valeurs seront gérées dans le dashboard admin.
 - `src/lib/landing-data.ts` : contenus de la landing (profils, étapes, FAQ, cours indicatifs).
 - `src/components/ui/` : logo, boutons, éléments financiers, décors (pièces, barres, éclair).
 - `src/components/landing/` : sections de la page d'accueil et animations GSAP au scroll.

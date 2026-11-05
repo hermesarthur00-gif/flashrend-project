@@ -5,6 +5,8 @@ export {
   IconCircleCheck,
   IconEye,
   IconId,
+  IconMapPin,
+  IconPhone,
   IconMenu2,
   IconShieldCheck,
   IconX,

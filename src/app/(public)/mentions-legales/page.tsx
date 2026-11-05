@@ -18,11 +18,12 @@ export default function LegalNoticePage() {
           body: (
             <ul>
               <li><strong>Raison sociale</strong> : {legal.companyName}</li>
-              <li><strong>Forme juridique</strong> : {legal.legalForm}</li>
+              <li><strong>Forme juridique</strong> : {legal.legalForm} au capital de {legal.shareCapital}</li>
               <li><strong>Siège social</strong> : {legal.address}</li>
               <li><strong>Immatriculation</strong> : {legal.registration}</li>
-              <li><strong>Identifiant fiscal</strong> : {legal.taxId}</li>
-              <li><strong>Contact</strong> : <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a></li>
+              <li><strong>TVA intracommunautaire</strong> : {legal.vatNumber}</li>
+              <li><strong>E-mail</strong> : <a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a></li>
+              <li><strong>Téléphone</strong> : {siteConfig.contact.phone}</li>
             </ul>
           ),
         },

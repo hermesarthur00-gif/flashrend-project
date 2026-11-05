@@ -199,7 +199,7 @@
 @utility text-amount-sm { font-family: var(--font-sans); font-size: 13px; line-height: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 @layer base {
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scroll-padding-top: 96px; }
   body { background: var(--surface); color: var(--ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   ::selection { background: var(--flash); color: var(--on-flash); }

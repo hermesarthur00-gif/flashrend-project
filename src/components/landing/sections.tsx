@@ -209,8 +209,8 @@ export function Faq() {
         <h2 className="relative text-h1 md:text-display-lg">Vos questions</h2>
         <p className="relative hidden text-ink-muted md:block">
           Une autre question ? Écrivez-nous depuis l&apos;app ou à{" "}
-          <a href={`mailto:${siteConfig.contactEmail}`} className="font-semibold text-ink underline underline-offset-2">
-            {siteConfig.contactEmail}
+          <a href={`mailto:${siteConfig.contact.email}`} className="font-semibold text-ink underline underline-offset-2">
+            {siteConfig.contact.email}
           </a>
           .
         </p>
@@ -234,8 +234,8 @@ export function Faq() {
         <div className="border-t border-line" />
         <p className="mt-4 text-body-sm text-ink-muted md:hidden">
           Une autre question ? Écrivez-nous depuis l&apos;app ou à{" "}
-          <a href={`mailto:${siteConfig.contactEmail}`} className="font-semibold text-ink underline underline-offset-2">
-            {siteConfig.contactEmail}
+          <a href={`mailto:${siteConfig.contact.email}`} className="font-semibold text-ink underline underline-offset-2">
+            {siteConfig.contact.email}
           </a>
           .
         </p>

@@ -57,7 +57,7 @@ export default function RisksPage() {
                 <li>d&apos;installer un logiciel de prise en main à distance.</li>
               </ul>
               <p>
-                En cas de doute, ne faites rien et écrivez-nous à <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>.
+                En cas de doute, ne faites rien et écrivez-nous à <a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a>.
               </p>
             </>
           ),
