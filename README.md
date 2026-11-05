@@ -5,8 +5,10 @@ FlashInv (flashinv.com) investit l'argent de ses clients en crypto. Le client ch
 ## État
 
 - [x] Logo et design system
-- [ ] Écrans : site public, app, admin
-- [ ] Développement
+- [x] Écrans du site public
+- [x] Développement du site public
+- [ ] Écrans : app, admin
+- [ ] Développement : app, admin
 
 ## Design system
 
@@ -25,3 +27,18 @@ Version interactive : https://claude.ai/artifact/CwLeYWz8c2FBXiqD19GSMj
 ## Stack prévue
 
 Next.js, Tailwind CSS, shadcn/ui, GSAP, Better Auth, Prisma, Neon PostgreSQL, Cloudinary. Gestionnaire de paquets : pnpm.
+
+## Développement
+
+```bash
+pnpm install
+pnpm dev        # http://localhost:3000
+pnpm build      # build de production
+pnpm lint
+```
+
+- `src/app/globals.css` : tokens du design system (thèmes clair et sombre), mapping Tailwind (`bg-flash`, `text-ink`, `rounded-lg`…) et variables shadcn/ui.
+- `src/lib/site-config.ts` : e-mail de contact, délais et frais. Ces valeurs passeront dans les réglages de l'admin.
+- `src/lib/landing-data.ts` : contenus de la landing (profils, étapes, FAQ, cours indicatifs).
+- `src/components/ui/` : logo, boutons, éléments financiers, décors (pièces, barres, éclair).
+- `src/components/landing/` : sections de la page d'accueil et animations GSAP au scroll.
