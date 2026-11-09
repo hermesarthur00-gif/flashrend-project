@@ -14,7 +14,7 @@ export function AdminHead({ title, sub, actions }: { title: string; sub?: React.
   );
 }
 
-export function Kpi({ label, value, sub, tone, href }: { label: string; value: string; sub?: string; tone?: "up" | "warn" | "down"; href?: string }) {
+export function Kpi({ label, value, sub, tone, href }: { label: string; value: React.ReactNode; sub?: React.ReactNode; tone?: "up" | "warn" | "down"; href?: string }) {
   const inner = (
     <>
       <span className="text-caption text-ink-muted">{label}</span>

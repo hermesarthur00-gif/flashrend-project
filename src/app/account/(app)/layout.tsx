@@ -7,6 +7,7 @@ import { PageSkeleton, Skeleton } from "@/components/app/primitives";
 import { requireUser } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
 import { PROFILE_LABELS } from "@/lib/utils";
+import { LiveRoot } from "@/components/live/live-root";
 
 async function SidebarUser() {
   const user = await requireUser();
@@ -48,7 +49,9 @@ export default function AppLayout({ children }: LayoutProps<"/account">) {
         </Suspense>
       </aside>
       <div className="min-w-0 flex-1 pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0">
-        <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
+        <Suspense fallback={<PageSkeleton />}>
+          <LiveRoot>{children}</LiveRoot>
+        </Suspense>
       </div>
       <Suspense fallback={<BottomNavView pathname="" />}>
         <BottomNav />

@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
-import { priceMap, rebalanceUser } from "@/lib/server/portfolio";
+import { executionPrices, rebalanceUser } from "@/lib/server/portfolio";
 import { notify } from "@/lib/server/notify";
 import type { ProfileId } from "@/generated/prisma/client";
 import { PROFILE_LABELS } from "@/lib/utils";
@@ -14,7 +14,7 @@ export async function chooseProfile(profile: ProfileId) {
   if (user.profile === profile) redirect("/account");
 
   const first = !user.profile;
-  const pm = await priceMap();
+  const pm = await executionPrices();
   const moved = await db.$transaction(async (tx) => {
     await tx.user.update({ where: { id: user.id }, data: { profile, profileSetAt: new Date() } });
     const value = first ? 0 : await rebalanceUser(tx, user.id, profile, pm);

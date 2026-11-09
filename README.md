@@ -65,8 +65,10 @@ Sans `RESEND_API_KEY`, les e-mails (dont les codes de vérification) s'affichent
 
 ### Fonctionnement
 
-- **Valorisation** : chaque client détient des quantités de cryptos. La valeur affichée vaut quantité × cours CoinGecko (rafraîchi toutes les 2 minutes au plus, dernier cours connu conservé en cas d'indisponibilité).
-- **Dépôt** : le client annonce son virement, l'admin saisit le montant reçu (et le taux EUR → USD pour un virement en euros). Le montant est réparti selon le profil du client, aux cours du moment.
-- **Retrait** : confirmé par un code envoyé par e-mail. Le montant et les frais sont vendus proportionnellement sur chaque ligne, puis l'admin envoie le virement et le marque comme envoyé. Un retrait refusé est replacé sur le profil.
-- **Rééquilibrage** : en modifiant la répartition d'un profil, l'admin peut rééquilibrer tous les portefeuilles concernés. Un changement de profil par le client rééquilibre son portefeuille.
+- **Dépôt** : le client choisit virement classique ou instantané (délais réglables dans l'admin), fait le virement, puis déclare le montant avec la preuve. Les admins reçoivent un e-mail ; un admin vérifie la réception, corrige le montant si besoin (et le taux EUR → USD), puis crédite ou refuse. Le **solde disponible** du client, tenu en dollars, est crédité.
+- **Investissement** : le client investit tout ou partie de son solde disponible ; le montant est réparti selon son profil, aux cours en direct. **Désinvestir** revend un montant (proportionnellement sur chaque crypto) vers le solde disponible.
+- **Retrait** : depuis le solde disponible uniquement, confirmé par un code envoyé par e-mail. L'admin envoie le virement et le marque comme envoyé ; un retrait refusé est rendu au solde disponible.
+- **Temps réel** : les cours viennent du flux public de Binance (chaque seconde, sans clé), avec CoinGecko puis les derniers cours connus en secours. Les courbes 24 h sont reconstituées à partir des cours ; 7 j, 1 m et 3 m s'appuient sur le relevé quotidien des portefeuilles.
+- **Rééquilibrage** : en modifiant la répartition d'un profil, l'admin peut rééquilibrer tous les portefeuilles concernés. Un changement de profil par le client rééquilibre ses investissements.
+- **Migrations** : `pnpm build` applique les migrations Prisma (`prisma migrate deploy`) avant le build, donc à chaque déploiement Vercel. Si `DATABASE_URL` passe par le pooler Neon, ajoutez `DIRECT_URL` (connexion directe) pour les migrations.
 - **Tâche planifiée** : `vercel.json` appelle `/api/cron/prices` chaque jour (avec `CRON_SECRET`) pour mettre à jour les cours et enregistrer la valeur quotidienne des portefeuilles.

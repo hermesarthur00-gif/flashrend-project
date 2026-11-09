@@ -12,6 +12,7 @@ const SECTIONS = [
   { id: "clients", label: "Clients" },
   { id: "verifications", label: "Vérifications" },
   { id: "depots", label: "Dépôts" },
+  { id: "investissements", label: "Investissements" },
   { id: "retraits", label: "Retraits" },
   { id: "profils", label: "Profils" },
   { id: "reglages", label: "Réglages" },
@@ -88,13 +89,13 @@ export default async function GuidePage() {
           <Section id="tableau-de-bord" n={2} title="Tableau de bord" href="/admin" intro="La vue d'ensemble : ce que FlashInv gère et ce qui attend une action.">
             <Sub title="Les indicateurs">
               <ul>
-                <li><strong>Encours total</strong> : valeur de toutes les cryptos détenues par les clients, aux cours actuels.</li>
+                <li><strong>Encours total</strong> : valeur en direct des cryptos des clients, plus leurs soldes disponibles non investis.</li>
                 <li><strong>Clients actifs</strong> : clients dont l&apos;identité est validée et qui ne sont pas bannis, avec le nombre d&apos;inscrits du mois.</li>
-                <li><strong>Vérifications à faire</strong>, <strong>Dépôts à rapprocher</strong>, <strong>Retraits à envoyer</strong> : un clic ouvre l&apos;onglet concerné.</li>
+                <li><strong>Vérifications à faire</strong>, <strong>Dépôts à vérifier</strong>, <strong>Retraits à envoyer</strong> : un clic ouvre l&apos;onglet concerné.</li>
               </ul>
             </Sub>
             <Sub title="La courbe et les listes">
-              <p>La courbe « Encours sous gestion » se remplit jour après jour, grâce à une tâche planifiée qui relève chaque jour la valeur des portefeuilles. Sous la courbe, les 5 plus anciens dépôts et retraits en attente donnent un accès direct à leur traitement.</p>
+              <p>La courbe « Encours investi » montre les dernières 24 h à partir des cours, puis 7 jours, 1 mois et 3 mois grâce au relevé quotidien de la valeur des portefeuilles. Son dernier point bouge en direct. Sous la courbe, les 5 plus anciens dépôts et retraits en attente donnent un accès direct à leur traitement.</p>
             </Sub>
           </Section>
 
@@ -108,7 +109,7 @@ export default async function GuidePage() {
               </ul>
             </Sub>
             <Sub title="La fiche client">
-              <p>Bouton <strong>Ouvrir</strong> sur une ligne. La fiche montre le solde et le gain, le montant net déposé, les opérations en attente, chaque position (quantité, cours, valeur), l&apos;historique des opérations, l&apos;identité déclarée, le profil, les comptes bancaires et l&apos;activité de connexion.</p>
+              <p>Bouton <strong>Ouvrir</strong> sur une ligne. La fiche montre le solde disponible, la valeur investie et son gain (en direct), les opérations en attente, chaque position (quantité, cours, valeur), l&apos;historique des opérations, l&apos;identité déclarée, le profil, les comptes bancaires et l&apos;activité de connexion.</p>
             </Sub>
             <Sub title="Changer le rôle">
               <ol>
@@ -137,7 +138,7 @@ export default async function GuidePage() {
               </ul>
             </Sub>
             <Alert tone="warning" title="Suppression définitive">
-              Elle est impossible tant que le client a un solde ou une opération en attente : il doit d&apos;abord tout retirer. Une fois faite, rien ne peut être récupéré.
+              Elle est impossible tant que le client a un solde (disponible ou investi) ou une opération en attente : il doit d&apos;abord tout retirer. Une fois faite, rien ne peut être récupéré.
             </Alert>
           </Section>
 
@@ -160,35 +161,51 @@ export default async function GuidePage() {
             </Sub>
           </Section>
 
-          <Section id="depots" n={5} title="Dépôts" href="/admin/depots" intro="Les clients déposent par virement bancaire sur le compte FlashInv. L'admin rapproche chaque virement reçu avec le dépôt annoncé, et le montant est placé automatiquement.">
+          <Section id="depots" n={5} title="Dépôts" href="/admin/depots" intro="Le client dépose par virement, puis déclare son dépôt avec la preuve. L'admin vérifie la réception sur le compte FlashInv et crédite le solde disponible du client, ou refuse. Rien n'est investi à cette étape.">
             <Sub title="Comment un dépôt arrive">
-              <p>Le client choisit la devise (USD ou EUR), voit les coordonnées bancaires de FlashInv et sa référence personnelle (ex. FI-48210), fait le virement depuis sa banque puis clique sur « J&apos;ai fait le virement ». Le dépôt apparaît alors dans l&apos;onglet À rapprocher.</p>
-            </Sub>
-            <Sub title="Rapprocher un virement reçu">
               <ol>
-                <li>Sur votre relevé bancaire, repérez le virement et sa référence.</li>
-                <li>Dans À rapprocher, cliquez sur la ligne du client qui a cette référence.</li>
-                <li>Saisissez le montant réellement reçu, et pour un virement en euros le taux EUR → USD appliqué (prérempli avec le taux par défaut des Réglages).</li>
-                <li>Vérifiez la date de réception, puis cliquez sur Confirmer la réception.</li>
+                <li>Le client choisit virement classique ou instantané (chacun avec son délai affiché, réglable dans Réglages, Frais et délais) et la devise, USD ou EUR.</li>
+                <li>Il fait le virement vers le compte FlashInv avec sa référence personnelle (ex. FI-48210).</li>
+                <li>Il déclare le montant viré et joint la preuve (capture ou PDF de l&apos;ordre de virement).</li>
               </ol>
-              <p>Le montant est converti en dollars si besoin, puis réparti sur les cryptos du profil du client, aux cours du moment.</p>
-              <Client>notification et e-mail « Virement reçu et placé ». Les cryptos apparaissent dans son portefeuille.</Client>
+              <p>Tous les administrateurs reçoivent un e-mail « Nouveau dépôt à vérifier » avec un lien direct. Le dépôt apparaît dans l&apos;onglet À vérifier. Le client voit un message d&apos;attente avec le délai indicatif.</p>
             </Sub>
-            <Sub title="Virement reçu sans annonce">
-              <p>Sans ligne sélectionnée, le panneau de droite permet d&apos;enregistrer un virement que le client n&apos;a pas annoncé : référence du client, devise, montant et taux. Le placement est fait de la même façon.</p>
+            <Sub title="Vérifier et créditer">
+              <ol>
+                <li>Dans À vérifier, cliquez sur la ligne du dépôt. Le panneau affiche le mode, le montant déclaré et la preuve (cliquez pour l&apos;agrandir).</li>
+                <li>Contrôlez sur le relevé bancaire de FlashInv que le virement est bien arrivé, avec la bonne référence et un compte émetteur au nom du client.</li>
+                <li>Le montant reçu est prérempli avec le montant déclaré : corrigez-le s&apos;il diffère (frais bancaires). Pour un virement en euros, vérifiez le taux EUR → USD.</li>
+                <li>Cliquez sur Confirmer et créditer.</li>
+              </ol>
+              <Client>son solde disponible est crédité en dollars. Il reçoit une notification et un e-mail « Votre compte est crédité », avec le montant réellement reçu s&apos;il diffère du montant déclaré. Il peut alors investir.</Client>
             </Sub>
-            <Sub title="Refuser ou signaler un écart">
-              <p>Signaler un écart ou refuser, indiquez la raison (visible par le client), puis Refuser le dépôt. Rien n&apos;est placé.</p>
-              <Client>notification et e-mail « Virement non accepté » avec la raison.</Client>
+            <Sub title="Refuser">
+              <p>Refuser le dépôt, indiquez la raison (visible par le client), puis confirmez. Rien n&apos;est crédité.</p>
+              <Client>notification et e-mail « Dépôt refusé » avec la raison.</Client>
             </Sub>
-            <Alert tone="warning" title="Avant de confirmer">
-              Vérifiez que la référence correspond, que le compte émetteur est au nom du client et que le montant saisi est celui réellement reçu (après frais bancaires). Un placement confirmé ne s&apos;annule pas depuis l&apos;admin. Un client sans profil choisi ne peut pas être placé.
+            <Sub title="Virement reçu sans déclaration">
+              <p>Sans ligne sélectionnée, le panneau de droite permet d&apos;enregistrer un virement reçu que le client n&apos;a pas déclaré : référence du client, devise, montant et taux. Le solde du client est crédité de la même façon.</p>
+            </Sub>
+            <Alert tone="warning" title="Ne créditez qu'un virement réellement reçu">
+              La preuve envoyée par le client ne suffit pas : seule la réception sur le compte FlashInv compte. Un crédit confirmé ne s&apos;annule pas depuis l&apos;admin. Chaque consultation de preuve est notée au Journal.
             </Alert>
           </Section>
 
-          <Section id="retraits" n={6} title="Retraits" href="/admin/retraits" intro="Le client demande un retrait dans l'app et le confirme avec un code reçu par e-mail. L'admin envoie le virement puis le marque comme envoyé.">
+          <Section id="investissements" n={6} title="Investissements (côté client)" intro="Les clients investissent eux-mêmes leur solde disponible. Aucune action de l'admin n'est nécessaire, mais il est utile de savoir comment cela fonctionne.">
+            <Sub title="Investir">
+              <p>Le client choisit un montant (minimum réglable dans Réglages, Frais et délais). Il est réparti selon la répartition de son profil, aux cours en direct du moment, et débité de son solde disponible.</p>
+            </Sub>
+            <Sub title="Désinvestir">
+              <p>Le client revend un montant de ses investissements, en proportion de chaque crypto, aux cours du moment. Le montant rejoint son solde disponible, d&apos;où il peut le retirer ou le réinvestir.</p>
+            </Sub>
+            <Sub title="Valeurs en temps réel">
+              <p>Les cours affichés dans l&apos;app et dans l&apos;admin se mettent à jour chaque seconde (flèche verte en hausse, rouge en baisse). La pastille « En direct » indique que le flux est connecté ; sinon les cours sont actualisés toutes les 30 secondes.</p>
+            </Sub>
+          </Section>
+
+          <Section id="retraits" n={7} title="Retraits" href="/admin/retraits" intro="Le client retire depuis son solde disponible uniquement, et confirme avec un code reçu par e-mail. L'admin envoie le virement puis le marque comme envoyé.">
             <Sub title="Ce qui se passe à la demande">
-              <p>Dès la confirmation par code, le montant et les frais de retrait sont vendus sur le portefeuille du client, sur chaque crypto en proportion. Le montant à virer est donc figé : il ne bouge plus avec les cours.</p>
+              <p>Dès la confirmation par code, le montant et les frais de retrait sont débités du solde disponible du client. Pour retirer de l&apos;argent investi, le client doit d&apos;abord désinvestir.</p>
             </Sub>
             <Sub title="Envoyer un retrait">
               <ol>
@@ -200,22 +217,19 @@ export default async function GuidePage() {
               <Client>notification et e-mail « Retrait envoyé ».</Client>
             </Sub>
             <Sub title="Refuser un retrait">
-              <p>Refuser la demande, indiquez le motif (visible par le client), puis Refuser.</p>
+              <p>Refuser la demande, indiquez le motif (visible par le client), puis Refuser. Le montant et les frais sont rendus au solde disponible du client.</p>
               <Client>notification et e-mail « Retrait annulé » avec le motif.</Client>
             </Sub>
-            <Alert tone="warning" title="Un retrait refusé est replacé">
-              Le montant et les frais sont rachetés en cryptos selon le profil du client, aux cours du moment du refus. Les quantités obtenues peuvent donc différer de celles vendues à la demande.
-            </Alert>
           </Section>
 
-          <Section id="profils" n={7} title="Profils et répartition" href="/admin/profils" intro="Chaque profil (Prudent, Équilibré, Dynamique) a une répartition cible entre les cryptos. Elle s'applique à chaque nouveau dépôt.">
+          <Section id="profils" n={8} title="Profils et répartition" href="/admin/profils" intro="Chaque profil (Prudent, Équilibré, Dynamique) a une répartition cible entre les cryptos. Elle s'applique à chaque nouvel investissement d'un client.">
             <Sub title="Modifier une répartition">
               <ol>
                 <li>Dans la carte du profil, saisissez la part de chaque crypto en %. Laissez vide ou 0 pour l&apos;exclure.</li>
                 <li>Le total doit faire exactement 100 % pour que Enregistrer s&apos;active.</li>
                 <li>Cliquez sur Enregistrer.</li>
               </ol>
-              <p>Sans autre option, seuls les prochains dépôts suivent la nouvelle répartition. Le site public affiche aussi la nouvelle répartition.</p>
+              <p>Sans autre option, seuls les prochains investissements suivent la nouvelle répartition. Le site public affiche aussi la nouvelle répartition.</p>
             </Sub>
             <Sub title="Rééquilibrer les portefeuilles">
               <p>Cochez « Rééquilibrer les clients de ce profil » avant d&apos;enregistrer : tous les portefeuilles du profil sont échangés pour suivre la nouvelle répartition, aux cours du moment.</p>
@@ -227,7 +241,7 @@ export default async function GuidePage() {
             <p className="m-0 text-sm text-ink-muted">Quand un client change lui-même de profil depuis l&apos;app, son portefeuille est rééquilibré automatiquement vers la répartition du nouveau profil.</p>
           </Section>
 
-          <Section id="reglages" n={8} title="Réglages" href="/admin/reglages" intro="Les informations affichées sur le site public et dans l'app des clients. Chaque enregistrement est noté au Journal.">
+          <Section id="reglages" n={9} title="Réglages" href="/admin/reglages" intro="Les informations affichées sur le site public et dans l'app des clients. Chaque enregistrement est noté au Journal.">
             <Sub title="Société">
               <p>Raison sociale, forme juridique, capital, RCS et SIREN, TVA, directeur de la publication, siège, hébergeur, médiateur de la consommation, date de mise à jour. Ces champs alimentent les mentions légales, les conditions générales et la politique de confidentialité. Tant qu&apos;un champ est vide, le site affiche un repère entre crochets, par exemple [RAISON SOCIALE].</p>
             </Sub>
@@ -246,10 +260,10 @@ export default async function GuidePage() {
             <Sub title="Frais et délais">
               <ul>
                 <li>Frais de gestion et frais de dépôt : textes affichés sur le site (ex. « 1,5 % par an », « Aucun »).</li>
-                <li>Frais de retrait en dollars : prélevés sur le portefeuille en plus du montant retiré.</li>
-                <li>Dépôt minimum et retrait minimum, en dollars.</li>
-                <li>Taux EUR → USD par défaut : proposé lors du rapprochement, modifiable à chaque dépôt.</li>
-                <li>Délais de réception d&apos;un dépôt, de retrait et de vérification d&apos;identité : affichés aux clients (écran de dépôt, de retrait, et attente de vérification).</li>
+                <li>Frais de retrait en dollars : prélevés sur le solde disponible en plus du montant retiré.</li>
+                <li>Dépôt minimum, investissement minimum et retrait minimum, en dollars.</li>
+                <li>Taux EUR → USD par défaut : proposé à la vérification d&apos;un dépôt en euros, modifiable à chaque fois.</li>
+                <li>Délais d&apos;un dépôt par virement classique et par virement instantané, délai de retrait, délai de vérification d&apos;identité : affichés aux clients.</li>
               </ul>
             </Sub>
             <Sub title="Contact">
@@ -260,11 +274,11 @@ export default async function GuidePage() {
             </Sub>
           </Section>
 
-          <Section id="journal" n={9} title="Journal" href="/admin/journal" intro="L'historique de toutes les actions sensibles, du plus récent au plus ancien, 50 par page.">
+          <Section id="journal" n={10} title="Journal" href="/admin/journal" intro="L'historique de toutes les actions sensibles, du plus récent au plus ancien, 50 par page.">
             <Sub title="Lire une ligne">
               <ul>
                 <li><strong>Date</strong> et <strong>Par</strong> : quand et quel administrateur.</li>
-                <li><strong>Action</strong> : par exemple Identité validée, Dépôt placé, Coordonnées bancaires modifiées, Compte banni.</li>
+                <li><strong>Action</strong> : par exemple Identité validée, Dépôt crédité, Coordonnées bancaires modifiées, Compte banni.</li>
                 <li><strong>Cible</strong> : le client concerné (lien vers sa fiche) ou le réglage modifié.</li>
                 <li><strong>Détail</strong> : les valeurs enregistrées (montant, taux, motif, ancienne et nouvelle valeur). Survolez pour tout lire.</li>
               </ul>
@@ -272,19 +286,19 @@ export default async function GuidePage() {
             <p className="m-0 text-sm text-ink-muted">Le Journal ne se modifie pas et ne se vide pas.</p>
           </Section>
 
-          <Section id="parcours" n={10} title="Parcours complets" intro="Les enchaînements les plus fréquents, de bout en bout.">
-            <Sub title="D'une inscription au premier placement">
+          <Section id="parcours" n={11} title="Parcours complets" intro="Les enchaînements les plus fréquents, de bout en bout.">
+            <Sub title="D'une inscription au premier investissement">
               <ol>
                 <li>Le client s&apos;inscrit, confirme son e-mail par code, envoie sa pièce d&apos;identité et son selfie, puis choisit son profil.</li>
                 <li><strong>Vous</strong> : Vérifications, contrôles cochés, Valider l&apos;identité.</li>
-                <li>Le client fait son virement avec sa référence et clique sur « J&apos;ai fait le virement ».</li>
-                <li><strong>Vous</strong> : à réception sur le compte bancaire, Dépôts, ligne du client, montant reçu, Confirmer la réception.</li>
-                <li>Le client voit ses cryptos dans son portefeuille.</li>
+                <li>Le client fait son virement (classique ou instantané), puis déclare le montant avec la preuve.</li>
+                <li><strong>Vous</strong> : e-mail reçu, réception contrôlée sur le compte bancaire, Dépôts, ligne du client, Confirmer et créditer.</li>
+                <li>Le client reçoit l&apos;e-mail « Votre compte est crédité », puis investit tout ou partie de son solde depuis l&apos;app.</li>
               </ol>
             </Sub>
             <Sub title="D'une demande de retrait au virement envoyé">
               <ol>
-                <li>Le client ajoute son compte bancaire, demande un retrait et le confirme avec le code reçu par e-mail.</li>
+                <li>Le client désinvestit si besoin (le montant rejoint son solde disponible), ajoute son compte bancaire, demande un retrait et le confirme avec le code reçu par e-mail.</li>
                 <li><strong>Vous</strong> : Retraits, retrait sélectionné, virement fait depuis la banque de FlashInv.</li>
                 <li><strong>Vous</strong> : référence du virement saisie, Marquer comme envoyé.</li>
                 <li>Le client reçoit la notification et l&apos;e-mail « Retrait envoyé ».</li>
@@ -294,7 +308,7 @@ export default async function GuidePage() {
               <ol>
                 <li>Recherchez-le dans Clients par nom, e-mail ou référence.</li>
                 <li>Sur sa fiche, regardez les opérations en attente et l&apos;historique.</li>
-                <li>Si le virement est arrivé sans être annoncé, enregistrez-le dans Dépôts avec « Virement sans annonce ».</li>
+                <li>Si le virement est arrivé sans être déclaré, enregistrez-le dans Dépôts avec « Virement sans annonce ».</li>
               </ol>
             </Sub>
           </Section>

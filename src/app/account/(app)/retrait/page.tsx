@@ -3,7 +3,6 @@ import { EmptyState, Page, PageHeading, TopBar } from "@/components/app/primitiv
 import { ButtonLink } from "@/components/ui/button";
 import { requireOnboardedUser } from "@/lib/server/session";
 import { getSettings } from "@/lib/server/settings";
-import { getHoldings } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
 import { WithdrawFlow } from "./withdraw-flow";
 
@@ -11,13 +10,18 @@ export const metadata: Metadata = { title: "Retirer" };
 
 export default async function WithdrawPage() {
   const user = await requireOnboardedUser();
-  const [settings, { total }, accounts] = await Promise.all([getSettings(), getHoldings(user.id), db.bankAccount.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" } })]);
+  const [settings, accounts, invested] = await Promise.all([getSettings(), db.bankAccount.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" } }), db.position.count({ where: { userId: user.id, quantity: { gt: 0 } } })]);
+  const cash = Number(user.cashUsd);
 
   let empty: React.ReactNode = null;
   if (user.kycStatus !== "APPROVED")
     empty = <EmptyState glyph="eth" title="Identité en cours de vérification" text="Les retraits s'ouvrent dès que votre identité est validée." action={<ButtonLink href="/account" variant="secondary">Retour à l&apos;accueil</ButtonLink>} />;
-  else if (total <= 0.01)
-    empty = <EmptyState title="Rien à retirer pour l'instant" text="Votre portefeuille est vide. Faites un dépôt pour commencer à placer." action={<ButtonLink href="/account/depot">Faire un dépôt</ButtonLink>} />;
+  else if (cash - settings.money.withdrawalFeeUsd <= 0.01)
+    empty = invested ? (
+      <EmptyState title="Aucun solde disponible" text="Seul le solde disponible peut être retiré. Désinvestissez d'abord le montant voulu, il sera ajouté à votre solde." action={<ButtonLink href="/account/desinvestir">Désinvestir</ButtonLink>} />
+    ) : (
+      <EmptyState title="Rien à retirer pour l'instant" text="Votre solde disponible est vide." action={<ButtonLink href="/account/depot">Faire un dépôt</ButtonLink>} />
+    );
   else if (!accounts.length)
     empty = (
       <EmptyState
@@ -42,7 +46,7 @@ export default async function WithdrawPage() {
   return (
     <Page narrow className="px-0 pt-0 lg:px-10 lg:pt-8">
       <WithdrawFlow
-        available={total}
+        available={cash}
         fee={settings.money.withdrawalFeeUsd}
         min={settings.money.withdrawalMinUsd}
         delay={settings.money.withdrawalDelay || "quelques jours ouvrés"}

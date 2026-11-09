@@ -1,3 +1,4 @@
+import { IconArrowDownRight, IconArrowUpRight } from "@tabler/icons-react";
 import { cn, formatPct, formatUSD } from "@/lib/utils";
 import type { CryptoSymbol } from "@/lib/landing-data";
 
@@ -38,11 +39,8 @@ export function PriceChange({ value, soft = false, className }: { value: number;
         className,
       )}
     >
-      {dir !== "flat" && (
-        <span aria-hidden="true" className="text-[9px] leading-none">
-          {dir === "up" ? "▲" : "▼"}
-        </span>
-      )}
+      {dir === "up" && <IconArrowUpRight size={14} stroke={2.5} aria-hidden="true" />}
+      {dir === "down" && <IconArrowDownRight size={14} stroke={2.5} aria-hidden="true" />}
       {formatPct(value)}
       <span className="sr-only">{dir === "up" ? " en hausse" : dir === "down" ? " en baisse" : " stable"}</span>
     </span>
@@ -146,7 +144,9 @@ export function BalanceCard({ amount, gain }: { amount: number; gain: number }) 
       <span className="text-overline text-flash">Solde total</span>
       <p className="mt-1.5 mb-1 text-[28px] leading-8 font-bold tracking-tight tabular-nums">{formatUSD(amount)}</p>
       <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-        <span className="whitespace-nowrap rounded-xs bg-flash px-1.5 py-0.5 font-semibold text-on-flash tabular-nums">▲ +{formatUSD(gain)}</span>
+        <span className="inline-flex items-center gap-0.5 whitespace-nowrap rounded-xs bg-flash px-1.5 py-0.5 font-semibold text-on-flash tabular-nums">
+          <IconArrowUpRight size={14} stroke={2.5} aria-hidden="true" />+{formatUSD(gain)}
+        </span>
         depuis le début
       </p>
     </section>

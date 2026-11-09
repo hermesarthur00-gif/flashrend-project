@@ -50,3 +50,10 @@ export async function notify(
     }
   }
 }
+
+/** E-mail à tous les administrateurs actifs (ex. nouveau dépôt à vérifier). */
+export async function notifyAdmins(n: { title: string; lines: string[]; path: string; cta: string }) {
+  const admins = await db.user.findMany({ where: { role: "ADMIN", suspendedAt: null, emailVerified: true }, select: { email: true } });
+  const mail = noticeEmail({ title: n.title, lines: n.lines, cta: { label: n.cta, path: n.path } });
+  await Promise.all(admins.map((a) => sendEmail({ to: a.email, ...mail })));
+}

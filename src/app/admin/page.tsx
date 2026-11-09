@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { AdminHead, EmptyRow, Kpi, Panel, Person, Table, KV, relDays } from "@/components/admin/ui";
-import { ValueChart } from "@/components/account/value-chart";
+import { PortfolioLiveChart } from "@/components/live/live-chart";
+import { LiveAum } from "@/components/live/live-widgets";
 import { ButtonLink } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/server/session";
-import { getAum } from "@/lib/server/portfolio";
+import { getAumParts } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
-import { PROFILE_LABELS, daysAgo, formatDateTime, formatUSD } from "@/lib/utils";
+import { PROFILE_LABELS, daysAgo, formatDateTime, formatMoney, formatUSD } from "@/lib/utils";
 
 export const metadata = { title: "Tableau de bord" };
 
@@ -13,8 +14,8 @@ export default async function AdminDashboard() {
   await requireAdmin();
   const since = daysAgo(90);
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  const [aum, active, newThisMonth, kycPending, oldestKyc, deposits, withdrawals, wdSum, byProfile, snaps] = await Promise.all([
-    getAum(),
+  const [parts, active, newThisMonth, kycPending, oldestKyc, deposits, withdrawals, wdSum, byProfile, snaps] = await Promise.all([
+    getAumParts(),
     db.user.count({ where: { role: "CLIENT", kycStatus: "APPROVED", suspendedAt: null } }),
     db.user.count({ where: { role: "CLIENT", createdAt: { gte: monthStart } } }),
     db.kycSubmission.count({ where: { status: "PENDING" } }),
@@ -33,15 +34,15 @@ export default async function AdminDashboard() {
     <>
       <AdminHead title="Tableau de bord" sub={<span className="first-letter:uppercase">{today}</span>} />
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
-        <Kpi label="Encours total" value={formatUSD(aum)} sub="Aux cours actuels" />
+        <Kpi label="Encours total" value={<LiveAum quantities={parts.quantities} cash={parts.cash} />} sub={`dont ${formatUSD(parts.cash)} non investis`} />
         <Kpi label="Clients actifs" value={String(active)} sub={`+${newThisMonth} inscrits ce mois`} tone="up" href="/admin/clients" />
         <Kpi label="Vérifications à faire" value={String(kycPending)} sub={oldestKyc ? `La plus ancienne : ${relDays(oldestKyc.createdAt)}` : "Rien en attente"} tone={kycPending ? "warn" : undefined} href="/admin/verifications" />
-        <Kpi label="Dépôts à rapprocher" value={String(deposits.length)} sub={deposits.length ? "Virements annoncés" : "Rien en attente"} tone={deposits.length ? "warn" : undefined} href="/admin/depots" />
+        <Kpi label="Dépôts à vérifier" value={String(deposits.length)} sub={deposits.length ? "Virements déclarés" : "Rien en attente"} tone={deposits.length ? "warn" : undefined} href="/admin/depots" />
         <Kpi label="Retraits à envoyer" value={String(wdSum._count)} sub={wdSum._count ? `${formatUSD(Number(wdSum._sum.amountUsd ?? 0))} au total` : "Rien en attente"} tone={wdSum._count ? "warn" : undefined} href="/admin/retraits" />
       </div>
       <div className="grid gap-5 lg:grid-cols-12">
-        <Panel title="Encours sous gestion" className="lg:col-span-8">
-          <ValueChart series={series} label="Encours sous gestion" height={160} />
+        <Panel className="lg:col-span-8">
+          <PortfolioLiveChart positions={parts.quantities.map((q) => ({ ...q, name: q.symbol }))} daily={series} title="Encours investi" height={160} />
         </Panel>
         <Panel title="Clients par profil" className="lg:col-span-4">
           <div>
@@ -55,15 +56,15 @@ export default async function AdminDashboard() {
         </Panel>
       </div>
       <div className="grid gap-5 xl:grid-cols-2">
-        <Panel title="Dépôts à rapprocher" right={<Link href="/admin/depots" className="text-sm font-semibold">Tout voir</Link>}>
-          <Table head={["Client", "Référence", "Annoncé", ""]} align={["left", "left", "left", "right"]}>
+        <Panel title="Dépôts à vérifier" right={<Link href="/admin/depots" className="text-sm font-semibold">Tout voir</Link>}>
+          <Table head={["Client", "Montant", "Déclaré", ""]} align={["left", "left", "left", "right"]}>
             {deposits.length === 0 && <EmptyRow cols={4} text="Aucun virement en attente." />}
             {deposits.map((d) => (
               <tr key={d.id}>
                 <td><Person name={d.user.name} email={d.user.email} /></td>
-                <td className="font-bold">{d.reference} · {d.currency}</td>
+                <td className="font-bold">{d.declaredAmount ? formatMoney(Number(d.declaredAmount), d.currency) : d.currency}</td>
                 <td className="whitespace-nowrap">{formatDateTime(d.announcedAt)}</td>
-                <td className="text-right"><ButtonLink href={`/admin/depots?id=${d.id}`} variant="secondary" size="sm">Rapprocher</ButtonLink></td>
+                <td className="text-right"><ButtonLink href={`/admin/depots?id=${d.id}`} variant="secondary" size="sm">Vérifier</ButtonLink></td>
               </tr>
             ))}
           </Table>

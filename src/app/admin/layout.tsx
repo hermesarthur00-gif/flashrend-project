@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/app/primitives";
 import { AdminNav } from "@/components/admin/nav";
 import { requireAdmin } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
+import { LiveRoot } from "@/components/live/live-root";
 
 export const metadata: Metadata = {
   title: { default: "Admin", template: "%s · Admin FlashInv" },
@@ -57,7 +58,9 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
       </aside>
       <main className="min-w-0 flex-1 px-4 py-6 lg:px-10 lg:py-8">
         <div className="mx-auto flex max-w-[1240px] flex-col gap-6">
-          <Suspense fallback={<ContentSkeleton />}>{children}</Suspense>
+          <Suspense fallback={<ContentSkeleton />}>
+            <LiveRoot>{children}</LiveRoot>
+          </Suspense>
         </div>
       </main>
     </div>

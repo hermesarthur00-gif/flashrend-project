@@ -13,28 +13,22 @@ import { reconcileDeposit, recordUnannouncedDeposit, rejectDeposit } from "../ac
 const n = (v: string) => Number(v.replace(/\s/g, "").replace(",", ".")) || 0;
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function ReconcileForm({ id, currency, defaultRate, profile }: { id: string; currency: "USD" | "EUR"; defaultRate: number; profile: string | null }) {
-  const [amount, setAmount] = useState("");
+export function ReconcileForm({ id, currency, defaultRate, declared }: { id: string; currency: "USD" | "EUR"; defaultRate: number; declared: number | null }) {
+  const [amount, setAmount] = useState(declared ? String(declared).replace(".", ",") : "");
   const [rate, setRate] = useState(String(defaultRate).replace(".", ","));
   const router = useRouter();
   const credited = currency === "EUR" ? n(amount) * n(rate) : n(amount);
   return (
     <ActionForm action={reconcileDeposit} className="flex flex-col gap-3.5" onDone={() => router.replace("/admin/depots")}>
       <input type="hidden" name="id" value={id} />
-      <Field label="Montant reçu" name="amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} suffix={currency} required />
+      <Field label="Montant reçu" name="amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} suffix={currency} required hint={declared && Math.abs(n(amount) - declared) >= 0.01 ? "Différent du montant déclaré : le client verra le montant réellement crédité." : "Corrigez si le montant reçu diffère (frais bancaires)."} />
       {currency === "EUR" && <Field label="Taux EUR → USD appliqué" name="rate" inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} hint={`Montant crédité : ${formatUSD(credited)}`} required />}
       <Field label="Date de réception" name="receivedAt" type="date" defaultValue={today()} />
-      {profile ? (
-        <Alert tone="flash" title="Placement automatique">
-          Les fonds seront répartis selon le profil {profile} du client dès validation.
-        </Alert>
-      ) : (
-        <Alert tone="warning" title="Profil non choisi">
-          Le client doit choisir un profil avant le placement.
-        </Alert>
-      )}
-      <SubmitButton disabled={!profile || credited <= 0} pendingLabel="Placement…">
-        <IconCheck size={20} stroke={2} /> Confirmer la réception
+      <Alert tone="flash" title={`${formatUSD(credited)} seront crédités`}>
+        Sur le solde disponible du client, qui reçoit une notification et un e-mail. Il choisit ensuite quand investir.
+      </Alert>
+      <SubmitButton disabled={credited <= 0} pendingLabel="Crédit…">
+        <IconCheck size={20} stroke={2} /> Confirmer et créditer
       </SubmitButton>
     </ActionForm>
   );
@@ -45,13 +39,13 @@ export function RejectDepositForm({ id }: { id: string }) {
   if (!open)
     return (
       <Button variant="ghost" size="lg" block onClick={() => setOpen(true)}>
-        Signaler un écart ou refuser
+        Refuser le dépôt
       </Button>
     );
   return (
     <ActionForm action={rejectDeposit} className="flex flex-col gap-3 border-t border-line pt-3.5">
       <input type="hidden" name="id" value={id} />
-      <Field label="Raison (visible par le client)" name="note" placeholder="ex. : virement retourné, compte émetteur à un autre nom" required />
+      <Field label="Raison (visible par le client)" name="note" placeholder="ex. : virement non reçu, compte émetteur à un autre nom" required />
       <div className="flex gap-2">
         <Button type="submit" variant="secondary" className="text-down">
           Refuser le dépôt
@@ -75,7 +69,7 @@ export function UnannouncedForm({ defaultRate }: { defaultRate: number }) {
       </SelectField>
       <Field label="Montant reçu" name="amount" inputMode="decimal" suffix={currency} required />
       {currency === "EUR" && <Field label="Taux EUR → USD appliqué" name="rate" inputMode="decimal" defaultValue={String(defaultRate).replace(".", ",")} required />}
-      <SubmitButton pendingLabel="Placement…">Enregistrer et placer</SubmitButton>
+      <SubmitButton pendingLabel="Crédit…">Enregistrer et créditer</SubmitButton>
     </ActionForm>
   );
 }

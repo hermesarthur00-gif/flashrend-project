@@ -55,11 +55,13 @@ export default async function SettingsPage({ searchParams }: PageProps<"/admin/r
             fields={[
               { name: "managementFee", label: "Frais de gestion", value: s.money.managementFee, placeholder: "1,5 % par an" },
               { name: "depositFee", label: "Frais de dépôt", value: s.money.depositFee, placeholder: "Aucun" },
-              { name: "withdrawalFeeUsd", label: "Frais de retrait (en dollars)", value: String(s.money.withdrawalFeeUsd).replace(".", ","), placeholder: "0", hint: "Prélevé sur le portefeuille en plus du montant retiré." },
+              { name: "withdrawalFeeUsd", label: "Frais de retrait (en dollars)", value: String(s.money.withdrawalFeeUsd).replace(".", ","), placeholder: "0", hint: "Prélevé sur le solde disponible en plus du montant retiré." },
               { name: "depositMinUsd", label: "Dépôt minimum (en dollars)", value: String(s.money.depositMinUsd).replace(".", ",") },
               { name: "withdrawalMinUsd", label: "Retrait minimum (en dollars)", value: String(s.money.withdrawalMinUsd).replace(".", ",") },
-              { name: "eurUsdRate", label: "Taux EUR → USD par défaut", value: String(s.money.eurUsdRate).replace(".", ","), hint: "Proposé lors du rapprochement, modifiable à chaque dépôt." },
-              { name: "depositDelay", label: "Délai de réception d'un dépôt", value: s.money.depositDelay, placeholder: "1 à 2 jours ouvrés" },
+              { name: "eurUsdRate", label: "Taux EUR → USD par défaut", value: String(s.money.eurUsdRate).replace(".", ","), hint: "Proposé à la vérification d'un dépôt en euros, modifiable à chaque fois." },
+              { name: "depositDelayStandard", label: "Délai d'un dépôt par virement classique", value: s.money.depositDelayStandard, placeholder: "1 à 3 jours ouvrés", hint: "Temps de vérification annoncé au client." },
+              { name: "depositDelayInstant", label: "Délai d'un dépôt par virement instantané", value: s.money.depositDelayInstant, placeholder: "quelques minutes à quelques heures" },
+              { name: "investMinUsd", label: "Investissement minimum (en dollars)", value: String(s.money.investMinUsd).replace(".", ",") },
               { name: "withdrawalDelay", label: "Délai de retrait", value: s.money.withdrawalDelay, placeholder: "1 à 3 jours ouvrés" },
               { name: "kycDelay", label: "Délai de vérification d'identité", value: s.money.kycDelay, placeholder: "24 h ouvrées" },
             ]}

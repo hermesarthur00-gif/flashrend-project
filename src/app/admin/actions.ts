@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { ProfileId } from "@/generated/prisma/client";
 import { audit, requireAdmin } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
-import { investUsd, priceMap, rebalanceUser, snapshotUser } from "@/lib/server/portfolio";
+import { executionPrices, rebalanceUser } from "@/lib/server/portfolio";
 import { notify } from "@/lib/server/notify";
 import { getSettings, SETTINGS_TAG } from "@/lib/server/settings";
 import { consumeActionCode, sendActionCode } from "@/lib/server/action-codes";
@@ -117,6 +117,7 @@ export async function reviewKyc(_: AdminState, form: FormData): Promise<AdminSta
 
 // ---------------------------------------------------------------- dépôts
 
+/** Le virement est bien arrivé : le solde disponible du client est crédité (en dollars). */
 export async function reconcileDeposit(_: AdminState, form: FormData): Promise<AdminState> {
   const admin = await requireAdmin();
   const id = String(form.get("id"));
@@ -127,24 +128,28 @@ export async function reconcileDeposit(_: AdminState, form: FormData): Promise<A
   if (!d || d.status !== "ANNOUNCED") return { error: "Ce dépôt a déjà été traité." };
   if (!(amount > 0)) return { error: "Indiquez le montant reçu." };
   if (d.currency === "EUR" && !(rate > 0.1 && rate < 10)) return { error: "Indiquez le taux EUR → USD appliqué." };
-  if (!d.user.profile) return { error: "Le client n'a pas encore choisi de profil." };
   const credited = Math.round((d.currency === "EUR" ? amount * rate : amount) * 100) / 100;
-  const pm = await priceMap();
   try {
     await db.$transaction(async (tx) => {
-      await tx.deposit.update({ where: { id }, data: { status: "INVESTED", receivedAmount: amount, fxRate: d.currency === "EUR" ? rate : null, creditedUsd: credited, receivedAt, processedById: admin.id } });
-      await investUsd(tx, d.userId, credited, d.user.profile!, pm);
-      await tx.activity.updateMany({ where: { userId: d.userId, type: "DEPOSIT", pending: true, subtitle: `Réf. ${d.reference}` }, data: { pending: false } });
-      await tx.activity.create({ data: { userId: d.userId, type: "INVEST", title: "Placement", subtitle: `${formatMoney(amount, d.currency)} reçus · profil ${PROFILE_LABELS[d.user.profile!].toLowerCase()}`, amountUsd: credited } });
+    const claimed = await tx.deposit.updateMany({ where: { id, status: "ANNOUNCED" }, data: { status: "CREDITED", receivedAmount: amount, fxRate: d.currency === "EUR" ? rate : null, creditedUsd: credited, receivedAt, processedById: admin.id } });
+    if (claimed.count !== 1) throw new Error("Ce dépôt a déjà été traité.");
+    await tx.user.update({ where: { id: d.userId }, data: { cashUsd: { increment: credited.toFixed(2) } } });
+    await tx.activity.updateMany({ where: { userId: d.userId, type: "DEPOSIT", pending: true, subtitle: { endsWith: `réf. ${d.reference}` }, createdAt: { gte: new Date(d.announcedAt.getTime() - 5000), lte: new Date(d.announcedAt.getTime() + 5000) } }, data: { pending: false, title: "Dépôt crédité", amountUsd: credited } });
     });
   } catch (e) {
-    return fail(e, "Le placement a échoué.");
+    return fail(e, "Le crédit n'a pas pu être enregistré.");
   }
-  await snapshotUser(d.userId, pm);
-  await notify(d.userId, { kind: "deposit", title: "Virement reçu et placé", body: `${formatUSD(credited)} placés sur votre profil ${PROFILE_LABELS[d.user.profile].toLowerCase()}.`, url: "/account/portefeuille", email: { cta: "Voir mon portefeuille" } });
-  await audit(admin.id, "deposit.invest", { type: "deposit", id }, { amount, currency: d.currency, rate: d.currency === "EUR" ? rate : null, credited });
+  const diff = d.declaredAmount && Math.abs(Number(d.declaredAmount) - amount) >= 0.01 ? ` Montant reçu : ${formatMoney(amount, d.currency)} (déclaré : ${formatMoney(Number(d.declaredAmount), d.currency)}).` : "";
+  await notify(d.userId, {
+    kind: "deposit",
+    title: "Votre compte est crédité",
+    body: `${formatUSD(credited)} ajoutés à votre solde disponible. Vous pouvez maintenant les investir.${diff}`,
+    url: "/account/investir",
+    email: { lines: [`Nous avons bien reçu votre virement : ${formatUSD(credited)} sont ajoutés à votre solde disponible.${diff}`, "Vous pouvez maintenant les investir depuis l'app, selon votre profil."], cta: "Investir" },
+  });
+  await audit(admin.id, "deposit.credit", { type: "deposit", id }, { amount, currency: d.currency, rate: d.currency === "EUR" ? rate : null, credited, declared: d.declaredAmount ? Number(d.declaredAmount) : null });
   revalidatePath("/admin", "layout");
-  return { ok: `${formatUSD(credited)} placés pour ${d.user.name}` };
+  return { ok: `${formatUSD(credited)} crédités pour ${d.user.name}` };
 }
 
 export async function rejectDeposit(_: AdminState, form: FormData): Promise<AdminState> {
@@ -155,8 +160,8 @@ export async function rejectDeposit(_: AdminState, form: FormData): Promise<Admi
   const d = await db.deposit.findUnique({ where: { id } });
   if (!d || d.status !== "ANNOUNCED") return { error: "Ce dépôt a déjà été traité." };
   await db.deposit.update({ where: { id }, data: { status: "REJECTED", note, processedById: admin.id } });
-  await db.activity.updateMany({ where: { userId: d.userId, type: "DEPOSIT", pending: true, subtitle: `Réf. ${d.reference}` }, data: { pending: false, title: "Virement non accepté" } });
-  await notify(d.userId, { kind: "deposit", title: "Virement non accepté", body: note, url: `/account/depot/${d.id}`, email: { cta: "Voir le détail" } });
+  await db.activity.updateMany({ where: { userId: d.userId, type: "DEPOSIT", pending: true, subtitle: { endsWith: `réf. ${d.reference}` }, createdAt: { gte: new Date(d.announcedAt.getTime() - 5000), lte: new Date(d.announcedAt.getTime() + 5000) } }, data: { pending: false, title: "Dépôt refusé" } });
+  await notify(d.userId, { kind: "deposit", title: "Dépôt refusé", body: note, url: `/account/depot/${d.id}`, email: { lines: ["Nous n'avons pas pu valider votre dépôt.", `Raison : ${note}`, "Rien n'a été débité de votre solde FlashInv."], cta: "Voir le détail" } });
   await audit(admin.id, "deposit.reject", { type: "deposit", id }, { note });
   revalidatePath("/admin", "layout");
   return { ok: "Dépôt marqué comme refusé" };
@@ -169,8 +174,8 @@ export async function recordUnannouncedDeposit(_: AdminState, form: FormData): P
   const currency = String(form.get("currency")) === "EUR" ? "EUR" : "USD";
   const user = await db.user.findUnique({ where: { reference } });
   if (!user) return { error: `Aucun client avec la référence ${reference}.` };
-  const d = await db.deposit.create({ data: { userId: user.id, reference, currency } });
-  await db.activity.create({ data: { userId: user.id, type: "DEPOSIT", title: `Virement en ${currency} reçu`, subtitle: `Réf. ${reference}`, pending: true } });
+  const d = await db.deposit.create({ data: { userId: user.id, reference, currency, declaredAmount: num(form.get("amount")) || null } });
+  await db.activity.create({ data: { userId: user.id, type: "DEPOSIT", title: "Dépôt en vérification", subtitle: `Virement reçu · réf. ${reference}`, pending: true, createdAt: d.announcedAt } });
   const fd = new FormData();
   fd.set("id", d.id);
   fd.set("amount", String(form.get("amount")));
@@ -178,7 +183,7 @@ export async function recordUnannouncedDeposit(_: AdminState, form: FormData): P
   const res = await reconcileDeposit(undefined, fd);
   if (res?.error) {
     await db.deposit.delete({ where: { id: d.id } });
-    await db.activity.deleteMany({ where: { userId: user.id, type: "DEPOSIT", pending: true, subtitle: `Réf. ${reference}`, title: `Virement en ${currency} reçu` } });
+    await db.activity.deleteMany({ where: { userId: user.id, type: "DEPOSIT", pending: true, subtitle: `Virement reçu · réf. ${reference}` } });
   }
   return res;
 }
@@ -208,20 +213,20 @@ export async function rejectWithdrawal(_: AdminState, form: FormData): Promise<A
   const w = await db.withdrawal.findUnique({ where: { id }, include: { user: true } });
   if (!w || w.status !== "REQUESTED") return { error: "Ce retrait a déjà été traité." };
   const refund = Number(w.amountUsd) + Number(w.feeUsd);
-  const pm = await priceMap();
   try {
     await db.$transaction(async (tx) => {
-      await tx.withdrawal.update({ where: { id }, data: { status: "REJECTED", rejectReason: reason, processedById: admin.id } });
-      if (w.user.profile) await investUsd(tx, w.userId, refund, w.user.profile, pm);
-      await tx.activity.updateMany({ where: { userId: w.userId, type: "WITHDRAW", pending: true, amountUsd: w.amountUsd }, data: { pending: false, title: "Retrait annulé", subtitle: "Montant replacé sur votre profil" } });
+      const claimed = await tx.withdrawal.updateMany({ where: { id, status: "REQUESTED" }, data: { status: "REJECTED", rejectReason: reason, processedById: admin.id } });
+      if (claimed.count !== 1) throw new Error("Ce retrait a déjà été traité.");
+      await tx.user.update({ where: { id: w.userId }, data: { cashUsd: { increment: refund.toFixed(2) } } });
+      await tx.activity.updateMany({ where: { userId: w.userId, type: "WITHDRAW", pending: true, amountUsd: w.amountUsd }, data: { pending: false, title: "Retrait annulé", subtitle: "Montant rendu au solde disponible" } });
     });
   } catch (e) {
     return fail(e, "L'annulation a échoué.");
   }
-  await notify(w.userId, { kind: "withdrawal", title: "Retrait annulé", body: `${reason} Le montant a été replacé sur votre portefeuille.`, url: "/account/activite", email: { cta: "Voir l'activité" } });
+  await notify(w.userId, { kind: "withdrawal", title: "Retrait annulé", body: `${reason} Le montant et les frais ont été rendus à votre solde disponible.`, url: "/account/activite", email: { cta: "Voir l'activité" } });
   await audit(admin.id, "withdrawal.reject", { type: "withdrawal", id }, { reason });
   revalidatePath("/admin", "layout");
-  return { ok: "Retrait refusé, montant replacé" };
+  return { ok: "Retrait refusé, montant rendu au solde disponible" };
 }
 
 // ---------------------------------------------------------------- profils
@@ -242,7 +247,7 @@ export async function saveAllocation(_: AdminState, form: FormData): Promise<Adm
 
   let clients = 0;
   if (form.get("rebalance") === "on") {
-    const pm = await priceMap();
+    const pm = await executionPrices();
     const users = await db.user.findMany({ where: { profile, positions: { some: { quantity: { gt: 0 } } } }, select: { id: true } });
     for (const u of users) {
       const value = await db.$transaction((tx) => rebalanceUser(tx, u.id, profile, pm));

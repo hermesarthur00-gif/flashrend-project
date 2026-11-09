@@ -35,7 +35,9 @@ export const settingsSchema = z.object({
     depositMinUsd: z.coerce.number().min(0).max(100000).default(50),
     withdrawalMinUsd: z.coerce.number().min(0).max(100000).default(20),
     eurUsdRate: z.coerce.number().min(0.1).max(10).default(1.08),
-    depositDelay: z.string().trim().max(80).default("1 à 2 jours ouvrés"),
+    depositDelayStandard: z.string().trim().max(80).default("1 à 3 jours ouvrés"),
+    depositDelayInstant: z.string().trim().max(80).default("quelques minutes à quelques heures"),
+    investMinUsd: z.coerce.number().min(0).max(100000).default(10),
     withdrawalDelay: z.string().trim().max(80).default(""),
     kycDelay: z.string().trim().max(80).default(""),
   }),
@@ -49,7 +51,7 @@ export const DEFAULT_SETTINGS: Settings = {
   contact: { email: siteConfig.contact.email, phone: "", address: "" },
   legal: { companyName: "", legalForm: "", shareCapital: "", address: "", registration: "", vatNumber: "", director: "", host: "", mediator: "", lastUpdated: siteConfig.legal.lastUpdated },
   bank: { USD: emptyBank, EUR: emptyBank },
-  money: { managementFee: "", depositFee: "", withdrawalFeeUsd: 0, depositMinUsd: 50, withdrawalMinUsd: 20, eurUsdRate: 1.08, depositDelay: "1 à 2 jours ouvrés", withdrawalDelay: "", kycDelay: "" },
+  money: { managementFee: "", depositFee: "", withdrawalFeeUsd: 0, depositMinUsd: 50, withdrawalMinUsd: 20, eurUsdRate: 1.08, depositDelayStandard: "1 à 3 jours ouvrés", depositDelayInstant: "quelques minutes à quelques heures", investMinUsd: 10, withdrawalDelay: "", kycDelay: "" },
 };
 
 /** Fusionne une valeur stockée avec les valeurs par défaut (champs ajoutés plus tard). */

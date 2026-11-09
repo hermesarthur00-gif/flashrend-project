@@ -11,9 +11,9 @@ export const metadata: Metadata = { title: "Activité" };
 
 const FILTERS: { key: string; label: string; types?: ActivityType[] }[] = [
   { key: "tout", label: "Tout" },
-  { key: "depots", label: "Dépôts", types: ["DEPOSIT", "INVEST"] },
+  { key: "depots", label: "Dépôts", types: ["DEPOSIT"] },
+  { key: "investissements", label: "Investissements", types: ["INVEST", "DIVEST", "REBALANCE", "PROFILE"] },
   { key: "retraits", label: "Retraits", types: ["WITHDRAW"] },
-  { key: "gestion", label: "Gestion", types: ["REBALANCE", "PROFILE"] },
 ];
 
 export default async function ActivityPage({ searchParams }: PageProps<"/account/activite">) {
@@ -23,7 +23,7 @@ export default async function ActivityPage({ searchParams }: PageProps<"/account
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const [rows, dep, wd] = await Promise.all([
     db.activity.findMany({ where: { userId: user.id, ...(filter.types ? { type: { in: filter.types } } : {}) }, orderBy: { createdAt: "desc" }, take: 100 }),
-    db.deposit.aggregate({ where: { userId: user.id, status: "INVESTED", receivedAt: { gte: monthStart } }, _sum: { creditedUsd: true } }),
+    db.deposit.aggregate({ where: { userId: user.id, status: "CREDITED", receivedAt: { gte: monthStart } }, _sum: { creditedUsd: true } }),
     db.withdrawal.aggregate({ where: { userId: user.id, status: { not: "REJECTED" }, createdAt: { gte: monthStart } }, _sum: { amountUsd: true } }),
   ]);
 
@@ -46,7 +46,7 @@ export default async function ActivityPage({ searchParams }: PageProps<"/account
         </nav>
         <div className="grid grid-cols-2 gap-3">
           <Card className="p-3.5 lg:p-5">
-            <span className="text-caption text-ink-muted">Placé ce mois</span>
+            <span className="text-caption text-ink-muted">Déposé ce mois</span>
             <p className="text-amount m-0 mt-1 text-lg">{formatUSD(Number(dep._sum.creditedUsd ?? 0))}</p>
           </Card>
           <Card className="p-3.5 lg:p-5">

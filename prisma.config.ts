@@ -10,6 +10,6 @@ export default defineConfig({
   },
   // Lu sans exiger la variable : « prisma generate » (postinstall, build) n'a pas besoin de la base.
   datasource: {
-    url: process.env.DATABASE_URL ?? "",
+    url: process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? "",
   },
 });

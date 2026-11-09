@@ -9,6 +9,7 @@ import { getPortfolioSummary } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
 import { PROFILE_LABELS, PROFILE_RISK, formatDate, formatDateTime, formatQty, formatUSD } from "@/lib/utils";
 import { AccountManagement } from "./client-actions";
+import { LiveAum, LiveGain } from "@/components/live/live-widgets";
 import { isAnonymized } from "@/lib/account-status";
 
 export const metadata = { title: "Fiche client" };
@@ -31,7 +32,7 @@ export default async function ClientPage({ params }: PageProps<"/admin/clients/[
   ]);
   const k = KYC[user.kycStatus];
   const anonymized = isAnonymized(user.email);
-  const blocker = summary.total > 0.01 ? "le client a encore un solde, il doit d'abord tout retirer." : pendingDeposits + pendingWd._count > 0 ? "une opération est en attente." : null;
+  const blocker = summary.total > 0.01 ? "le client a encore un solde (disponible ou investi), il doit d'abord tout retirer." : pendingDeposits + pendingWd._count > 0 ? "une opération est en attente." : null;
 
   return (
     <>
@@ -57,8 +58,8 @@ export default async function ClientPage({ params }: PageProps<"/admin/clients/[
       <div className="grid gap-5 lg:grid-cols-12">
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-8">
           <div className="grid gap-4 sm:grid-cols-3">
-            <Kpi label="Solde" value={formatUSD(summary.total)} sub={`${summary.gain >= 0 ? "▲ +" : "▼ "}${formatUSD(summary.gain)} depuis le début`} tone={summary.gain >= 0 ? "up" : "down"} />
-            <Kpi label="Net déposé" value={formatUSD(summary.netInvested)} sub={`${formatUSD(summary.deposited)} déposés au total`} />
+            <Kpi label="Solde disponible" value={formatUSD(summary.cash)} sub="Non investi" />
+            <Kpi label="Investi" value={<LiveAum quantities={summary.items.map((h) => ({ symbol: h.symbol, quantity: h.quantity }))} cash={0} />} sub={<LiveGain positions={summary.items.map((h) => ({ symbol: h.symbol, name: h.name, quantity: h.quantity }))} investedNet={summary.investedNet} />} />
             <Kpi label="En attente" value={String(pendingDeposits + pendingWd._count)} sub={`${pendingDeposits} dépôt(s), ${pendingWd._count} retrait(s)`} tone={pendingDeposits + pendingWd._count ? "warn" : undefined} />
           </div>
           <Panel title="Positions">

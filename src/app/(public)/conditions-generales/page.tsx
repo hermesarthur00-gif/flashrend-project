@@ -55,7 +55,7 @@ export default async function TermsPage() {
           title: "Dépôts",
           body: (
             <p>
-              Les dépôts se font uniquement par virement bancaire, en dollars américains ou en euros, sur le compte au nom de FlashInv indiqué dans l&apos;espace du client, avec sa référence personnelle. Les fonds sont investis selon le profil du client dès leur réception et leur rattachement au compte. Un virement sans référence peut retarder ce rattachement.
+              Les dépôts se font uniquement par virement bancaire, en dollars américains ou en euros, sur le compte au nom de FlashInv indiqué dans l&apos;espace du client, avec sa référence personnelle et une preuve du virement. Après vérification de la réception par FlashInv, le montant reçu est crédité en dollars sur le solde disponible du client ; un virement en euros est converti au taux appliqué à la réception. Le client décide ensuite d&apos;investir tout ou partie de ce solde selon son profil. Un virement sans référence peut retarder la vérification.
             </p>
           ),
         },
@@ -64,7 +64,7 @@ export default async function TermsPage() {
           title: "Retraits",
           body: (
             <p>
-              Le client peut demander un retrait à tout moment depuis son espace. Le montant est envoyé par virement sur un compte bancaire à son nom sous {siteConfig.withdrawalDelay}. Chaque retrait est confirmé par un code de vérification.
+              Le client peut à tout moment désinvestir tout ou partie de ses investissements vers son solde disponible, aux cours du moment, puis demander le retrait de ce solde depuis son espace. Le montant est envoyé par virement sur un compte bancaire à son nom sous {siteConfig.withdrawalDelay}. Chaque retrait est confirmé par un code de vérification.
             </p>
           ),
         },

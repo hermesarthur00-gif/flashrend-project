@@ -1,13 +1,12 @@
 import { notFound } from "next/navigation";
 import { IconCheck, IconClock, IconX } from "@tabler/icons-react";
-import { Page, PageHeading, TopBar } from "@/components/app/primitives";
+import { Alert, Page, PageHeading, TopBar } from "@/components/app/primitives";
 import { Coin } from "@/components/ui/decor";
 import { ButtonLink } from "@/components/ui/button";
 import { requireOnboardedUser } from "@/lib/server/session";
 import { getSettings } from "@/lib/server/settings";
-import { getAllocation } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
-import { PROFILE_LABELS, cn, formatDateTime, formatMoney, formatUSD } from "@/lib/utils";
+import { cn, formatDateTime, formatMoney, formatUSD } from "@/lib/utils";
 
 export const metadata = { title: "Suivi du dépôt" };
 
@@ -44,9 +43,11 @@ export default async function DepositTrackingPage({ params }: PageProps<"/accoun
   const { id } = await params;
   const d = await db.deposit.findFirst({ where: { id, userId: user.id } });
   if (!d) notFound();
-  const [settings, alloc] = await Promise.all([getSettings(), getAllocation(user.profile!)]);
-  const received = d.status === "INVESTED";
+  const settings = await getSettings();
+  const credited = d.status === "CREDITED";
   const rejected = d.status === "REJECTED";
+  const delay = d.method === "INSTANT" ? settings.money.depositDelayInstant : settings.money.depositDelayStandard;
+  const declared = d.declaredAmount ? formatMoney(Number(d.declaredAmount), d.currency) : `Virement en ${d.currency}`;
 
   return (
     <>
@@ -57,31 +58,59 @@ export default async function DepositTrackingPage({ params }: PageProps<"/accoun
           <div className="absolute top-4 right-4">
             <Coin tone="yellow" size={56} tilt={50} spin={22} />
           </div>
-          <span className="text-caption text-flash">{received ? "PLACÉ" : rejected ? "VIREMENT REFUSÉ" : "VIREMENT ANNONCÉ"}</span>
-          <p className="text-amount-xl m-0 mt-1.5 mb-1 pr-16">{received && d.creditedUsd ? formatUSD(Number(d.creditedUsd)) : d.currency === "EUR" ? "En euros" : "En dollars"}</p>
+          <span className="text-caption text-flash">{credited ? "COMPTE CRÉDITÉ" : rejected ? "DÉPÔT REFUSÉ" : "EN VÉRIFICATION"}</span>
+          <p className="text-amount-xl m-0 mt-1.5 mb-1 pr-16">{credited && d.creditedUsd ? formatUSD(Number(d.creditedUsd)) : declared}</p>
           <span className="text-[13px] opacity-80">
-            Réf. {d.reference} · {formatDateTime(d.announcedAt)}
+            {d.method === "INSTANT" ? "Virement instantané" : "Virement classique"} · réf. {d.reference}
           </span>
         </div>
+
+        {!credited && !rejected && (
+          <Alert tone="info" title="Nous vérifions votre virement">
+            Délai indicatif : {delay}. Vous pouvez fermer l&apos;app : vous serez prévenu par notification et par e-mail dès que votre solde est crédité.
+          </Alert>
+        )}
+        {rejected && (
+          <Alert tone="down" title="Dépôt refusé">
+            {d.note ?? "Contactez le support pour en savoir plus."}
+          </Alert>
+        )}
+
         <ol className="m-0 mt-2 list-none p-0">
-          <Step state="done" title="Virement annoncé" sub={formatDateTime(d.announcedAt)} />
+          <Step state="done" title="Dépôt déclaré" sub={`${declared} · ${formatDateTime(d.announcedAt)}`} />
           <Step
-            state={rejected ? "failed" : received ? "done" : "current"}
-            title={rejected ? "Virement non accepté" : "Fonds reçus par FlashInv"}
+            state={rejected ? "failed" : credited ? "done" : "current"}
+            title={rejected ? "Virement non accepté" : credited ? "Virement reçu par FlashInv" : "Vérification par FlashInv"}
             sub={
               rejected
-                ? (d.note ?? "Contactez le support pour en savoir plus.")
-                : received && d.receivedAmount
+                ? "Rien n'a été crédité."
+                : credited && d.receivedAmount
                   ? `${formatMoney(Number(d.receivedAmount), d.currency)} reçus${d.receivedAt ? ` le ${formatDateTime(d.receivedAt)}` : ""}`
-                  : `Sous ${settings.money.depositDelay}`
+                  : `Sous ${delay}`
             }
           />
-          <Step state={received ? "done" : "todo"} title="Placé sur votre profil" sub={`${PROFILE_LABELS[user.profile!]} · réparti sur ${alloc.length} actifs`} />
+          <Step
+            state={credited ? "done" : "todo"}
+            title="Solde disponible crédité"
+            sub={credited && d.creditedUsd ? `${formatUSD(Number(d.creditedUsd))}${d.currency === "EUR" && d.fxRate ? ` (1 € = ${Number(d.fxRate).toLocaleString("fr-FR", { maximumFractionDigits: 4 })} $)` : ""}` : "Vous pourrez ensuite investir"}
+          />
         </ol>
-        <p className="m-0 text-sm text-ink-muted">Nous vous envoyons une notification à chaque étape.</p>
-        <ButtonLink href="/account" variant="secondary" size="lg" block>
-          Retour à l&apos;accueil
-        </ButtonLink>
+
+        <div className="flex flex-col gap-2">
+          {credited && (
+            <ButtonLink href="/account/investir" size="lg" block>
+              Investir maintenant
+            </ButtonLink>
+          )}
+          {rejected && (
+            <ButtonLink href="/account/depot" size="lg" block>
+              Faire un nouveau dépôt
+            </ButtonLink>
+          )}
+          <ButtonLink href="/account" variant="secondary" size="lg" block>
+            Retour à l&apos;accueil
+          </ButtonLink>
+        </div>
       </Page>
     </>
   );

@@ -29,6 +29,7 @@ model User {
   lastName      String?
   phone         String?
   reference     String?    @unique // référence de virement, ex. FI-48210
+  cashUsd       Decimal    @default(0) @db.Decimal(18, 2) // solde disponible, non investi
   profile       ProfileId?
   profileSetAt  DateTime?
   kycStatus     KycStatus  @default(NONE)
@@ -144,9 +145,14 @@ enum Currency {
 }
 
 enum DepositStatus {
-  ANNOUNCED
-  INVESTED
+  ANNOUNCED // déclaré par le client, en attente de vérification
+  CREDITED // reçu, solde disponible crédité
   REJECTED
+}
+
+enum DepositMethod {
+  STANDARD // virement classique
+  INSTANT // virement instantané
 }
 
 enum WithdrawalStatus {
@@ -161,6 +167,7 @@ enum ActivityType {
   WITHDRAW
   REBALANCE
   PROFILE
+  DIVEST
 }
 
 /// Cryptos proposées (BTC, ETH…)
@@ -243,6 +250,9 @@ model Deposit {
   user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   reference      String
   currency       Currency
+  method         DepositMethod @default(STANDARD)
+  declaredAmount Decimal?      @db.Decimal(18, 2) // montant indiqué par le client
+  proofId        String? // preuve du virement (Cloudinary privé)
   announcedAt    DateTime      @default(now())
   status         DepositStatus @default(ANNOUNCED)
   receivedAmount Decimal?      @db.Decimal(18, 2)

@@ -17,6 +17,8 @@ const LABELS: Record<string, string> = {
   "kyc.reject": "Identité refusée",
   "kyc.document.view": "Document d'identité consulté",
   "deposit.invest": "Dépôt placé",
+  "deposit.credit": "Dépôt crédité",
+  "deposit.proof.view": "Preuve de virement consultée",
   "deposit.reject": "Dépôt refusé",
   "withdrawal.sent": "Retrait envoyé",
   "withdrawal.reject": "Retrait refusé",

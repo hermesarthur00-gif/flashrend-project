@@ -11,6 +11,31 @@ export async function priceMap(): Promise<PriceMap> {
   return new Map(market.map((m) => [m.symbol, m]));
 }
 
+/**
+ * Cours d'exécution (investir, désinvestir, rééquilibrer) : les mêmes cours en direct que ceux
+ * affichés dans l'app (Binance), sinon les derniers cours connus.
+ */
+export async function executionPrices(): Promise<PriceMap> {
+  const pm = await priceMap();
+  const symbols = [...pm.keys()].filter((s) => s !== "USDT" && s !== "USDC");
+  try {
+    const qs = encodeURIComponent(JSON.stringify(symbols.map((s) => `${s}USDT`)));
+    const res = await fetch(`https://data-api.binance.vision/api/v3/ticker/price?symbols=${qs}`, { cache: "no-store", signal: AbortSignal.timeout(4000) });
+    if (!res.ok) throw new Error(String(res.status));
+    const rows = (await res.json()) as { symbol: string; price: string }[];
+    const live = new Map(pm);
+    for (const r of rows) {
+      const sym = r.symbol.replace(/USDT$/, "");
+      const base = pm.get(sym);
+      const price = Number(r.price);
+      if (base && price > 0) live.set(sym, { ...base, priceUsd: price });
+    }
+    return live;
+  } catch {
+    return pm;
+  }
+}
+
 export async function getAllocation(profile: ProfileId, client: Tx | typeof db = db) {
   const rows = await client.profileAllocation.findMany({ where: { profile }, orderBy: { percent: "desc" } });
   return rows.map((r) => ({ symbol: r.symbol, percent: Number(r.percent) }));
@@ -35,17 +60,34 @@ export async function getHoldings(userId: string, prices?: PriceMap) {
   return { items, total };
 }
 
-/** Synthèse du portefeuille : valeur, montant net déposé, gain. */
+/**
+ * Synthèse du compte : solde disponible (non investi), valeur investie, gain.
+ * Gain = valeur investie actuelle − (montants investis − montants désinvestis).
+ */
 export async function getPortfolioSummary(userId: string, prices?: PriceMap) {
-  const [{ items, total }, dep, wd] = await Promise.all([
+  const [{ items, total: invested }, user, inv, div] = await Promise.all([
     getHoldings(userId, prices),
-    db.deposit.aggregate({ where: { userId, status: "INVESTED" }, _sum: { creditedUsd: true } }),
-    db.withdrawal.aggregate({ where: { userId, status: { not: "REJECTED" } }, _sum: { amountUsd: true, feeUsd: true } }),
+    db.user.findUnique({ where: { id: userId }, select: { cashUsd: true } }),
+    db.activity.aggregate({ where: { userId, type: "INVEST" }, _sum: { amountUsd: true } }),
+    db.activity.aggregate({ where: { userId, type: "DIVEST" }, _sum: { amountUsd: true } }),
   ]);
-  const deposited = Number(dep._sum.creditedUsd ?? 0);
-  const withdrawn = Number(wd._sum.amountUsd ?? 0) + Number(wd._sum.feeUsd ?? 0);
-  const netInvested = deposited - withdrawn;
-  return { items, total, deposited, withdrawn, netInvested, gain: total - netInvested, gainPct: netInvested > 0 ? ((total - netInvested) / netInvested) * 100 : 0 };
+  const cash = Number(user?.cashUsd ?? 0);
+  const investedNet = Number(inv._sum.amountUsd ?? 0) - Number(div._sum.amountUsd ?? 0);
+  const gain = invested - investedNet;
+  return { items, invested, cash, total: invested + cash, investedNet, gain, gainPct: investedNet > 0 ? (gain / investedNet) * 100 : 0 };
+}
+
+/** Débite le solde disponible et investit selon le profil, aux cours actuels. */
+export async function investFromCash(tx: Tx, userId: string, usd: number, profile: ProfileId, pm: PriceMap) {
+  const debited = await tx.user.updateMany({ where: { id: userId, cashUsd: { gte: usd.toFixed(2) } }, data: { cashUsd: { decrement: usd.toFixed(2) } } });
+  if (debited.count !== 1) throw new Error("Solde disponible insuffisant.");
+  await investUsd(tx, userId, usd, profile, pm);
+}
+
+/** Revend `usd` dollars (proportionnellement) et crédite le solde disponible. */
+export async function divestToCash(tx: Tx, userId: string, usd: number, pm: PriceMap) {
+  await sellUsd(tx, userId, usd, pm);
+  await tx.user.update({ where: { id: userId }, data: { cashUsd: { increment: usd.toFixed(2) } } });
 }
 
 /** Achète pour `usd` dollars selon la répartition du profil, aux cours actuels. */
@@ -111,9 +153,18 @@ export async function getSnapshots(userId: string, days = 90) {
   return rows.map((r) => ({ t: r.day.getTime(), v: Number(r.valueUsd) }));
 }
 
-/** Valeur totale gérée (tous clients). */
+/** Quantités détenues par crypto (tous clients) et total des soldes disponibles. */
+export async function getAumParts() {
+  const [sums, cash] = await Promise.all([
+    db.position.groupBy({ by: ["symbol"], _sum: { quantity: true } }),
+    db.user.aggregate({ _sum: { cashUsd: true } }),
+  ]);
+  return { quantities: sums.map((r) => ({ symbol: r.symbol, quantity: Number(r._sum.quantity ?? 0) })), cash: Number(cash._sum.cashUsd ?? 0) };
+}
+
+/** Valeur totale gérée (cryptos des clients + soldes disponibles). */
 export async function getAum(pm?: PriceMap) {
   const p = pm ?? (await priceMap());
-  const sums = await db.position.groupBy({ by: ["symbol"], _sum: { quantity: true } });
-  return sums.reduce((s, r) => s + Number(r._sum.quantity ?? 0) * (p.get(r.symbol)?.priceUsd ?? 0), 0);
+  const { quantities, cash } = await getAumParts();
+  return cash + quantities.reduce((s, r) => s + r.quantity * (p.get(r.symbol)?.priceUsd ?? 0), 0);
 }

@@ -36,7 +36,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/admin/cl
     ]),
     priceMap(),
   ]);
-  const value = (u: (typeof users)[number]) => u.positions.reduce((s, p) => s + Number(p.quantity) * (pm.get(p.symbol)?.priceUsd ?? 0), 0);
+  const value = (u: (typeof users)[number]) => Number(u.cashUsd) + u.positions.reduce((s, p) => s + Number(p.quantity) * (pm.get(p.symbol)?.priceUsd ?? 0), 0);
   const qs = (p: number) => new URLSearchParams({ ...(tab !== "tous" ? { statut: tab } : {}), ...(q ? { q } : {}), page: String(p) }).toString();
 
   return (

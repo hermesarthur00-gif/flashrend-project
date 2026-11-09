@@ -1,8 +1,6 @@
 import Link from "next/link";
-import { IconArrowDownLeft, IconArrowUpRight, IconArrowsExchange, IconChartPie, IconPlus, IconUserCog, IconChevronRight } from "@tabler/icons-react";
+import { IconArrowBackUp, IconArrowDownLeft, IconArrowUpRight, IconArrowsExchange, IconChartPie, IconUserCog, IconChevronRight } from "@tabler/icons-react";
 import { CryptoIcon, PriceChange } from "@/components/ui/finance";
-import { ButtonLink } from "@/components/ui/button";
-import { Stripes } from "@/components/ui/decor";
 import type { CryptoSymbol } from "@/lib/landing-data";
 import { cn, formatDateShort, formatQty, formatUSD } from "@/lib/utils";
 import { Badge, IconTile } from "@/components/app/primitives";
@@ -20,36 +18,6 @@ export function AssetIcon({ symbol, size = 36 }: { symbol: string; size?: number
 
 export function assetColor(symbol: string) {
   return KNOWN.includes(symbol) ? `var(--crypto-${symbol.toLowerCase()})` : "var(--ink-muted)";
-}
-
-export function BalanceCard({ total, gain, actions = true }: { total: number; gain: number; actions?: boolean }) {
-  const up = gain >= 0;
-  return (
-    <section aria-label="Solde total" className="relative overflow-hidden rounded-lg bg-band p-5 text-on-band lg:p-6">
-      <div className="pointer-events-none absolute -right-1.5 -top-1.5">
-        <Stripes count={4} height={64} />
-      </div>
-      <span className="text-overline relative text-flash">Solde total</span>
-      <p className="text-amount-xl relative m-0 mt-1.5 mb-2">{formatUSD(total)}</p>
-      <p className="relative m-0 flex flex-wrap items-center gap-2 text-xs">
-        <span className={cn("rounded-xs px-1.5 py-0.5 font-semibold tabular-nums", up ? "bg-flash text-on-flash" : "bg-down-fill text-on-down")}>
-          {up ? "▲ +" : "▼ "}
-          {formatUSD(gain)}
-        </span>
-        depuis le début
-      </p>
-      {actions && (
-        <div className="relative mt-5 grid grid-cols-2 gap-2">
-          <ButtonLink href="/account/depot" variant="primary">
-            <IconPlus size={20} stroke={2} /> Déposer
-          </ButtonLink>
-          <ButtonLink href="/account/retrait" variant="secondary" className="border-transparent">
-            <IconArrowUpRight size={20} stroke={2} /> Retirer
-          </ButtonLink>
-        </div>
-      )}
-    </section>
-  );
 }
 
 export function HoldingRow({ h, href }: { h: { symbol: string; name: string; quantity: number; valueUsd: number; change24h: number }; href?: string }) {
@@ -79,7 +47,8 @@ export function HoldingRow({ h, href }: { h: { symbol: string; name: string; qua
 
 const ACT = {
   DEPOSIT: { Icon: IconArrowDownLeft, tone: "info" as const, sign: "+" },
-  INVEST: { Icon: IconChartPie, tone: "up" as const, sign: "+" },
+  INVEST: { Icon: IconChartPie, tone: "soft" as const, sign: "" },
+  DIVEST: { Icon: IconArrowBackUp, tone: "sunken" as const, sign: "" },
   WITHDRAW: { Icon: IconArrowUpRight, tone: "sunken" as const, sign: "−" },
   REBALANCE: { Icon: IconArrowsExchange, tone: "soft" as const, sign: "" },
   PROFILE: { Icon: IconUserCog, tone: "sunken" as const, sign: "" },
@@ -107,7 +76,7 @@ export function ActivityList({ items }: { items: ActivityItem[] }) {
             </span>
             <span className="flex flex-col items-end gap-0.5">
               {a.amountUsd !== null && (
-                <span className={cn("text-amount-sm text-[15px]", a.type === "INVEST" && "text-up")}>
+                <span className={cn("text-amount-sm text-[15px]", a.type === "DEPOSIT" && !a.pending && "text-up")}>
                   {t.sign}
                   {formatUSD(a.amountUsd)}
                 </span>

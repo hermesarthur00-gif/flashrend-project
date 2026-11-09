@@ -151,7 +151,7 @@ export function WithdrawFlow({ available, fee, min, delay, email, accounts }: { 
       <Head title="Retirer" />
       <div className="flex flex-col gap-5 px-4 pt-2 pb-6 lg:px-0">
         <div className="flex items-center justify-between rounded-lg bg-surface-sunken px-4 py-3.5">
-          <span className="text-sm text-ink-muted">Disponible au retrait</span>
+          <span className="text-sm text-ink-muted">Solde disponible au retrait</span>
           <span className="text-amount">{formatUSD(max)}</span>
         </div>
         <div className="flex flex-col gap-2">
@@ -204,7 +204,7 @@ export function WithdrawFlow({ available, fee, min, delay, email, accounts }: { 
         <div>
           <InfoRow label="Frais de retrait" value={formatUSD(fee)} />
           <InfoRow label="Vous recevrez" value={formatUSD(amount)} strong />
-          <InfoRow label="Débité du portefeuille" value={formatUSD(amount + (amount ? fee : 0))} />
+          <InfoRow label="Débité du solde disponible" value={formatUSD(amount + (amount ? fee : 0))} />
           <InfoRow label="Délai" value={delay} />
         </div>
         {error && <Alert tone="down" title={error} />}
