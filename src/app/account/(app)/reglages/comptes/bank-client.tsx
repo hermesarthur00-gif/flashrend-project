@@ -1,48 +1,104 @@
 "use client";
-import { useActionState, useEffect, useRef, useTransition } from "react";
-import { IconTrash } from "@tabler/icons-react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { IconBuildingBank, IconChevronDown } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { Field, SubmitButton, useActionToast } from "@/components/app/form";
-import { addBankAccount, deleteBankAccount } from "../actions";
+import { IconTile } from "@/components/app/primitives";
+import { Button } from "@/components/ui/button";
+import { BankAccountForm, RibDetails, groupIban, type BankValues } from "@/components/account/bank-account-form";
+import { cn } from "@/lib/utils";
+import { deleteBankAccount } from "../actions";
 
-export function AddBankForm({ defaultHolder }: { defaultHolder: string }) {
-  const [state, action] = useActionState(addBankAccount, undefined);
-  const ref = useRef<HTMLFormElement>(null);
-  useActionToast(state);
-  useEffect(() => {
-    if (state?.ok) ref.current?.reset();
-  }, [state]);
+export type Account = BankValues & { id: string };
+
+/** Ligne de compte : un clic affiche le RIB, avec Modifier et Supprimer. */
+export function AccountRow({ account, open, onToggle, onChanged, allowDelete = true }: { account: Account; open: boolean; onToggle: () => void; onChanged?: (newId: string) => void; allowDelete?: boolean }) {
+  const [editing, setEditing] = useState(false);
+  const [pending, start] = useTransition();
+  const router = useRouter();
   return (
-    <form ref={ref} action={action} className="flex flex-col gap-3.5">
-      <Field label="Titulaire du compte" name="holder" defaultValue={defaultHolder} required autoComplete="name" />
-      <Field label="IBAN ou numéro de compte" name="iban" required placeholder="FR76 3000 6000 0112 3456 7890 189" autoComplete="off" spellCheck={false} />
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="BIC / SWIFT" name="bic" placeholder="AGRIFRPP" autoComplete="off" spellCheck={false} />
-        <Field label="Banque" name="bankName" placeholder="Nom de la banque" />
-      </div>
-      <SubmitButton pendingLabel="Ajout…">Ajouter ce compte</SubmitButton>
-    </form>
+    <li className="border-t border-line first:border-t-0">
+      <button type="button" onClick={onToggle} aria-expanded={open} className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-ink">
+        <IconTile>
+          <IconBuildingBank size={22} stroke={1.75} />
+        </IconTile>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate font-bold tabular-nums">
+            {account.iban.slice(0, 4)} •••• {account.iban.slice(-4)}
+          </span>
+          <span className="truncate text-[13px] text-ink-muted">
+            {account.holder}
+            {account.bankName ? ` · ${account.bankName}` : ""}
+          </span>
+        </span>
+        <span className="text-sm font-semibold text-ink-muted">{open ? "Masquer" : "Voir le RIB"}</span>
+        <IconChevronDown size={18} stroke={1.75} className={cn("text-ink-muted transition-transform", open && "rotate-180")} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="flex flex-col gap-3 px-4 pb-4">
+          {editing ? (
+            <BankAccountForm
+              id={account.id}
+              initial={{ holder: account.holder, iban: groupIban(account.iban), bic: account.bic, bankName: account.bankName }}
+              submitLabel="Enregistrer la correction"
+              onCancel={() => setEditing(false)}
+              onDone={(newId) => {
+                setEditing(false);
+                onChanged?.(newId);
+                router.refresh();
+              }}
+            />
+          ) : (
+            <>
+              <div className="rounded-md bg-surface-sunken px-3.5 py-1">
+                <RibDetails v={account} />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => setEditing(true)}>
+                  Modifier
+                </Button>
+                {allowDelete && (
+                  <Button
+                    variant="ghost"
+                    className="text-down"
+                    disabled={pending}
+                    onClick={() =>
+                      start(async () => {
+                        if (!confirm("Supprimer ce compte bancaire ?")) return;
+                        const res = await deleteBankAccount(account.id);
+                        if (res.error) toast.error(res.error);
+                        else {
+                          toast.success(res.ok);
+                          router.refresh();
+                        }
+                      })
+                    }
+                  >
+                    Supprimer
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </li>
   );
 }
 
-export function DeleteBankButton({ id }: { id: string }) {
-  const [pending, start] = useTransition();
+export function AccountsList({ accounts }: { accounts: Account[] }) {
+  const [open, setOpen] = useState<string | null>(null);
+  if (!accounts.length) return null;
   return (
-    <button
-      type="button"
-      aria-label="Supprimer ce compte"
-      disabled={pending}
-      onClick={() =>
-        start(async () => {
-          if (!confirm("Supprimer ce compte bancaire ?")) return;
-          const res = await deleteBankAccount(id);
-          if (res.error) toast.error(res.error);
-          else toast.success(res.ok);
-        })
-      }
-      className="grid size-10 place-items-center rounded-md text-ink-muted hover:bg-down-soft hover:text-down"
-    >
-      <IconTrash size={20} stroke={1.75} />
-    </button>
+    <ul className="m-0 list-none overflow-hidden rounded-lg border border-line bg-surface-raised p-0">
+      {accounts.map((a) => (
+        <AccountRow key={a.id} account={a} open={open === a.id} onToggle={() => setOpen(open === a.id ? null : a.id)} onChanged={(id) => setOpen(id)} />
+      ))}
+    </ul>
   );
+}
+
+export function AddBankForm({ defaultHolder }: { defaultHolder: string }) {
+  const router = useRouter();
+  return <BankAccountForm initial={{ holder: defaultHolder, iban: "", bic: "", bankName: "" }} onDone={() => router.refresh()} />;
 }

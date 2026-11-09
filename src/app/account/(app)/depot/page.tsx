@@ -28,10 +28,10 @@ export default async function DepositPage() {
     );
   }
 
-  const banks = (["USD", "EUR"] as const).filter((c) => settings.bank[c].iban);
+  const bank = settings.bank.EUR;
   return (
     <Page narrow className="px-0 pt-0 lg:px-10 lg:pt-8">
-      {banks.length === 0 ? (
+      {!bank.iban ? (
         <div className="px-4 pt-6">
           <Alert tone="warning" title="Dépôts momentanément indisponibles">
             Les coordonnées bancaires de FlashInv ne sont pas encore renseignées. Réessayez un peu plus tard.
@@ -40,9 +40,8 @@ export default async function DepositPage() {
       ) : (
         <DepositFlow
           reference={user.reference!}
-          banks={Object.fromEntries(banks.map((c) => [c, settings.bank[c]]))}
-          minUsd={settings.money.depositMinUsd}
-          eurRate={settings.money.eurUsdRate}
+          bank={bank}
+          min={settings.money.depositMin}
           delays={{ STANDARD: settings.money.depositDelayStandard, INSTANT: settings.money.depositDelayInstant }}
         />
       )}

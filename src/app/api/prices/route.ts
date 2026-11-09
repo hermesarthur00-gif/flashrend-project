@@ -5,5 +5,5 @@ import { getMarket } from "@/lib/server/prices";
 export async function GET() {
   await connection();
   const market = await getMarket();
-  return Response.json(market.map((m) => ({ symbol: m.symbol, priceUsd: m.priceUsd, change24h: m.change24h })), { headers: { "cache-control": "public, max-age=30" } });
+  return Response.json(market.map((m) => ({ symbol: m.symbol, priceEur: m.priceEur, change24h: m.change24h })), { headers: { "cache-control": "public, max-age=30" } });
 }

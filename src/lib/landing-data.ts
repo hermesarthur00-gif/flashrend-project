@@ -64,7 +64,7 @@ export const steps = [
   {
     n: "03",
     title: "Déposez, puis investissez",
-    text: "Virement classique ou instantané, en dollars ou en euros. Une fois vérifié, votre solde est crédité et vous l'investissez quand vous voulez.",
+    text: "Virement classique ou instantané, en euros. Une fois vérifié, votre solde est crédité et vous l'investissez quand vous voulez.",
   },
 ] as const;
 
@@ -86,7 +86,7 @@ export const getFaq = (siteConfig: { withdrawalDelay: string; fees: string }) =>
   },
   {
     q: "Comment déposer de l'argent ?",
-    a: "Par virement bancaire, classique ou instantané, en dollars ou en euros, sur le compte FlashInv indiqué dans votre espace, avec votre référence personnelle. Vous joignez la preuve du virement ; après vérification, votre solde est crédité et vous choisissez quand l'investir.",
+    a: "Par virement bancaire en euros, classique ou instantané, sur le compte de notre gestionnaire de paiement indiqué dans votre espace, avec votre référence personnelle. Vous joignez la preuve du virement ; après vérification, votre solde est crédité et vous choisissez quand l'investir.",
   },
   {
     q: "Puis-je retirer mon argent quand je veux ?",

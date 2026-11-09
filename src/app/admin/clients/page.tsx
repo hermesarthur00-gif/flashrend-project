@@ -5,7 +5,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/server/session";
 import { priceMap } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
-import { PROFILE_LABELS, formatDate, formatUSD } from "@/lib/utils";
+import { PROFILE_LABELS, formatDate, formatEUR } from "@/lib/utils";
 import { isAnonymized } from "@/lib/account-status";
 
 export const metadata = { title: "Clients" };
@@ -36,7 +36,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/admin/cl
     ]),
     priceMap(),
   ]);
-  const value = (u: (typeof users)[number]) => Number(u.cashUsd) + u.positions.reduce((s, p) => s + Number(p.quantity) * (pm.get(p.symbol)?.priceUsd ?? 0), 0);
+  const value = (u: (typeof users)[number]) => Number(u.cashEur) + u.positions.reduce((s, p) => s + Number(p.quantity) * (pm.get(p.symbol)?.priceEur ?? 0), 0);
   const qs = (p: number) => new URLSearchParams({ ...(tab !== "tous" ? { statut: tab } : {}), ...(q ? { q } : {}), page: String(p) }).toString();
 
   return (
@@ -66,7 +66,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/admin/cl
               <td className="font-semibold">{u.reference}</td>
               <td>{u.profile ? PROFILE_LABELS[u.profile] : <span className="text-ink-muted">Non choisi</span>}</td>
               <td><Badge tone={k[1]}>{k[0]}</Badge></td>
-              <td className="text-right font-semibold tabular-nums">{formatUSD(value(u))}</td>
+              <td className="text-right font-semibold tabular-nums">{formatEUR(value(u))}</td>
               <td className="whitespace-nowrap">{formatDate(u.createdAt)}</td>
               <td className="text-right"><ButtonLink href={`/admin/clients/${u.id}`} variant="ghost" size="sm">Ouvrir</ButtonLink></td>
             </tr>

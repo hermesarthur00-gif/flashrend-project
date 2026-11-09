@@ -35,7 +35,7 @@ function Row({ href, Icon, label, value }: { href: string; Icon: typeof IconMail
 
 export default async function SettingsPage() {
   const user = await requireUser();
-  const accounts = await db.bankAccount.count({ where: { userId: user.id } });
+  const accounts = await db.bankAccount.count({ where: { userId: user.id, archivedAt: null } });
   const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase();
   const kyc = KYC[user.kycStatus];
 

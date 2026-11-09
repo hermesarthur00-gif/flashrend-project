@@ -35,7 +35,7 @@ export function Hero() {
               </ButtonLink>
             </div>
             <p className="mt-1 hidden items-center gap-2 text-sm font-medium md:flex">
-              <IconBuildingBank size={18} {...iconProps} /> Dépôt par virement, en dollars ou en euros.
+              <IconBuildingBank size={18} {...iconProps} /> Dépôt par virement, en euros.
             </p>
           </div>
 
@@ -119,7 +119,7 @@ export function Hero() {
         </div>
       </div>
       <p className="mx-2 mt-4 flex items-center gap-2 text-sm font-medium text-ink-muted md:hidden">
-        <IconBuildingBank size={18} {...iconProps} /> Dépôt par virement, en dollars ou en euros.
+        <IconBuildingBank size={18} {...iconProps} /> Dépôt par virement, en euros.
       </p>
     </section>
   );

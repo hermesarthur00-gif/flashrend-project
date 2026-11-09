@@ -6,14 +6,11 @@ import { toast } from "sonner";
 import { Alert, Card, Glyph, IconTile } from "@/components/app/primitives";
 import { CopyButton } from "@/components/app/form";
 import { Button } from "@/components/ui/button";
-import { cn, formatMoney, formatUSD } from "@/lib/utils";
+import { cn, formatEUR } from "@/lib/utils";
 import { submitDeposit } from "./actions";
 
 type Bank = { beneficiary: string; iban: string; swift: string; bankName: string; bankAddress: string };
-type Cur = "USD" | "EUR";
 type Method = "STANDARD" | "INSTANT";
-
-const CUR: Record<Cur, { sym: string; name: string }> = { USD: { sym: "$", name: "Dollar" }, EUR: { sym: "€", name: "Euro" } };
 
 /** Réduit les photos (2000 px, JPEG) pour rester sous la limite d'envoi. */
 async function prepare(file: File): Promise<File> {
@@ -51,30 +48,26 @@ function Head({ title, onBack, step }: { title: string; onBack?: () => void; ste
   );
 }
 
-function CopyRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function CopyRow({ label, value, display, highlight }: { label: string; value: string; display?: string; highlight?: boolean }) {
   return (
     <div className={cn("flex items-center gap-2", highlight ? "mt-1 rounded-md bg-flash p-3 text-on-flash" : "border-t border-line py-3 first:border-t-0")}>
       <div className="flex min-w-0 flex-1 flex-col">
         <span className={cn("text-caption", highlight ? "text-on-flash" : "text-ink-muted")}>{label}</span>
-        <span className="text-[15px] font-bold [overflow-wrap:anywhere] tabular-nums">{value}</span>
+        <span className="text-[15px] font-bold [overflow-wrap:anywhere] tabular-nums">{display ?? value}</span>
       </div>
       <CopyButton value={value} label={label} />
     </div>
   );
 }
 
-export function DepositFlow({ reference, banks, minUsd, eurRate, delays }: { reference: string; banks: Partial<Record<Cur, Bank>>; minUsd: number; eurRate: number; delays: Record<Method, string> }) {
-  const currencies = Object.keys(banks) as Cur[];
+export function DepositFlow({ reference, bank, min, delays }: { reference: string; bank: Bank; min: number; delays: Record<Method, string> }) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [method, setMethod] = useState<Method>("STANDARD");
-  const [currency, setCurrency] = useState<Cur>(currencies[0]);
   const [raw, setRaw] = useState("");
   const [proof, setProof] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [pending, start] = useTransition();
-  const bank = banks[currency]!;
   const amount = Number(raw.replace(/\s/g, "").replace(",", ".")) || 0;
-  const min = currency === "EUR" ? Math.ceil((minUsd / eurRate) * 100) / 100 : minUsd;
   const tooLow = amount > 0 && amount < min;
 
   if (step === 1) {
@@ -84,7 +77,7 @@ export function DepositFlow({ reference, banks, minUsd, eurRate, delays }: { ref
         <div className="flex flex-col gap-4 px-4 pt-2 pb-6 lg:px-0">
           <div className="relative pr-16">
             <h2 className="text-h2 m-0 mb-1.5 max-w-[16ch]">Comment faites-vous le virement ?</h2>
-            <p className="m-0 text-ink-muted">Depuis un compte bancaire à votre nom. Votre solde est crédité après vérification par FlashInv.</p>
+            <p className="m-0 text-ink-muted">En euros, depuis un compte bancaire à votre nom. Votre solde est crédité après vérification par FlashInv.</p>
             <Glyph name="btc" size={56} rotate={12} className="-top-1.5 right-0" />
           </div>
           <div role="radiogroup" aria-label="Type de virement" className="flex flex-col gap-3">
@@ -111,17 +104,6 @@ export function DepositFlow({ reference, banks, minUsd, eurRate, delays }: { ref
           {method === "INSTANT" && (
             <p className="m-0 text-sm text-ink-muted">Le virement instantané arrive en quelques secondes. Votre banque peut le facturer.</p>
           )}
-          <div className="flex flex-col gap-2">
-            <span className="text-label">Devise du virement</span>
-            <div role="radiogroup" aria-label="Devise" className="flex rounded-md bg-surface-sunken p-0.5">
-              {currencies.map((c) => (
-                <button key={c} type="button" role="radio" aria-checked={c === currency} onClick={() => setCurrency(c)} className={cn("h-10 flex-1 rounded-sm text-sm font-semibold", c === currency ? "bg-surface-raised text-ink" : "text-ink-muted")}>
-                  {CUR[c].name} ({CUR[c].sym})
-                </button>
-              ))}
-            </div>
-            {currency === "EUR" && <p className="m-0 text-sm text-ink-muted">Converti en dollars à la vérification. Votre solde est tenu en dollars.</p>}
-          </div>
           <Button size="lg" block className="mt-2" onClick={() => setStep(2)}>
             Voir les coordonnées
           </Button>
@@ -134,12 +116,15 @@ export function DepositFlow({ reference, banks, minUsd, eurRate, delays }: { ref
     const shareText = ["Virement FlashInv", `Bénéficiaire : ${bank.beneficiary}`, `IBAN : ${bank.iban}`, bank.swift && `BIC / SWIFT : ${bank.swift}`, bank.bankName && `Banque : ${bank.bankName}`, `Référence : ${reference}`].filter(Boolean).join("\n");
     return (
       <>
-        <Head title={`Virement en ${currency}`} onBack={() => setStep(1)} step={2} />
+        <Head title="Virement en euros" onBack={() => setStep(1)} step={2} />
         <div className="flex flex-col gap-4 px-4 pt-1 pb-6 lg:px-0">
-          <p className="m-0 text-ink-muted">Depuis votre banque, faites un {method === "INSTANT" ? "virement instantané" : "virement"} vers ce compte.</p>
+          <p className="m-0 text-ink-muted">Depuis votre banque, faites un {method === "INSTANT" ? "virement instantané" : "virement"} en euros vers ce compte.</p>
+          <Alert tone="info" title="Compte de notre gestionnaire de paiement">
+            Ces coordonnées sont celles de notre gestionnaire de paiement, qui reçoit les dépôts pour FlashInv. Le bénéficiaire peut donc être différent de FlashInv : c&apos;est normal.
+          </Alert>
           <Card>
             <CopyRow label="Bénéficiaire" value={bank.beneficiary} />
-            <CopyRow label={currency === "EUR" ? "IBAN" : "IBAN / numéro de compte"} value={bank.iban} />
+            <CopyRow label="IBAN" value={bank.iban} display={bank.iban.replace(/(.{4})/g, "$1 ").trim()} />
             {bank.swift && <CopyRow label="BIC / SWIFT" value={bank.swift} />}
             {bank.bankName && <CopyRow label="Banque" value={bank.bankName} />}
             {bank.bankAddress && <CopyRow label="Adresse de la banque" value={bank.bankAddress} />}
@@ -183,7 +168,6 @@ export function DepositFlow({ reference, banks, minUsd, eurRate, delays }: { ref
           start(async () => {
             const fd = new FormData();
             fd.set("method", method);
-            fd.set("currency", currency);
             fd.set("amount", raw);
             fd.set("proof", proof);
             const res = await submitDeposit(fd);
@@ -197,11 +181,10 @@ export function DepositFlow({ reference, banks, minUsd, eurRate, delays }: { ref
           </label>
           <div className="flex items-baseline gap-2 border-b-2 border-ink pb-1">
             <input id="amount" inputMode="decimal" autoComplete="off" placeholder="0" value={raw} onChange={(e) => setRaw(e.target.value.replace(/[^\d.,\s]/g, ""))} className="text-amount-xl w-full min-w-0 bg-transparent outline-none placeholder:text-ink-muted/50" aria-invalid={tooLow || undefined} required />
-            <span className="text-h2 text-ink-muted">{CUR[currency].sym}</span>
+            <span className="text-h2 text-ink-muted">€</span>
           </div>
           <p className={cn("m-0 text-sm", tooLow ? "text-down" : "text-ink-muted")}>
-            Minimum {formatMoney(min, currency)}
-            {currency === "EUR" && amount > 0 ? ` · environ ${formatUSD(amount * eurRate)} crédités` : ""}
+            Minimum {formatEUR(min)}
           </p>
         </div>
         <div className="flex flex-col gap-2">

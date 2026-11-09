@@ -5,20 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const usd = new Intl.NumberFormat("fr-FR", {
-  style: "currency",
-  currency: "USD",
-  currencyDisplay: "narrowSymbol",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
 /** Espace insécable classique : l'espace fine insécable n'existe pas dans toutes les polices. */
 const nbsp = (s: string) => s.replace(/\u202f/g, "\u00a0");
-
-export function formatUSD(value: number) {
-  return nbsp(usd.format(value));
-}
 
 export function formatPct(value: number, digits = 2) {
   const abs = Math.abs(value).toLocaleString("fr-FR", {
@@ -35,8 +23,10 @@ export function formatEUR(value: number) {
   return nbsp(eur.format(value));
 }
 
-export function formatMoney(value: number, currency: "USD" | "EUR") {
-  return currency === "EUR" ? formatEUR(value) : formatUSD(value);
+/** Montant en euros (l'app est tenue en euros ; la devise des anciens dépôts de test est ignorée). */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function formatMoney(value: number, _currency?: "USD" | "EUR") {
+  return formatEUR(value);
 }
 
 export function formatQty(value: number, symbol: string) {

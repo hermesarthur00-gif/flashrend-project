@@ -55,7 +55,7 @@ export default async function TermsPage() {
           title: "Dépôts",
           body: (
             <p>
-              Les dépôts se font uniquement par virement bancaire, en dollars américains ou en euros, sur le compte au nom de FlashInv indiqué dans l&apos;espace du client, avec sa référence personnelle et une preuve du virement. Après vérification de la réception par FlashInv, le montant reçu est crédité en dollars sur le solde disponible du client ; un virement en euros est converti au taux appliqué à la réception. Le client décide ensuite d&apos;investir tout ou partie de ce solde selon son profil. Un virement sans référence peut retarder la vérification.
+              Les dépôts se font uniquement par virement bancaire en euros, sur le compte du gestionnaire de paiement de FlashInv indiqué dans l&apos;espace du client, avec sa référence personnelle et une preuve du virement. Après vérification de la réception par FlashInv, le montant reçu est crédité en euros sur le solde disponible du client. Le client décide ensuite d&apos;investir tout ou partie de ce solde selon son profil. Un virement sans référence peut retarder la vérification.
             </p>
           ),
         },

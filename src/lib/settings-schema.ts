@@ -31,13 +31,13 @@ export const settingsSchema = z.object({
   money: z.object({
     managementFee: z.string().trim().max(80).default(""),
     depositFee: z.string().trim().max(80).default(""),
-    withdrawalFeeUsd: z.coerce.number().min(0).max(1000).default(0),
-    depositMinUsd: z.coerce.number().min(0).max(100000).default(50),
-    withdrawalMinUsd: z.coerce.number().min(0).max(100000).default(20),
+    withdrawalFee: z.coerce.number().min(0).max(1000).default(0),
+    depositMin: z.coerce.number().min(0).max(100000).default(50),
+    withdrawalMin: z.coerce.number().min(0).max(100000).default(20),
     eurUsdRate: z.coerce.number().min(0.1).max(10).default(1.08),
     depositDelayStandard: z.string().trim().max(80).default("1 à 3 jours ouvrés"),
     depositDelayInstant: z.string().trim().max(80).default("quelques minutes à quelques heures"),
-    investMinUsd: z.coerce.number().min(0).max(100000).default(10),
+    investMin: z.coerce.number().min(0).max(100000).default(10),
     withdrawalDelay: z.string().trim().max(80).default(""),
     kycDelay: z.string().trim().max(80).default(""),
   }),
@@ -51,7 +51,7 @@ export const DEFAULT_SETTINGS: Settings = {
   contact: { email: siteConfig.contact.email, phone: "", address: "" },
   legal: { companyName: "", legalForm: "", shareCapital: "", address: "", registration: "", vatNumber: "", director: "", host: "", mediator: "", lastUpdated: siteConfig.legal.lastUpdated },
   bank: { USD: emptyBank, EUR: emptyBank },
-  money: { managementFee: "", depositFee: "", withdrawalFeeUsd: 0, depositMinUsd: 50, withdrawalMinUsd: 20, eurUsdRate: 1.08, depositDelayStandard: "1 à 3 jours ouvrés", depositDelayInstant: "quelques minutes à quelques heures", investMinUsd: 10, withdrawalDelay: "", kycDelay: "" },
+  money: { managementFee: "", depositFee: "", withdrawalFee: 0, depositMin: 50, withdrawalMin: 20, eurUsdRate: 1.08, depositDelayStandard: "1 à 3 jours ouvrés", depositDelayInstant: "quelques minutes à quelques heures", investMin: 10, withdrawalDelay: "", kycDelay: "" },
 };
 
 /** Fusionne une valeur stockée avec les valeurs par défaut (champs ajoutés plus tard). */
@@ -74,7 +74,7 @@ export function feesSentence(s: Settings) {
   const parts: string[] = [];
   if (s.money.managementFee) parts.push(`Frais de gestion : ${s.money.managementFee}`);
   if (s.money.depositFee) parts.push(`frais de dépôt : ${s.money.depositFee}`);
-  parts.push(`frais de retrait : ${s.money.withdrawalFeeUsd > 0 ? `${s.money.withdrawalFeeUsd.toLocaleString("fr-FR")} $` : "aucun"}`);
+  parts.push(`frais de retrait : ${s.money.withdrawalFee > 0 ? `${s.money.withdrawalFee.toLocaleString("fr-FR")} $` : "aucun"}`);
   const t = parts.join(", ");
   return t.charAt(0).toUpperCase() + t.slice(1);
 }

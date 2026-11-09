@@ -23,7 +23,7 @@ export async function deleteOrAnonymize(userId: string) {
     db.auditLog.count({ where: { actorId: userId } }),
     db.kycSubmission.count({ where: { reviewerId: userId } }),
   ]);
-  if (total > 0.01 || Number(user.cashUsd) > 0.004) throw new Error("Ce compte a encore un solde (disponible ou investi). Le client doit d'abord tout retirer.");
+  if (total > 0.01 || Number(user.cashEur) > 0.004) throw new Error("Ce compte a encore un solde (disponible ou investi). Le client doit d'abord tout retirer.");
   if (pendingDeposits || pendingWithdrawals) throw new Error("Ce compte a une opération en attente. Traitez-la d'abord.");
 
   const docs = user.kyc.flatMap((k) => [k.frontId, k.backId, k.selfieId]);

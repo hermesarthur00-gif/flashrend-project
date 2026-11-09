@@ -6,7 +6,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { requireOnboardedUser } from "@/lib/server/session";
 import { getSettings } from "@/lib/server/settings";
 import { db } from "@/lib/server/db";
-import { cn, formatDateTime, formatMoney, formatUSD } from "@/lib/utils";
+import { cn, formatDateTime, formatMoney, formatEUR } from "@/lib/utils";
 
 export const metadata = { title: "Suivi du dépôt" };
 
@@ -47,7 +47,7 @@ export default async function DepositTrackingPage({ params }: PageProps<"/accoun
   const credited = d.status === "CREDITED";
   const rejected = d.status === "REJECTED";
   const delay = d.method === "INSTANT" ? settings.money.depositDelayInstant : settings.money.depositDelayStandard;
-  const declared = d.declaredAmount ? formatMoney(Number(d.declaredAmount), d.currency) : `Virement en ${d.currency}`;
+  const declared = d.declaredAmount ? formatEUR(Number(d.declaredAmount)) : "Virement en euros";
 
   return (
     <>
@@ -59,7 +59,7 @@ export default async function DepositTrackingPage({ params }: PageProps<"/accoun
             <Coin tone="yellow" size={56} tilt={50} spin={22} />
           </div>
           <span className="text-caption text-flash">{credited ? "COMPTE CRÉDITÉ" : rejected ? "DÉPÔT REFUSÉ" : "EN VÉRIFICATION"}</span>
-          <p className="text-amount-xl m-0 mt-1.5 mb-1 pr-16">{credited && d.creditedUsd ? formatUSD(Number(d.creditedUsd)) : declared}</p>
+          <p className="text-amount-xl m-0 mt-1.5 mb-1 pr-16">{credited && d.creditedEur ? formatEUR(Number(d.creditedEur)) : declared}</p>
           <span className="text-[13px] opacity-80">
             {d.method === "INSTANT" ? "Virement instantané" : "Virement classique"} · réf. {d.reference}
           </span>
@@ -92,7 +92,7 @@ export default async function DepositTrackingPage({ params }: PageProps<"/accoun
           <Step
             state={credited ? "done" : "todo"}
             title="Solde disponible crédité"
-            sub={credited && d.creditedUsd ? `${formatUSD(Number(d.creditedUsd))}${d.currency === "EUR" && d.fxRate ? ` (1 € = ${Number(d.fxRate).toLocaleString("fr-FR", { maximumFractionDigits: 4 })} $)` : ""}` : "Vous pourrez ensuite investir"}
+            sub={credited && d.creditedEur ? formatEUR(Number(d.creditedEur)) : "Vous pourrez ensuite investir"}
           />
         </ol>
 

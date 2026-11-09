@@ -20,7 +20,7 @@ export default async function DivestPage() {
         {positions.length === 0 ? (
           <EmptyState title="Rien d'investi" text="Vous n'avez pas d'investissement en cours." action={<ButtonLink href="/account/investir">Investir</ButtonLink>} />
         ) : (
-          <DivestForm cash={Number(user.cashUsd)} positions={positions.map((p) => ({ symbol: p.symbol, name: names[p.symbol] ?? p.symbol, quantity: Number(p.quantity) }))} />
+          <DivestForm cash={Number(user.cashEur)} positions={positions.map((p) => ({ symbol: p.symbol, name: names[p.symbol] ?? p.symbol, quantity: Number(p.quantity) }))} />
         )}
       </Page>
     </>

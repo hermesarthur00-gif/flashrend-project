@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { IconArrowDownRight, IconArrowUpRight } from "@tabler/icons-react";
-import { cn, formatUSD } from "@/lib/utils";
+import { cn, formatEUR } from "@/lib/utils";
 import { LiveDot, useLiveHoldings, useLivePrice, type Position } from "./live-prices";
 
 type Point = { t: number; v: number };
@@ -26,13 +26,31 @@ function useNow() {
   return useSyncExternalStore(subscribeClock, clockSnapshot, () => 0);
 }
 
-/** Historique de cours (clôtures) depuis l'API publique de Binance. */
-async function klines(symbol: string, range: Range): Promise<Point[]> {
+/** Historique de cours (clôtures, en dollars) depuis l'API publique de Binance. */
+async function klinesUsd(pair: string, range: Range): Promise<Point[]> {
   const { interval, limit } = KLINES[range];
-  const res = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`);
+  const res = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${pair}&interval=${interval}&limit=${limit}`);
   if (!res.ok) throw new Error(String(res.status));
   const rows = (await res.json()) as [number, string, string, string, string][];
   return rows.map((r) => ({ t: r[0], v: Number(r[4]) }));
+}
+
+const eurCache = new Map<string, Promise<Point[]>>();
+/** Cours EUR/USD (dollars pour 1 euro) sur la période, mis en cache une minute. */
+function eurUsd(range: Range) {
+  const key = `${range}:${Math.floor(Date.now() / 60000)}`;
+  if (!eurCache.has(key)) eurCache.set(key, klinesUsd("EURUSDT", range).catch((e) => { eurCache.delete(key); throw e; }));
+  return eurCache.get(key)!;
+}
+
+/** Historique d'une crypto en euros : paire en USDT divisée par EUR/USD au même instant. */
+async function klines(symbol: string, range: Range): Promise<Point[]> {
+  const eur = await eurUsd(range);
+  if (STABLE.has(symbol)) return eur.map((p) => ({ t: p.t, v: 1 / p.v }));
+  const usd = await klinesUsd(`${symbol}USDT`, range);
+  const byTime = new Map(eur.map((p) => [p.t, p.v]));
+  const last = eur.at(-1)?.v ?? 1;
+  return usd.map((p) => ({ t: p.t, v: p.v / (byTime.get(p.t) ?? last) }));
 }
 
 const fmtTime = (t: number, range: Range) =>
@@ -73,7 +91,7 @@ function Svg({ data, label, height, live }: { data: Point[]; label: string; heig
       <span className="pointer-events-none absolute right-0 size-2.5 translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full" style={{ top: `${(y(data[data.length - 1].v) / H) * 100}%`, background: color }} aria-hidden="true" />
       {hover !== null && (
         <span className="pointer-events-none absolute top-0 rounded-xs bg-band px-2 py-1 text-xs font-semibold text-on-band tabular-nums" style={{ left: `clamp(0px, calc(${(hover / (data.length - 1)) * 100}% - 60px), calc(100% - 120px))` }}>
-          {formatUSD(data[hover].v)}
+          {formatEUR(data[hover].v)}
         </span>
       )}
     </div>
@@ -88,11 +106,11 @@ function Header({ value, first, range, setRange, title }: { value: number; first
     <div className="flex flex-wrap items-end justify-between gap-2">
       <div>
         {title && <p className="text-caption m-0 text-ink-muted">{title}</p>}
-        <p className="text-amount-lg m-0 tabular-nums">{formatUSD(value)}</p>
+        <p className="text-amount-lg m-0 tabular-nums">{formatEUR(value)}</p>
         <p className={cn("m-0 inline-flex items-center gap-1 text-sm font-semibold tabular-nums", up ? "text-up" : "text-down")}>
           {up ? <IconArrowUpRight size={16} stroke={2.5} aria-hidden="true" /> : <IconArrowDownRight size={16} stroke={2.5} aria-hidden="true" />}
           {up ? "+" : "−"}
-          {formatUSD(Math.abs(diff))} ({up ? "+" : "−"}
+          {formatEUR(Math.abs(diff))} ({up ? "+" : "−"}
           {Math.abs(pct).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %)
           <span className="font-normal text-ink-muted">sur {range}</span>
         </p>
@@ -127,7 +145,6 @@ export function AssetLiveChart({ symbol, name, fallback, height = 180 }: { symbo
   const now = useNow();
 
   useEffect(() => {
-    if (STABLE.has(symbol)) return;
     let cancel = false;
     klines(symbol, range)
       .then((d) => !cancel && setLoaded({ range, data: d }))
@@ -145,7 +162,7 @@ export function AssetLiveChart({ symbol, name, fallback, height = 180 }: { symbo
   return (
     <figure className="m-0 flex flex-col gap-3">
       <Header value={live} first={data?.[0]?.v ?? null} range={range} setRange={setRange} title={`Cours de ${name}`} />
-      {STABLE.has(symbol) ? <Empty height={height} text="Stablecoin : son cours suit le dollar." /> : data && data.length > 1 ? <Svg data={data} label={`Cours de ${name}, ${range}`} height={height} live={live} /> : <Empty height={height} text={base === null ? "Chargement de l'historique…" : "Historique indisponible pour le moment."} />}
+      {data && data.length > 1 ? <Svg data={data} label={`Cours de ${name}, ${range}`} height={height} live={live} /> : <Empty height={height} text={base === null ? "Chargement de l'historique…" : "Historique indisponible pour le moment."} />}
       {data && data.length > 1 && <p className="text-caption m-0 text-ink-muted">Depuis {fmtTime(data[0].t, range)}</p>}
     </figure>
   );
@@ -183,7 +200,7 @@ function GainLine({ label, gain, base }: { label: string; gain: number; base: nu
       <span className={cn("inline-flex items-center gap-0.5 font-semibold tabular-nums", up ? "text-up" : "text-down")}>
         {up ? <IconArrowUpRight size={16} stroke={2.5} aria-hidden="true" /> : <IconArrowDownRight size={16} stroke={2.5} aria-hidden="true" />}
         {up ? "+" : "−"}
-        {formatUSD(Math.abs(gain))}
+        {formatEUR(Math.abs(gain))}
         {base > 0 && ` (${up ? "+" : "−"}${Math.abs(pct).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %)`}
       </span>
     </p>
@@ -206,14 +223,14 @@ export function PortfolioLiveChart({ positions, daily, flows = [], investedNet, 
     if (range !== "24 h") return;
     let cancel = false;
     const held = positions.filter((p) => p.quantity > 0);
-    Promise.all(held.map((p) => (STABLE.has(p.symbol) ? Promise.resolve(null) : klines(p.symbol, "24 h").catch(() => null))))
+    Promise.all(held.map((p) => klines(p.symbol, "24 h").catch(() => null)))
       .then((series) => {
         if (cancel) return;
         const ref = series.find((s) => s && s.length);
         if (!ref) return setIntraday([]);
         const points = ref.map((pt, i) => ({
           t: pt.t,
-          v: held.reduce((sum, p, j) => sum + p.quantity * (STABLE.has(p.symbol) ? 1 : (series[j]?.[i]?.v ?? series[j]?.at(-1)?.v ?? 0)), 0),
+          v: held.reduce((sum, p, j) => sum + p.quantity * (series[j]?.[i]?.v ?? series[j]?.at(-1)?.v ?? 0), 0),
         }));
         setIntraday(points);
       });
@@ -238,7 +255,7 @@ export function PortfolioLiveChart({ positions, daily, flows = [], investedNet, 
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div className="flex flex-col gap-0.5">
           <p className="text-caption m-0 text-ink-muted">{title}</p>
-          <p className="text-amount-lg m-0 tabular-nums">{formatUSD(total)}</p>
+          <p className="text-amount-lg m-0 tabular-nums">{formatEUR(total)}</p>
           {!empty && period && <GainLine label={`Gain sur ${range}`} gain={period.gain} base={period.base} />}
           {!empty && investedNet !== undefined && <GainLine label="Depuis le début" gain={total - investedNet} base={investedNet} />}
         </div>

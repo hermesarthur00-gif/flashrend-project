@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Alert, InfoRow } from "@/components/app/primitives";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { LiveDot, useLiveHoldings, type Position } from "@/components/live/live-prices";
-import { cn, formatUSD } from "@/lib/utils";
+import { cn, formatEUR } from "@/lib/utils";
 import { AmountInput, QuickAmounts } from "../investir/invest-form";
 import { divestNow } from "../investir/actions";
 
@@ -29,7 +29,7 @@ export function DivestForm({ cash, positions }: { cash: number; positions: Posit
         <div>
           <h1 className="text-h1 m-0 mb-2">Ajouté à votre solde</h1>
           <p className="m-0 text-ink-muted">
-            <strong className="text-ink">{formatUSD(done)}</strong> sont disponibles. Vous pouvez les retirer vers votre banque ou les réinvestir.
+            <strong className="text-ink">{formatEUR(done)}</strong> sont disponibles. Vous pouvez les retirer vers votre banque ou les réinvestir.
           </p>
         </div>
         <div className="flex flex-col gap-2">
@@ -60,7 +60,7 @@ export function DivestForm({ cash, positions }: { cash: number; positions: Posit
           <span className="text-sm text-ink-muted">Valeur investie</span>
           <LiveDot />
         </span>
-        <span className="text-amount tabular-nums">{formatUSD(total)}</span>
+        <span className="text-amount tabular-nums">{formatEUR(total)}</span>
       </div>
       <div className="flex flex-col gap-2">
         <label htmlFor="divest" className="text-label">
@@ -82,17 +82,17 @@ export function DivestForm({ cash, positions }: { cash: number; positions: Posit
             setAll(a);
           }}
         />
-        {tooHigh && <p className={cn("m-0 text-sm text-down")}>Maximum {formatUSD(total)}.</p>}
+        {tooHigh && <p className={cn("m-0 text-sm text-down")}>Maximum {formatEUR(total)}.</p>}
       </div>
       <div>
         <InfoRow label="Frais" value="Aucun" />
-        <InfoRow label="Solde disponible après" value={formatUSD(cash + (all ? total : amount))} />
+        <InfoRow label="Solde disponible après" value={formatEUR(cash + (all ? total : amount))} />
       </div>
       <Alert tone="info" title="Revendu sur chaque crypto, en proportion">
         Le montant est revendu en proportion de chaque crypto détenue, aux cours du moment, puis ajouté à votre solde disponible.
       </Alert>
       <Button type="submit" size="lg" block disabled={pending || !amount || tooHigh}>
-        {pending ? "Un instant…" : amount ? `Désinvestir ${formatUSD(all ? total : amount)}` : "Désinvestir"}
+        {pending ? "Un instant…" : amount ? `Désinvestir ${formatEUR(all ? total : amount)}` : "Désinvestir"}
       </Button>
     </form>
   );

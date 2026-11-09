@@ -39,7 +39,7 @@ export default async function RisksPage() {
         {
           id: "change",
           title: "Risque de change",
-          body: <p>Les placements sont suivis en dollars. Si vous déposez en euros, la conversion et l&apos;évolution du taux de change peuvent modifier la valeur de votre investissement exprimée en euros.</p>,
+          body: <p>Votre compte est tenu en euros, mais les cryptos sont cotées en dollars sur les marchés. L&apos;évolution du taux de change entre l&apos;euro et le dollar peut donc faire varier la valeur en euros de vos investissements, à la hausse comme à la baisse.</p>,
         },
         {
           id: "reglementation",

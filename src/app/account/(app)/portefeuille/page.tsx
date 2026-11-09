@@ -6,7 +6,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { requireOnboardedUser } from "@/lib/server/session";
 import { getFlows, getPortfolioSummary, getSnapshots } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
-import { PROFILE_LABELS, formatDate, formatUSD } from "@/lib/utils";
+import { PROFILE_LABELS, formatDate, formatEUR } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Portefeuille" };
 
@@ -41,7 +41,7 @@ export default async function PortfolioPage() {
         <div className="grid grid-cols-2 gap-3 lg:gap-4">
           <Card className="p-3.5 lg:p-5">
             <span className="text-caption text-ink-muted">Solde disponible</span>
-            <p className="text-amount m-0 mt-1 text-lg tabular-nums">{formatUSD(s.cash)}</p>
+            <p className="text-amount m-0 mt-1 text-lg tabular-nums">{formatEUR(s.cash)}</p>
             <span className="text-sm text-ink-muted">Non investi</span>
           </Card>
           <Card className="p-3.5 lg:p-5">

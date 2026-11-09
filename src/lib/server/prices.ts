@@ -2,17 +2,17 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "./db";
 
-export type MarketAsset = { symbol: string; name: string; priceUsd: number; change24h: number; priceAt: Date | null };
+export type MarketAsset = { symbol: string; name: string; priceEur: number; change24h: number; priceAt: Date | null };
 
 export const PRICES_TAG = "prices";
 
 async function fetchCoinGecko(ids: string[]) {
-  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(",")}&vs_currencies=usd&include_24hr_change=true`;
+  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(",")}&vs_currencies=eur&include_24hr_change=true`;
   const headers: Record<string, string> = { accept: "application/json" };
   if (process.env.COINGECKO_API_KEY) headers["x-cg-demo-api-key"] = process.env.COINGECKO_API_KEY;
   const res = await fetch(url, { headers, signal: AbortSignal.timeout(6000), cache: "no-store" });
   if (!res.ok) throw new Error(`CoinGecko ${res.status}`);
-  return (await res.json()) as Record<string, { usd?: number; usd_24h_change?: number }>;
+  return (await res.json()) as Record<string, { eur?: number; eur_24h_change?: number }>;
 }
 
 /** Met à jour les cours en base depuis CoinGecko. Sans réseau, les derniers cours connus restent en place. */
@@ -24,8 +24,8 @@ export async function refreshPrices() {
   let updated = 0;
   for (const a of assets) {
     const p = data[a.coingeckoId];
-    if (!p?.usd) continue;
-    await db.asset.update({ where: { symbol: a.symbol }, data: { priceUsd: p.usd, change24h: p.usd_24h_change ?? 0, priceAt: now } });
+    if (!p?.eur) continue;
+    await db.asset.update({ where: { symbol: a.symbol }, data: { priceEur: p.eur, change24h: p.eur_24h_change ?? 0, priceAt: now } });
     updated++;
   }
   return updated;
@@ -43,7 +43,7 @@ export async function getMarket(): Promise<MarketAsset[]> {
   }
   try {
     const rows = await db.asset.findMany({ orderBy: { symbol: "asc" } });
-    return rows.map((r) => ({ symbol: r.symbol, name: r.name, priceUsd: Number(r.priceUsd), change24h: Number(r.change24h), priceAt: r.priceAt }));
+    return rows.map((r) => ({ symbol: r.symbol, name: r.name, priceEur: Number(r.priceEur), change24h: Number(r.change24h), priceAt: r.priceAt }));
   } catch {
     return [];
   }
@@ -56,7 +56,7 @@ export async function getPriceHistory(coingeckoId: string, days = 30): Promise<{
   try {
     const headers: Record<string, string> = { accept: "application/json" };
     if (process.env.COINGECKO_API_KEY) headers["x-cg-demo-api-key"] = process.env.COINGECKO_API_KEY;
-    const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coingeckoId}/market_chart?vs_currency=usd&days=${days}&interval=daily`, {
+    const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coingeckoId}/market_chart?vs_currency=eur&days=${days}&interval=daily`, {
       headers,
       signal: AbortSignal.timeout(6000),
     });

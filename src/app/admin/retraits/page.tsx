@@ -6,7 +6,7 @@ import { CopyButton } from "@/components/app/form";
 import { requireAdmin } from "@/lib/server/session";
 import { getHoldings } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
-import { cn, formatDateTime, formatUSD } from "@/lib/utils";
+import { cn, formatDateTime, formatEUR } from "@/lib/utils";
 import { RejectWithdrawalForm, SendWithdrawalForm } from "./withdrawal-forms";
 
 export const metadata = { title: "Retraits" };
@@ -55,7 +55,7 @@ export default async function WithdrawalsPage({ searchParams }: PageProps<"/admi
               </td>
               <td className="font-semibold">{w.reference}</td>
               <td className="whitespace-nowrap tabular-nums">{mask(w.bankAccount.iban)}</td>
-              <td className="text-right font-bold tabular-nums">{formatUSD(Number(w.amountUsd))}</td>
+              <td className="text-right font-bold tabular-nums">{formatEUR(Number(w.amountEur))}</td>
               <td className="whitespace-nowrap">{formatDateTime(w.createdAt)}</td>
               <td><StatusBadge status={STATUS[w.status]} label={w.status === "SENT" ? "Envoyé" : undefined} /></td>
             </tr>
@@ -69,8 +69,8 @@ export default async function WithdrawalsPage({ searchParams }: PageProps<"/admi
             </h2>
             <div className="rounded-md bg-band p-4 text-on-band">
               <span className="text-caption text-flash">À VIRER</span>
-              <p className="text-amount-lg m-0 mt-1 mb-1.5">{formatUSD(Number(selected.amountUsd))}</p>
-              <span className="text-[13px] opacity-80">Frais de {formatUSD(Number(selected.feeUsd))} déjà prélevés sur le portefeuille</span>
+              <p className="text-amount-lg m-0 mt-1 mb-1.5">{formatEUR(Number(selected.amountEur))}</p>
+              <span className="text-[13px] opacity-80">Frais de {formatEUR(Number(selected.feeEur))} déjà prélevés sur le portefeuille</span>
             </div>
             <div>
               <KV label="Titulaire" value={selected.bankAccount.holder} />
@@ -82,7 +82,7 @@ export default async function WithdrawalsPage({ searchParams }: PageProps<"/admi
               {selected.bankAccount.bic && <KV label="BIC" value={selected.bankAccount.bic} />}
               {selected.bankAccount.bankName && <KV label="Banque" value={selected.bankAccount.bankName} />}
               <KV label="Confirmé par code" value={<Badge tone="up">Oui</Badge>} />
-              <KV label="Solde actuel du client" value={formatUSD(after)} />
+              <KV label="Solde actuel du client" value={formatEUR(after)} />
               {selected.bankReference && <KV label="Réf. du virement" value={selected.bankReference} />}
               {selected.sentAt && <KV label="Envoyé le" value={formatDateTime(selected.sentAt)} />}
               {selected.rejectReason && <KV label="Motif du refus" value={selected.rejectReason} />}

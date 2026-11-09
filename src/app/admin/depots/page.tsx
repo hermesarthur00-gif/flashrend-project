@@ -4,9 +4,8 @@ import { StatusBadge } from "@/components/app/primitives";
 import { AdminHead, EmptyRow, KV, LinkTabs, Person, SearchBox, Table } from "@/components/admin/ui";
 import { Stripes } from "@/components/ui/decor";
 import { requireAdmin } from "@/lib/server/session";
-import { getSettings } from "@/lib/server/settings";
 import { db } from "@/lib/server/db";
-import { cn, formatDateTime, formatMoney, formatUSD } from "@/lib/utils";
+import { cn, formatDateTime, formatMoney, formatEUR } from "@/lib/utils";
 import { ReconcileForm, RejectDepositForm, UnannouncedForm } from "./deposit-forms";
 import { DocViewer } from "../verifications/doc-viewer";
 
@@ -28,10 +27,9 @@ export default async function DepositsPage({ searchParams }: PageProps<"/admin/d
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
   const where: Prisma.DepositWhereInput = { ...(tab.status ? { status: tab.status } : {}) };
   if (q) where.OR = [{ reference: { contains: q, mode: "insensitive" } }, { user: { name: { contains: q, mode: "insensitive" } } }, { user: { email: { contains: q, mode: "insensitive" } } }];
-  const [rows, pending, settings] = await Promise.all([
+  const [rows, pending] = await Promise.all([
     db.deposit.findMany({ where, orderBy: { announcedAt: tab.status === "ANNOUNCED" ? "asc" : "desc" }, take: 100, include: { user: true } }),
     db.deposit.count({ where: { status: "ANNOUNCED" } }),
-    getSettings(),
   ]);
   const selected = typeof sp.id === "string" ? await db.deposit.findUnique({ where: { id: sp.id }, include: { user: true } }) : null;
   const keep = { ...(tab.key !== "a-rapprocher" ? { statut: tab.key } : {}), ...(q ? { q } : {}) };
@@ -76,14 +74,13 @@ export default async function DepositsPage({ searchParams }: PageProps<"/admin/d
                 {selected.declaredAmount && <KV label="Montant déclaré" value={formatMoney(Number(selected.declaredAmount), selected.currency)} />}
                 <KV label="Déclaré le" value={formatDateTime(selected.announcedAt)} />
                 {selected.receivedAmount && <KV label="Montant reçu" value={formatMoney(Number(selected.receivedAmount), selected.currency)} />}
-                {selected.creditedUsd && <KV label="Crédité" value={formatUSD(Number(selected.creditedUsd))} />}
-                {selected.fxRate && <KV label="Taux appliqué" value={Number(selected.fxRate).toLocaleString("fr-FR", { maximumFractionDigits: 6 })} />}
+                {selected.creditedEur && <KV label="Crédité" value={formatEUR(Number(selected.creditedEur))} />}
                 {selected.note && <KV label="Raison du refus" value={selected.note} />}
               </div>
               {selected.proofId ? <DocViewer src={`/admin/documents/${selected.id}/preuve`} label="Preuve du virement" /> : <p className="m-0 text-sm text-ink-muted">Pas de preuve jointe (virement enregistré par un admin).</p>}
               {selected.status === "ANNOUNCED" && (
                 <>
-                  <ReconcileForm id={selected.id} currency={selected.currency} defaultRate={settings.money.eurUsdRate} declared={selected.declaredAmount ? Number(selected.declaredAmount) : null} />
+                  <ReconcileForm id={selected.id} declared={selected.declaredAmount ? Number(selected.declaredAmount) : null} />
                   <RejectDepositForm id={selected.id} />
                 </>
               )}
@@ -93,7 +90,7 @@ export default async function DepositsPage({ searchParams }: PageProps<"/admin/d
               <span className="text-overline text-ink-muted">Virement sans annonce</span>
               <h2 className="text-h3 m-0">Enregistrer un virement reçu</h2>
               <p className="m-0 text-sm text-ink-muted">Pour un virement reçu avec une référence client mais non déclaré dans l&apos;app. Sélectionnez une ligne pour vérifier un dépôt déclaré.</p>
-              <UnannouncedForm defaultRate={settings.money.eurUsdRate} />
+              <UnannouncedForm />
             </>
           )}
         </aside>

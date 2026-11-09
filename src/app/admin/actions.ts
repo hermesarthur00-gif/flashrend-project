@@ -11,7 +11,7 @@ import { consumeActionCode, sendActionCode } from "@/lib/server/action-codes";
 import { mergeSettings, settingsSchema } from "@/lib/settings-schema";
 import { isAnonymized } from "@/lib/account-status";
 import { deleteOrAnonymize } from "@/lib/server/user-admin";
-import { PROFILE_LABELS, formatMoney, formatUSD } from "@/lib/utils";
+import { PROFILE_LABELS, formatMoney, formatEUR } from "@/lib/utils";
 
 export type AdminState = { error?: string; ok?: string } | undefined;
 export type BankState = { error?: string; ok?: string; codeId?: string } | undefined;
@@ -117,24 +117,22 @@ export async function reviewKyc(_: AdminState, form: FormData): Promise<AdminSta
 
 // ---------------------------------------------------------------- dépôts
 
-/** Le virement est bien arrivé : le solde disponible du client est crédité (en dollars). */
+/** Le virement est bien arrivé : le solde disponible du client est crédité (en euros). */
 export async function reconcileDeposit(_: AdminState, form: FormData): Promise<AdminState> {
   const admin = await requireAdmin();
   const id = String(form.get("id"));
   const amount = num(form.get("amount"));
-  const rate = num(form.get("rate"));
   const receivedAt = form.get("receivedAt") ? new Date(String(form.get("receivedAt"))) : new Date();
   const d = await db.deposit.findUnique({ where: { id }, include: { user: true } });
   if (!d || d.status !== "ANNOUNCED") return { error: "Ce dépôt a déjà été traité." };
   if (!(amount > 0)) return { error: "Indiquez le montant reçu." };
-  if (d.currency === "EUR" && !(rate > 0.1 && rate < 10)) return { error: "Indiquez le taux EUR → USD appliqué." };
-  const credited = Math.round((d.currency === "EUR" ? amount * rate : amount) * 100) / 100;
+  const credited = Math.round(amount * 100) / 100;
   try {
     await db.$transaction(async (tx) => {
-    const claimed = await tx.deposit.updateMany({ where: { id, status: "ANNOUNCED" }, data: { status: "CREDITED", receivedAmount: amount, fxRate: d.currency === "EUR" ? rate : null, creditedUsd: credited, receivedAt, processedById: admin.id } });
+    const claimed = await tx.deposit.updateMany({ where: { id, status: "ANNOUNCED" }, data: { status: "CREDITED", receivedAmount: amount, creditedEur: credited, receivedAt, processedById: admin.id } });
     if (claimed.count !== 1) throw new Error("Ce dépôt a déjà été traité.");
-    await tx.user.update({ where: { id: d.userId }, data: { cashUsd: { increment: credited.toFixed(2) } } });
-    await tx.activity.updateMany({ where: { userId: d.userId, type: "DEPOSIT", pending: true, subtitle: { endsWith: `réf. ${d.reference}` }, createdAt: { gte: new Date(d.announcedAt.getTime() - 5000), lte: new Date(d.announcedAt.getTime() + 5000) } }, data: { pending: false, title: "Dépôt crédité", amountUsd: credited } });
+    await tx.user.update({ where: { id: d.userId }, data: { cashEur: { increment: credited.toFixed(2) } } });
+    await tx.activity.updateMany({ where: { userId: d.userId, type: "DEPOSIT", pending: true, subtitle: { endsWith: `réf. ${d.reference}` }, createdAt: { gte: new Date(d.announcedAt.getTime() - 5000), lte: new Date(d.announcedAt.getTime() + 5000) } }, data: { pending: false, title: "Dépôt crédité", amountEur: credited } });
     });
   } catch (e) {
     return fail(e, "Le crédit n'a pas pu être enregistré.");
@@ -143,13 +141,13 @@ export async function reconcileDeposit(_: AdminState, form: FormData): Promise<A
   await notify(d.userId, {
     kind: "deposit",
     title: "Votre compte est crédité",
-    body: `${formatUSD(credited)} ajoutés à votre solde disponible. Vous pouvez maintenant les investir.${diff}`,
+    body: `${formatEUR(credited)} ajoutés à votre solde disponible. Vous pouvez maintenant les investir.${diff}`,
     url: "/account/investir",
-    email: { lines: [`Nous avons bien reçu votre virement : ${formatUSD(credited)} sont ajoutés à votre solde disponible.${diff}`, "Vous pouvez maintenant les investir depuis l'app, selon votre profil."], cta: "Investir" },
+    email: { lines: [`Nous avons bien reçu votre virement : ${formatEUR(credited)} sont ajoutés à votre solde disponible.${diff}`, "Vous pouvez maintenant les investir depuis l'app, selon votre profil."], cta: "Investir" },
   });
-  await audit(admin.id, "deposit.credit", { type: "deposit", id }, { amount, currency: d.currency, rate: d.currency === "EUR" ? rate : null, credited, declared: d.declaredAmount ? Number(d.declaredAmount) : null });
+  await audit(admin.id, "deposit.credit", { type: "deposit", id }, { amount, credited, declared: d.declaredAmount ? Number(d.declaredAmount) : null });
   revalidatePath("/admin", "layout");
-  return { ok: `${formatUSD(credited)} crédités pour ${d.user.name}` };
+  return { ok: `${formatEUR(credited)} crédités pour ${d.user.name}` };
 }
 
 export async function rejectDeposit(_: AdminState, form: FormData): Promise<AdminState> {
@@ -171,7 +169,7 @@ export async function rejectDeposit(_: AdminState, form: FormData): Promise<Admi
 export async function recordUnannouncedDeposit(_: AdminState, form: FormData): Promise<AdminState> {
   await requireAdmin();
   const reference = String(form.get("reference") ?? "").trim().toUpperCase();
-  const currency = String(form.get("currency")) === "EUR" ? "EUR" : "USD";
+  const currency = "EUR" as const;
   const user = await db.user.findUnique({ where: { reference } });
   if (!user) return { error: `Aucun client avec la référence ${reference}.` };
   const d = await db.deposit.create({ data: { userId: user.id, reference, currency, declaredAmount: num(form.get("amount")) || null } });
@@ -179,7 +177,6 @@ export async function recordUnannouncedDeposit(_: AdminState, form: FormData): P
   const fd = new FormData();
   fd.set("id", d.id);
   fd.set("amount", String(form.get("amount")));
-  fd.set("rate", String(form.get("rate") ?? ""));
   const res = await reconcileDeposit(undefined, fd);
   if (res?.error) {
     await db.deposit.delete({ where: { id: d.id } });
@@ -197,9 +194,9 @@ export async function markWithdrawalSent(_: AdminState, form: FormData): Promise
   const w = await db.withdrawal.findUnique({ where: { id }, include: { bankAccount: true } });
   if (!w || w.status !== "REQUESTED") return { error: "Ce retrait a déjà été traité." };
   await db.withdrawal.update({ where: { id }, data: { status: "SENT", sentAt: new Date(), bankReference: bankReference || null, processedById: admin.id } });
-  await db.activity.updateMany({ where: { userId: w.userId, type: "WITHDRAW", pending: true, amountUsd: w.amountUsd }, data: { pending: false, title: "Retrait envoyé" } });
+  await db.activity.updateMany({ where: { userId: w.userId, type: "WITHDRAW", pending: true, amountEur: w.amountEur }, data: { pending: false, title: "Retrait envoyé" } });
   const masked = `${w.bankAccount.iban.slice(0, 4)} •••• ${w.bankAccount.iban.slice(-4)}`;
-  await notify(w.userId, { kind: "withdrawal", title: "Retrait envoyé", body: `${formatUSD(Number(w.amountUsd))} partis vers ${masked}.`, url: "/account/activite", email: { cta: "Voir l'activité" } });
+  await notify(w.userId, { kind: "withdrawal", title: "Retrait envoyé", body: `${formatEUR(Number(w.amountEur))} partis vers ${masked}.`, url: "/account/activite", email: { cta: "Voir l'activité" } });
   await audit(admin.id, "withdrawal.sent", { type: "withdrawal", id }, { bankReference });
   revalidatePath("/admin", "layout");
   return { ok: "Retrait marqué comme envoyé" };
@@ -212,13 +209,13 @@ export async function rejectWithdrawal(_: AdminState, form: FormData): Promise<A
   if (reason.length < 4) return { error: "Indiquez le motif, il sera visible par le client." };
   const w = await db.withdrawal.findUnique({ where: { id }, include: { user: true } });
   if (!w || w.status !== "REQUESTED") return { error: "Ce retrait a déjà été traité." };
-  const refund = Number(w.amountUsd) + Number(w.feeUsd);
+  const refund = Number(w.amountEur) + Number(w.feeEur);
   try {
     await db.$transaction(async (tx) => {
       const claimed = await tx.withdrawal.updateMany({ where: { id, status: "REQUESTED" }, data: { status: "REJECTED", rejectReason: reason, processedById: admin.id } });
       if (claimed.count !== 1) throw new Error("Ce retrait a déjà été traité.");
-      await tx.user.update({ where: { id: w.userId }, data: { cashUsd: { increment: refund.toFixed(2) } } });
-      await tx.activity.updateMany({ where: { userId: w.userId, type: "WITHDRAW", pending: true, amountUsd: w.amountUsd }, data: { pending: false, title: "Retrait annulé", subtitle: "Montant rendu au solde disponible" } });
+      await tx.user.update({ where: { id: w.userId }, data: { cashEur: { increment: refund.toFixed(2) } } });
+      await tx.activity.updateMany({ where: { userId: w.userId, type: "WITHDRAW", pending: true, amountEur: w.amountEur }, data: { pending: false, title: "Retrait annulé", subtitle: "Montant rendu au solde disponible" } });
     });
   } catch (e) {
     return fail(e, "L'annulation a échoué.");
@@ -286,7 +283,7 @@ export async function saveSettings(_: AdminState, form: FormData): Promise<Admin
 }
 
 const bankFields = z.object({
-  currency: z.enum(["USD", "EUR"]),
+  currency: z.literal("EUR"),
   beneficiary: z.string().trim().min(2, "Indiquez le bénéficiaire.").max(120),
   iban: z.string().trim().min(6, "Indiquez l'IBAN ou le numéro de compte.").max(64),
   swift: z.string().trim().max(20),

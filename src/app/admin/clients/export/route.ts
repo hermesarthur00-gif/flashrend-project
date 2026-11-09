@@ -13,9 +13,9 @@ export async function GET() {
   const me = session ? await db.user.findUnique({ where: { id: session.user.id } }) : null;
   if (!me || me.role !== "ADMIN") return new Response("Accès refusé", { status: 403 });
   const [users, pm] = await Promise.all([db.user.findMany({ where: { role: "CLIENT" }, include: { positions: true }, orderBy: { createdAt: "asc" } }), priceMap()]);
-  const rows = [["Référence", "Prénom", "Nom", "E-mail", "Téléphone", "Profil", "Identité", "Suspendu", "Solde USD", "Inscrit le"]];
+  const rows = [["Référence", "Prénom", "Nom", "E-mail", "Téléphone", "Profil", "Identité", "Suspendu", "Solde EUR", "Inscrit le"]];
   for (const u of users) {
-    const value = Number(u.cashUsd) + u.positions.reduce((s, p) => s + Number(p.quantity) * (pm.get(p.symbol)?.priceUsd ?? 0), 0);
+    const value = Number(u.cashEur) + u.positions.reduce((s, p) => s + Number(p.quantity) * (pm.get(p.symbol)?.priceEur ?? 0), 0);
     rows.push([u.reference ?? "", u.firstName ?? "", u.lastName ?? "", u.email, u.phone ?? "", u.profile ?? "", u.kycStatus, u.suspendedAt ? "oui" : "non", value.toFixed(2).replace(".", ","), u.createdAt.toISOString().slice(0, 10)]);
   }
   await db.auditLog.create({ data: { actorId: me.id, action: "clients.export", data: { count: users.length } } });

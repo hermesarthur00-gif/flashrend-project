@@ -10,7 +10,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { requireOnboardedUser } from "@/lib/server/session";
 import { getFlows, getPortfolioSummary, getSnapshots } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
-import { PROFILE_LABELS, PROFILE_RISK, formatMoney, formatUSD } from "@/lib/utils";
+import { PROFILE_LABELS, PROFILE_RISK, formatMoney, formatEUR } from "@/lib/utils";
 
 export default async function HomePage() {
   const user = await requireOnboardedUser();
@@ -75,7 +75,7 @@ export default async function HomePage() {
           </Alert>
         ))}
         {canInvest && (
-          <Alert tone="flash" title={`${formatUSD(summary.cash)} disponibles à investir`} action={<ButtonLink href="/account/investir" size="sm">Investir</ButtonLink>}>
+          <Alert tone="flash" title={`${formatEUR(summary.cash)} disponibles à investir`} action={<ButtonLink href="/account/investir" size="sm">Investir</ButtonLink>}>
             Ils seront répartis selon votre profil {PROFILE_LABELS[profile].toLowerCase()}.
           </Alert>
         )}

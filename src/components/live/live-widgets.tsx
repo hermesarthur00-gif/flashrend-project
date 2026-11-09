@@ -6,7 +6,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Stripes } from "@/components/ui/decor";
 import { AssetIcon } from "@/components/account/widgets";
 import type { CryptoSymbol } from "@/lib/landing-data";
-import { cn, formatQty, formatUSD } from "@/lib/utils";
+import { cn, formatQty, formatEUR } from "@/lib/utils";
 import { useLiveHoldings, useLivePrice, type Position } from "./live-prices";
 
 export function Gain({ value, className }: { value: number; className?: string }) {
@@ -15,7 +15,7 @@ export function Gain({ value, className }: { value: number; className?: string }
     <span className={cn("inline-flex items-center gap-0.5 whitespace-nowrap font-semibold tabular-nums", up ? "text-up" : "text-down", className)}>
       {up ? <IconArrowUpRight size={16} stroke={2.5} aria-hidden="true" /> : <IconArrowDownRight size={16} stroke={2.5} aria-hidden="true" />}
       {up ? "+" : "−"}
-      {formatUSD(Math.abs(value))}
+      {formatEUR(Math.abs(value))}
     </span>
   );
 }
@@ -31,23 +31,23 @@ export function LiveBalanceCard({ cash, positions, investedNet, actions = true }
         <Stripes count={4} height={64} />
       </div>
       <span className="text-overline relative text-flash">Solde total</span>
-      <p className="text-amount-xl relative m-0 mt-1.5 mb-2 tabular-nums">{formatUSD(cash + invested)}</p>
+      <p className="text-amount-xl relative m-0 mt-1.5 mb-2 tabular-nums">{formatEUR(cash + invested)}</p>
       <p className="relative m-0 flex flex-wrap items-center gap-2 text-xs">
         <span className={cn("inline-flex items-center gap-0.5 rounded-xs px-1.5 py-0.5 font-semibold tabular-nums", up ? "bg-up-fill text-ink-inverse" : "bg-down-fill text-on-down")}>
           {up ? <IconArrowUpRight size={14} stroke={2.5} aria-hidden="true" /> : <IconArrowDownRight size={14} stroke={2.5} aria-hidden="true" />}
           {up ? "+" : "−"}
-          {formatUSD(Math.abs(gain))}
+          {formatEUR(Math.abs(gain))}
         </span>
         sur vos investissements
       </p>
       <dl className="relative m-0 mt-4 grid grid-cols-2 gap-3 border-t border-on-band/15 pt-3.5">
         <div>
           <dt className="text-caption opacity-75">Disponible</dt>
-          <dd className="m-0 text-[17px] font-bold tabular-nums">{formatUSD(cash)}</dd>
+          <dd className="m-0 text-[17px] font-bold tabular-nums">{formatEUR(cash)}</dd>
         </div>
         <div>
           <dt className="text-caption opacity-75">Investi</dt>
-          <dd className="m-0 text-[17px] font-bold tabular-nums">{formatUSD(invested)}</dd>
+          <dd className="m-0 text-[17px] font-bold tabular-nums">{formatEUR(invested)}</dd>
         </div>
       </dl>
       {actions && (
@@ -82,7 +82,7 @@ export function LiveHoldingRows({ positions, linked = true, empty }: { positions
               <span className="block text-xs leading-4 text-ink-muted tabular-nums">{formatQty(h.quantity, h.symbol)}</span>
             </span>
             <span className="flex flex-col items-end">
-              <span className="text-amount-sm text-[15px] tabular-nums">{formatUSD(h.valueUsd)}</span>
+              <span className="text-amount-sm text-[15px] tabular-nums">{formatEUR(h.valueEur)}</span>
               <PriceChange value={h.change24h} />
             </span>
             {linked && <IconChevronRight size={18} stroke={1.75} className="text-ink-muted" aria-hidden="true" />}
@@ -105,14 +105,14 @@ export function LiveHoldingRows({ positions, linked = true, empty }: { positions
 
 export function LiveAllocation({ positions, size }: { positions: Position[]; size?: number }) {
   const { items } = useLiveHoldings(positions);
-  return <AllocationDonut items={items.map((h) => ({ symbol: h.symbol as CryptoSymbol, value: h.valueUsd }))} size={size} />;
+  return <AllocationDonut items={items.map((h) => ({ symbol: h.symbol as CryptoSymbol, value: h.valueEur }))} size={size} />;
 }
 
 export function LiveInvested({ positions, investedNet }: { positions: Position[]; investedNet: number }) {
   const { total } = useLiveHoldings(positions);
   return (
     <>
-      <p className="text-amount m-0 mt-1 text-lg tabular-nums">{formatUSD(total)}</p>
+      <p className="text-amount m-0 mt-1 text-lg tabular-nums">{formatEUR(total)}</p>
       <Gain value={total - investedNet} className="text-sm" />
     </>
   );
@@ -126,9 +126,9 @@ export function LiveAssetHolding({ position }: { position: Position }) {
   return (
     <div className="relative flex min-w-0 flex-col gap-0.5 pr-14">
       <span className="text-caption text-flash">VOUS DÉTENEZ</span>
-      <span className="text-amount-lg tabular-nums">{formatUSD(total)}</span>
+      <span className="text-amount-lg tabular-nums">{formatEUR(total)}</span>
       <span className="text-[13px] tabular-nums opacity-80">
-        {formatQty(h?.quantity ?? 0, position.symbol)} · 1 {position.symbol} = {formatUSD(lp.price)}
+        {formatQty(h?.quantity ?? 0, position.symbol)} · 1 {position.symbol} = {formatEUR(lp.price)}
       </span>
     </div>
   );
@@ -140,7 +140,7 @@ export function LivePriceRow({ symbol }: { symbol: string }) {
     <>
       <div className="flex justify-between gap-3 border-t border-line py-3 text-[15px] first:border-t-0">
         <span className="text-ink-muted">Cours actuel</span>
-        <span className="font-semibold tabular-nums">{formatUSD(lp.price)}</span>
+        <span className="font-semibold tabular-nums">{formatEUR(lp.price)}</span>
       </div>
       <div className="flex justify-between gap-3 border-t border-line py-3 text-[15px]">
         <span className="text-ink-muted">Variation 24 h</span>
@@ -153,7 +153,7 @@ export function LivePriceRow({ symbol }: { symbol: string }) {
 /** Encours total en direct (admin). */
 export function LiveAum({ quantities, cash }: { quantities: { symbol: string; quantity: number }[]; cash: number }) {
   const { total } = useLiveHoldings(quantities.map((q) => ({ ...q, name: q.symbol })));
-  return <>{formatUSD(total + cash)}</>;
+  return <>{formatEUR(total + cash)}</>;
 }
 
 /** Gain en direct des investissements (admin). */

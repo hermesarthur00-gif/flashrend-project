@@ -7,7 +7,7 @@ import { Alert, Card, Glyph, InfoRow } from "@/components/app/primitives";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { AssetIcon } from "@/components/account/widgets";
 import { LiveDot, useLivePrices } from "@/components/live/live-prices";
-import { PROFILE_LABELS, cn, formatQty, formatUSD, type ProfileKey } from "@/lib/utils";
+import { PROFILE_LABELS, cn, formatQty, formatEUR, type ProfileKey } from "@/lib/utils";
 import { investNow } from "./actions";
 
 const parse = (v: string) => Number(v.replace(/\s/g, "").replace(",", ".")) || 0;
@@ -16,7 +16,7 @@ export function AmountInput({ id, value, onChange, invalid }: { id: string; valu
   return (
     <div className="flex items-baseline gap-2 border-b-2 border-ink pb-1">
       <input id={id} inputMode="decimal" autoComplete="off" placeholder="0" value={value} onChange={(e) => onChange(e.target.value.replace(/[^\d.,\s]/g, ""))} className="text-amount-xl w-full min-w-0 bg-transparent outline-none placeholder:text-ink-muted/50" aria-invalid={invalid || undefined} />
-      <span className="text-h2 text-ink-muted">$</span>
+      <span className="text-h2 text-ink-muted">€</span>
     </div>
   );
 }
@@ -56,7 +56,7 @@ export function InvestForm({ cash, min, profile, allocation }: { cash: number; m
         <div className="text-center">
           <h1 className="text-h1 m-0 mb-2">C&apos;est investi</h1>
           <p className="m-0 text-ink-muted">
-            <strong className="text-ink">{formatUSD(done)}</strong> répartis selon votre profil {PROFILE_LABELS[profile].toLowerCase()}. Suivez leur valeur en direct dans votre portefeuille.
+            <strong className="text-ink">{formatEUR(done)}</strong> répartis selon votre profil {PROFILE_LABELS[profile].toLowerCase()}. Suivez leur valeur en direct dans votre portefeuille.
           </p>
         </div>
         <div className="flex flex-col gap-2">
@@ -84,7 +84,7 @@ export function InvestForm({ cash, min, profile, allocation }: { cash: number; m
     >
       <div className="flex items-center justify-between rounded-lg bg-surface-sunken px-4 py-3.5">
         <span className="text-sm text-ink-muted">Solde disponible</span>
-        <span className="text-amount tabular-nums">{formatUSD(cash)}</span>
+        <span className="text-amount tabular-nums">{formatEUR(cash)}</span>
       </div>
       <div className="flex flex-col gap-2">
         <label htmlFor="invest" className="text-label">
@@ -106,7 +106,7 @@ export function InvestForm({ cash, min, profile, allocation }: { cash: number; m
             setAll(a);
           }}
         />
-        <p className={cn("m-0 text-sm", tooLow || tooHigh ? "text-down" : "text-ink-muted")}>{tooHigh ? `Maximum ${formatUSD(cash)}.` : `Minimum ${formatUSD(min)}.`}</p>
+        <p className={cn("m-0 text-sm", tooLow || tooHigh ? "text-down" : "text-ink-muted")}>{tooHigh ? `Maximum ${formatEUR(cash)}.` : `Minimum ${formatEUR(min)}.`}</p>
       </div>
       <Card>
         <div className="mb-2 flex items-center justify-between">
@@ -115,7 +115,7 @@ export function InvestForm({ cash, min, profile, allocation }: { cash: number; m
         </div>
         {allocation.map((a) => {
           const usd = (amount * a.percent) / 100;
-          const price = a.symbol === "USDT" ? 1 : (prices[a.symbol]?.price ?? 0);
+          const price = prices[a.symbol]?.price ?? 0;
           return (
             <div key={a.symbol} className="flex items-center gap-3 border-t border-line py-2.5 first:border-t-0">
               <AssetIcon symbol={a.symbol} size={30} />
@@ -125,14 +125,14 @@ export function InvestForm({ cash, min, profile, allocation }: { cash: number; m
                 </span>
                 {amount > 0 && price > 0 && <span className="text-xs text-ink-muted tabular-nums">≈ {formatQty(usd / price, a.symbol)}</span>}
               </span>
-              <span className="font-semibold tabular-nums">{formatUSD(usd)}</span>
+              <span className="font-semibold tabular-nums">{formatEUR(usd)}</span>
             </div>
           );
         })}
       </Card>
       <div>
         <InfoRow label="Frais" value="Aucun" />
-        <InfoRow label="Solde disponible après" value={formatUSD(Math.max(0, cash - amount))} />
+        <InfoRow label="Solde disponible après" value={formatEUR(Math.max(0, cash - amount))} />
       </div>
       <Alert tone="warning" title="La valeur peut baisser">
         Les cryptos sont achetées aux cours du moment. Leur valeur varie ensuite, à la hausse comme à la baisse.{" "}
@@ -141,7 +141,7 @@ export function InvestForm({ cash, min, profile, allocation }: { cash: number; m
         </Link>
       </Alert>
       <Button type="submit" size="lg" block disabled={pending || !amount || tooLow || tooHigh}>
-        {pending ? "Investissement…" : amount ? `Investir ${formatUSD(amount)}` : "Investir"}
+        {pending ? "Investissement…" : amount ? `Investir ${formatEUR(amount)}` : "Investir"}
       </Button>
     </form>
   );

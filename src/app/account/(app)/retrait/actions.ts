@@ -4,7 +4,7 @@ import { db } from "@/lib/server/db";
 import { getSettings } from "@/lib/server/settings";
 import { consumeActionCode, sendActionCode } from "@/lib/server/action-codes";
 import { notify } from "@/lib/server/notify";
-import { formatUSD } from "@/lib/utils";
+import { formatEUR } from "@/lib/utils";
 
 type Payload = { amount: number; fee: number; bankAccountId: string };
 
@@ -14,15 +14,15 @@ export async function requestWithdrawal(input: { amount: number; bankAccountId: 
   if (user.kycStatus !== "APPROVED") return { error: "Votre identité doit être vérifiée avant un retrait." };
   const amount = Math.round(Number(input.amount) * 100) / 100;
   const settings = await getSettings();
-  const fee = settings.money.withdrawalFeeUsd;
+  const fee = settings.money.withdrawalFee;
   if (!Number.isFinite(amount) || amount <= 0) return { error: "Indiquez un montant." };
-  if (amount < settings.money.withdrawalMinUsd) return { error: `Le retrait minimum est de ${formatUSD(settings.money.withdrawalMinUsd)}.` };
-  const bank = await db.bankAccount.findFirst({ where: { id: input.bankAccountId, userId: user.id } });
+  if (amount < settings.money.withdrawalMin) return { error: `Le retrait minimum est de ${formatEUR(settings.money.withdrawalMin)}.` };
+  const bank = await db.bankAccount.findFirst({ where: { id: input.bankAccountId, userId: user.id, archivedAt: null } });
   if (!bank) return { error: "Choisissez un compte bancaire." };
-  const cash = Number(user.cashUsd);
-  if (amount + fee > cash + 0.005) return { error: `Montant trop élevé. Disponible : ${formatUSD(Math.max(0, cash - fee))} après frais.` };
+  const cash = Number(user.cashEur);
+  if (amount + fee > cash + 0.005) return { error: `Montant trop élevé. Disponible : ${formatEUR(Math.max(0, cash - fee))} après frais.` };
   try {
-    const codeId = await sendActionCode(user, "withdrawal", { amount, fee, bankAccountId: bank.id } satisfies Payload, `Montant : ${formatUSD(amount)} vers ${bank.iban.slice(0, 4)} •••• ${bank.iban.slice(-4)}.`);
+    const codeId = await sendActionCode(user, "withdrawal", { amount, fee, bankAccountId: bank.id } satisfies Payload, `Montant : ${formatEUR(amount)} vers ${bank.iban.slice(0, 4)} •••• ${bank.iban.slice(-4)}.`);
     return { codeId };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Envoi du code impossible." };
@@ -35,20 +35,20 @@ export async function confirmWithdrawal(input: { codeId: string; code: string })
   const check = await consumeActionCode(user.id, input.codeId, "withdrawal", input.code);
   if (!check.ok) return { error: check.error };
   const { amount, fee, bankAccountId } = check.payload as Payload;
-  const bank = await db.bankAccount.findFirst({ where: { id: bankAccountId, userId: user.id } });
+  const bank = await db.bankAccount.findFirst({ where: { id: bankAccountId, userId: user.id, archivedAt: null } });
   if (!bank) return { error: "Compte bancaire introuvable." };
 
   try {
     const w = await db.$transaction(async (tx) => {
       const total = (amount + fee).toFixed(2);
-      const debited = await tx.user.updateMany({ where: { id: user.id, cashUsd: { gte: total } }, data: { cashUsd: { decrement: total } } });
+      const debited = await tx.user.updateMany({ where: { id: user.id, cashEur: { gte: total } }, data: { cashEur: { decrement: total } } });
       if (debited.count !== 1) throw new Error("Solde disponible insuffisant.");
       const reference = `RT-${Date.now().toString(36).toUpperCase().slice(-6)}`;
-      const created = await tx.withdrawal.create({ data: { userId: user.id, reference, amountUsd: amount, feeUsd: fee, bankAccountId } });
-      await tx.activity.create({ data: { userId: user.id, type: "WITHDRAW", title: "Retrait demandé", subtitle: `Vers ${bank.iban.slice(0, 4)} •••• ${bank.iban.slice(-4)}`, amountUsd: amount, pending: true } });
+      const created = await tx.withdrawal.create({ data: { userId: user.id, reference, amountEur: amount, feeEur: fee, bankAccountId } });
+      await tx.activity.create({ data: { userId: user.id, type: "WITHDRAW", title: "Retrait demandé", subtitle: `Vers ${bank.iban.slice(0, 4)} •••• ${bank.iban.slice(-4)}`, amountEur: amount, pending: true } });
       return created;
     });
-    await notify(user.id, { kind: "withdrawal", title: "Retrait demandé", body: `${formatUSD(amount)} vers ${bank.iban.slice(0, 4)} •••• ${bank.iban.slice(-4)}. Réf. ${w.reference}.`, url: "/account/activite" });
+    await notify(user.id, { kind: "withdrawal", title: "Retrait demandé", body: `${formatEUR(amount)} vers ${bank.iban.slice(0, 4)} •••• ${bank.iban.slice(-4)}. Réf. ${w.reference}.`, url: "/account/activite" });
     return { ok: true, reference: w.reference, amount };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Le retrait n'a pas pu être enregistré." };

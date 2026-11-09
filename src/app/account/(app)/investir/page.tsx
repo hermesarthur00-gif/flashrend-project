@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Investir" };
 
 export default async function InvestPage() {
   const user = await requireOnboardedUser();
-  const cash = Number(user.cashUsd);
+  const cash = Number(user.cashEur);
   const [settings, allocation, assets] = await Promise.all([getSettings(), getAllocation(user.profile!), db.asset.findMany({ select: { symbol: true, name: true } })]);
 
   let empty: React.ReactNode = null;
@@ -35,7 +35,7 @@ export default async function InvestPage() {
       <TopBar title="Investir" back="/account" />
       <Page narrow>
         <PageHeading title="Investir" back="/account" />
-        <InvestForm cash={cash} min={settings.money.investMinUsd} profile={user.profile!} allocation={allocation.map((a) => ({ ...a, name: names[a.symbol] ?? a.symbol }))} />
+        <InvestForm cash={cash} min={settings.money.investMin} profile={user.profile!} allocation={allocation.map((a) => ({ ...a, name: names[a.symbol] ?? a.symbol }))} />
       </Page>
     </>
   );

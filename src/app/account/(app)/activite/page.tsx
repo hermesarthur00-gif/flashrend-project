@@ -5,7 +5,7 @@ import { ActivityList, toActivity } from "@/components/account/widgets";
 import { requireOnboardedUser } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
 import type { ActivityType } from "@/generated/prisma/client";
-import { cn, formatUSD } from "@/lib/utils";
+import { cn, formatEUR } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Activité" };
 
@@ -23,8 +23,8 @@ export default async function ActivityPage({ searchParams }: PageProps<"/account
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const [rows, dep, wd] = await Promise.all([
     db.activity.findMany({ where: { userId: user.id, ...(filter.types ? { type: { in: filter.types } } : {}) }, orderBy: { createdAt: "desc" }, take: 100 }),
-    db.deposit.aggregate({ where: { userId: user.id, status: "CREDITED", receivedAt: { gte: monthStart } }, _sum: { creditedUsd: true } }),
-    db.withdrawal.aggregate({ where: { userId: user.id, status: { not: "REJECTED" }, createdAt: { gte: monthStart } }, _sum: { amountUsd: true } }),
+    db.deposit.aggregate({ where: { userId: user.id, status: "CREDITED", receivedAt: { gte: monthStart } }, _sum: { creditedEur: true } }),
+    db.withdrawal.aggregate({ where: { userId: user.id, status: { not: "REJECTED" }, createdAt: { gte: monthStart } }, _sum: { amountEur: true } }),
   ]);
 
   return (
@@ -47,11 +47,11 @@ export default async function ActivityPage({ searchParams }: PageProps<"/account
         <div className="grid grid-cols-2 gap-3">
           <Card className="p-3.5 lg:p-5">
             <span className="text-caption text-ink-muted">Déposé ce mois</span>
-            <p className="text-amount m-0 mt-1 text-lg">{formatUSD(Number(dep._sum.creditedUsd ?? 0))}</p>
+            <p className="text-amount m-0 mt-1 text-lg">{formatEUR(Number(dep._sum.creditedEur ?? 0))}</p>
           </Card>
           <Card className="p-3.5 lg:p-5">
             <span className="text-caption text-ink-muted">Retiré ce mois</span>
-            <p className="text-amount m-0 mt-1 text-lg">{formatUSD(Number(wd._sum.amountUsd ?? 0))}</p>
+            <p className="text-amount m-0 mt-1 text-lg">{formatEUR(Number(wd._sum.amountEur ?? 0))}</p>
           </Card>
         </div>
         <ActivityList items={toActivity(rows)} />

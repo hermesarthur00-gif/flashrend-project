@@ -164,8 +164,8 @@ export default async function GuidePage() {
           <Section id="depots" n={5} title="Dépôts" href="/admin/depots" intro="Le client dépose par virement, puis déclare son dépôt avec la preuve. L'admin vérifie la réception sur le compte FlashInv et crédite le solde disponible du client, ou refuse. Rien n'est investi à cette étape.">
             <Sub title="Comment un dépôt arrive">
               <ol>
-                <li>Le client choisit virement classique ou instantané (chacun avec son délai affiché, réglable dans Réglages, Frais et délais) et la devise, USD ou EUR.</li>
-                <li>Il fait le virement vers le compte FlashInv avec sa référence personnelle (ex. FI-48210).</li>
+                <li>Le client choisit virement classique ou instantané (chacun avec son délai affiché, réglable dans Réglages, Frais et délais). Les dépôts se font uniquement en euros.</li>
+                <li>Il fait le virement vers le compte de dépôt, présenté comme celui de notre gestionnaire de paiement, avec sa référence personnelle (ex. FI-48210).</li>
                 <li>Il déclare le montant viré et joint la preuve (capture ou PDF de l&apos;ordre de virement).</li>
               </ol>
               <p>Tous les administrateurs reçoivent un e-mail « Nouveau dépôt à vérifier » avec un lien direct. Le dépôt apparaît dans l&apos;onglet À vérifier. Le client voit un message d&apos;attente avec le délai indicatif.</p>
@@ -174,17 +174,17 @@ export default async function GuidePage() {
               <ol>
                 <li>Dans À vérifier, cliquez sur la ligne du dépôt. Le panneau affiche le mode, le montant déclaré et la preuve (cliquez pour l&apos;agrandir).</li>
                 <li>Contrôlez sur le relevé bancaire de FlashInv que le virement est bien arrivé, avec la bonne référence et un compte émetteur au nom du client.</li>
-                <li>Le montant reçu est prérempli avec le montant déclaré : corrigez-le s&apos;il diffère (frais bancaires). Pour un virement en euros, vérifiez le taux EUR → USD.</li>
+                <li>Le montant reçu est prérempli avec le montant déclaré : corrigez-le s&apos;il diffère (frais bancaires).</li>
                 <li>Cliquez sur Confirmer et créditer.</li>
               </ol>
-              <Client>son solde disponible est crédité en dollars. Il reçoit une notification et un e-mail « Votre compte est crédité », avec le montant réellement reçu s&apos;il diffère du montant déclaré. Il peut alors investir.</Client>
+              <Client>son solde disponible est crédité en euros. Il reçoit une notification et un e-mail « Votre compte est crédité », avec le montant réellement reçu s&apos;il diffère du montant déclaré. Il peut alors investir.</Client>
             </Sub>
             <Sub title="Refuser">
               <p>Refuser le dépôt, indiquez la raison (visible par le client), puis confirmez. Rien n&apos;est crédité.</p>
               <Client>notification et e-mail « Dépôt refusé » avec la raison.</Client>
             </Sub>
             <Sub title="Virement reçu sans déclaration">
-              <p>Sans ligne sélectionnée, le panneau de droite permet d&apos;enregistrer un virement reçu que le client n&apos;a pas déclaré : référence du client, devise, montant et taux. Le solde du client est crédité de la même façon.</p>
+              <p>Sans ligne sélectionnée, le panneau de droite permet d&apos;enregistrer un virement reçu que le client n&apos;a pas déclaré : référence du client et montant reçu. Le solde du client est crédité de la même façon.</p>
             </Sub>
             <Alert tone="warning" title="Ne créditez qu'un virement réellement reçu">
               La preuve envoyée par le client ne suffit pas : seule la réception sur le compte FlashInv compte. Un crédit confirmé ne s&apos;annule pas depuis l&apos;admin. Chaque consultation de preuve est notée au Journal.
@@ -193,13 +193,13 @@ export default async function GuidePage() {
 
           <Section id="investissements" n={6} title="Investissements (côté client)" intro="Les clients investissent eux-mêmes leur solde disponible. Aucune action de l'admin n'est nécessaire, mais il est utile de savoir comment cela fonctionne.">
             <Sub title="Investir">
-              <p>Le client choisit un montant (minimum réglable dans Réglages, Frais et délais). Il est réparti selon la répartition de son profil, aux cours en direct du moment, et débité de son solde disponible.</p>
+              <p>Le client choisit un montant en euros (minimum réglable dans Réglages, Frais et délais). Il est réparti selon la répartition de son profil, aux cours en direct du moment, et débité de son solde disponible.</p>
             </Sub>
             <Sub title="Désinvestir">
               <p>Le client revend un montant de ses investissements, en proportion de chaque crypto, aux cours du moment. Le montant rejoint son solde disponible, d&apos;où il peut le retirer ou le réinvestir.</p>
             </Sub>
             <Sub title="Valeurs en temps réel">
-              <p>Les cours affichés dans l&apos;app et dans l&apos;admin se mettent à jour chaque seconde (flèche verte en hausse, rouge en baisse). La pastille « En direct » indique que le flux est connecté ; sinon les cours sont actualisés toutes les 30 secondes.</p>
+              <p>Toute l&apos;app est tenue en euros : les cours des cryptos sont convertis au taux euro / dollar en direct. Ils se mettent à jour chaque seconde (flèche verte en hausse, rouge en baisse). La pastille « En direct » indique que le flux est connecté ; sinon les cours sont actualisés toutes les 30 secondes.</p>
             </Sub>
           </Section>
 
@@ -218,6 +218,9 @@ export default async function GuidePage() {
             </Sub>
             <Sub title="Refuser un retrait">
               <p>Refuser la demande, indiquez le motif (visible par le client), puis Refuser. Le montant et les frais sont rendus au solde disponible du client.</p>
+            </Sub>
+            <Sub title="Coordonnées de retrait du client">
+              <p>Le client voit et corrige lui-même son RIB depuis l&apos;écran de retrait, après un avertissement à confirmer. Si le compte a déjà servi, la correction crée une nouvelle version : les retraits passés gardent l&apos;IBAN réellement utilisé. Un compte ne peut pas être modifié pendant qu&apos;un retrait vers lui est en cours.</p>
               <Client>notification et e-mail « Retrait annulé » avec le motif.</Client>
             </Sub>
           </Section>
@@ -247,12 +250,11 @@ export default async function GuidePage() {
             </Sub>
             <Sub title="Coordonnées bancaires">
               <ol>
-                <li>Choisissez Compte USD ou Compte EUR.</li>
-                <li>Renseignez bénéficiaire, IBAN ou numéro de compte, BIC / SWIFT, banque et adresse de la banque.</li>
+                <li>Renseignez le bénéficiaire et l&apos;IBAN (obligatoires), le BIC / SWIFT, et si vous le souhaitez la banque et son adresse.</li>
                 <li>Cliquez sur Enregistrer : un code est envoyé à votre e-mail.</li>
                 <li>Saisissez le code et cliquez sur Confirmer la modification.</li>
               </ol>
-              <Client>ces coordonnées s&apos;affichent dans l&apos;écran de dépôt. Une devise sans IBAN n&apos;est pas proposée au dépôt.</Client>
+              <Client>ces coordonnées s&apos;affichent dans l&apos;écran de dépôt, avec la mention « compte de notre gestionnaire de paiement ». Sans IBAN, les dépôts sont indisponibles.</Client>
             </Sub>
             <Alert tone="down" title="Coordonnées bancaires : vérifiez deux fois">
               Une erreur d&apos;IBAN enverrait les virements des clients sur un mauvais compte. Le code par e-mail et le Journal protègent contre une modification non voulue, pas contre une faute de frappe.
@@ -260,9 +262,8 @@ export default async function GuidePage() {
             <Sub title="Frais et délais">
               <ul>
                 <li>Frais de gestion et frais de dépôt : textes affichés sur le site (ex. « 1,5 % par an », « Aucun »).</li>
-                <li>Frais de retrait en dollars : prélevés sur le solde disponible en plus du montant retiré.</li>
-                <li>Dépôt minimum, investissement minimum et retrait minimum, en dollars.</li>
-                <li>Taux EUR → USD par défaut : proposé à la vérification d&apos;un dépôt en euros, modifiable à chaque fois.</li>
+                <li>Frais de retrait en euros : prélevés sur le solde disponible en plus du montant retiré.</li>
+                <li>Dépôt minimum, investissement minimum et retrait minimum, en euros.</li>
                 <li>Délais d&apos;un dépôt par virement classique et par virement instantané, délai de retrait, délai de vérification d&apos;identité : affichés aux clients.</li>
               </ul>
             </Sub>

@@ -5,7 +5,7 @@ import { db } from "@/lib/server/db";
 import { getSettings } from "@/lib/server/settings";
 import { notify, notifyAdmins } from "@/lib/server/notify";
 import { uploadPrivate } from "@/lib/server/uploads";
-import { formatMoney, formatUSD } from "@/lib/utils";
+import { formatMoney, formatEUR } from "@/lib/utils";
 
 const METHOD_LABEL = { STANDARD: "virement classique", INSTANT: "virement instantané" } as const;
 
@@ -14,15 +14,14 @@ export async function submitDeposit(form: FormData): Promise<{ error?: string }>
   const user = await requireOnboardedUser();
   if (user.kycStatus !== "APPROVED") return { error: "Votre identité doit être vérifiée avant un dépôt." };
   const method = form.get("method") === "INSTANT" ? "INSTANT" : "STANDARD";
-  const currency = form.get("currency") === "EUR" ? "EUR" : "USD";
+  const currency = "EUR" as const;
   const amount = Math.round(Number(String(form.get("amount") ?? "").replace(/\s/g, "").replace(",", ".")) * 100) / 100;
   const proof = form.get("proof");
 
   const settings = await getSettings();
   if (!settings.bank[currency].iban) return { error: "Les coordonnées bancaires ne sont pas encore disponibles." };
   if (!Number.isFinite(amount) || amount <= 0) return { error: "Indiquez le montant viré." };
-  const usdEquivalent = currency === "EUR" ? amount * settings.money.eurUsdRate : amount;
-  if (usdEquivalent < settings.money.depositMinUsd) return { error: `Le dépôt minimum est de ${formatUSD(settings.money.depositMinUsd)}${currency === "EUR" ? " (équivalent en euros)" : ""}.` };
+  if (amount < settings.money.depositMin) return { error: `Le dépôt minimum est de ${formatEUR(settings.money.depositMin)}.` };
   if (!(proof instanceof File) || proof.size === 0) return { error: "Ajoutez la preuve du virement." };
 
   const open = await db.deposit.count({ where: { userId: user.id, status: "ANNOUNCED" } });

@@ -9,15 +9,15 @@ import { getFaq, profiles, security, steps, ticker as fallbackTicker, type Crypt
 import { getPublicConfig } from "@/lib/server/public-config";
 import { getMarket } from "@/lib/server/prices";
 import { navLinks } from "@/lib/site-config";
-import { formatUSD } from "@/lib/utils";
+import { formatEUR } from "@/lib/utils";
 
 /* ---------------- Bandeau des cours ---------------- */
 const TICKER_ORDER: CryptoSymbol[] = ["BTC", "ETH", "SOL", "BNB", "DOGE", "USDT"];
 
 export async function Ticker() {
   const market = await getMarket();
-  const live = TICKER_ORDER.map((sym) => market.find((m) => m.symbol === sym && m.priceUsd > 0)).filter((m) => m !== undefined);
-  const ticker = live.length === TICKER_ORDER.length ? live.map((m) => ({ symbol: m.symbol as CryptoSymbol, name: m.name, price: m.priceUsd, change: m.change24h })) : fallbackTicker;
+  const live = TICKER_ORDER.map((sym) => market.find((m) => m.symbol === sym && m.priceEur > 0)).filter((m) => m !== undefined);
+  const ticker = live.length === TICKER_ORDER.length ? live.map((m) => ({ symbol: m.symbol as CryptoSymbol, name: m.name, price: m.priceEur, change: m.change24h })) : fallbackTicker;
   const loop = [...ticker, ...ticker];
   return (
     <section aria-label="Cours des cryptos" className="relative mt-5 overflow-hidden border-y border-line bg-surface-raised md:mt-7">
@@ -29,7 +29,7 @@ export async function Ticker() {
               <span className="md:hidden">{t.symbol}</span>
               <span className="hidden md:inline">{t.name}</span>
             </span>
-            <span className="text-[15px] font-semibold tabular-nums">{t.price < 1 ? `${t.price.toLocaleString("fr-FR", { maximumFractionDigits: 4 })}\u00a0$` : formatUSD(t.price)}</span>
+            <span className="text-[15px] font-semibold tabular-nums">{t.price < 1 ? `${t.price.toLocaleString("fr-FR", { maximumFractionDigits: 4 })}\u00a0$` : formatEUR(t.price)}</span>
             <PriceChange value={t.change} />
           </div>
         ))}
@@ -73,7 +73,7 @@ function StepVisual({ i }: { i: number }) {
   return (
     <div className="relative flex h-[110px] flex-col gap-1 overflow-hidden rounded-lg bg-band p-4 text-on-band md:h-[140px]">
       <span className="text-caption text-flash">VIREMENT</span>
-      <span className="text-[26px] leading-8 font-bold tabular-nums">500,00 $</span>
+      <span className="text-[26px] leading-8 font-bold tabular-nums">500,00 €</span>
       <span className="text-xs opacity-75">vers FlashInv</span>
       <Stripes count={4} height={64} className="absolute -right-2.5 -bottom-3.5" />
     </div>
@@ -94,7 +94,7 @@ export function HowItWorks() {
           <div className="absolute inset-[16px_-12px_-12px_16px] rounded-lg bg-flash md:inset-[24px_-16px_-16px_24px] md:rounded-xl" />
           <div
             role="img"
-            aria-label="Écran de l'app : investissement de 250 dollars confirmé sur le profil équilibré"
+            aria-label="Écran de l'app : investissement de 250 euros confirmé sur le profil équilibré"
             className="relative flex h-[500px] items-end justify-center overflow-hidden rounded-lg bg-band px-6 pt-10 md:h-auto md:aspect-[4/5] md:rounded-xl"
           >
             <Stripes count={5} height={120} color="var(--flash)" className="absolute top-6 left-6" />
@@ -104,7 +104,7 @@ export function HowItWorks() {
                   <IconCircleCheck size={30} {...iconProps} />
                 </span>
                 <span className="text-sm font-bold">Investissement confirmé</span>
-                <span className="text-[34px] leading-10 font-bold tracking-tight tabular-nums">250,00 $</span>
+                <span className="text-[34px] leading-10 font-bold tracking-tight tabular-nums">250,00 €</span>
                 <span className="rounded-xs bg-flash-soft px-2 py-0.5 text-xs font-semibold text-flash-text">Profil équilibré · risque 3/5</span>
                 <div className="mt-1 w-full text-left">
                   {profiles.balanced.allocation.map((a) => (
@@ -270,7 +270,7 @@ export function FinalCta() {
         />
         <FloatingGlyph name="bnb" size={76} rotate={16} className="top-10 right-[420px] hidden md:block" />
         <h2 className="relative m-0 max-w-[8ch] font-display text-[40px] leading-10 font-normal tracking-[-0.025em] md:max-w-[12ch] md:text-[64px] md:leading-[62px]">
-          Prêt à placer vos premiers dollars ?
+          Prêt à placer vos premiers euros ?
         </h2>
         <div className="relative">
           <ButtonLink href="/account/inscription" variant="band" size="lg" className="w-full md:w-auto">

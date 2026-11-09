@@ -1,16 +1,18 @@
 "use client";
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { IconBuildingBank, IconChevronLeft, IconCircleCheck } from "@tabler/icons-react";
 import { Alert, Card, Glyph, IconTile, InfoRow, StatusBadge } from "@/components/app/primitives";
 import { OtpInput, ResendCode } from "@/components/app/form";
 import { Stripes } from "@/components/ui/decor";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { maskEmail } from "@/components/account/auth-ui";
-import { cn, formatUSD } from "@/lib/utils";
+import { BankAccountForm, RibDetails, groupIban } from "@/components/account/bank-account-form";
+import { cn, formatEUR } from "@/lib/utils";
 import { confirmWithdrawal, requestWithdrawal } from "./actions";
 
-type Account = { id: string; holder: string; iban: string; bankName: string | null };
+type Account = { id: string; holder: string; iban: string; bic: string; bankName: string };
 const mask = (iban: string) => `${iban.slice(0, 4)} •••• ${iban.slice(-4)}`;
 
 function Head({ title, onBack }: { title: string; onBack?: () => void }) {
@@ -37,17 +39,20 @@ export function WithdrawFlow({ available, fee, min, delay, email, accounts }: { 
   const [step, setStep] = useState<"amount" | "code" | "done">("amount");
   const [raw, setRaw] = useState("");
   const [accountId, setAccountId] = useState(accounts[0].id);
+  const [ribOpen, setRibOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const router = useRouter();
   const [codeId, setCodeId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ reference: string; amount: number } | null>(null);
   const [pending, start] = useTransition();
   const amount = Number(raw.replace(/\s/g, "").replace(",", ".")) || 0;
-  const account = accounts.find((a) => a.id === accountId)!;
+  const account = accounts.find((a) => a.id === accountId) ?? accounts[0];
 
   function send() {
     setError(null);
     start(async () => {
-      const res = await requestWithdrawal({ amount, bankAccountId: accountId });
+      const res = await requestWithdrawal({ amount, bankAccountId: account.id });
       if ("error" in res && res.error) return setError(res.error);
       if ("codeId" in res && res.codeId) {
         setCodeId(res.codeId);
@@ -85,7 +90,7 @@ export function WithdrawFlow({ available, fee, min, delay, email, accounts }: { 
         <div className="flex flex-col gap-2 text-center">
           <h1 className="text-h1 m-0">Retrait demandé</h1>
           <p className="m-0 text-ink-muted">
-            <strong className="text-ink">{formatUSD(result.amount)}</strong> arrivent sur votre compte {mask(account.iban)} sous {delay}.
+            <strong className="text-ink">{formatEUR(result.amount)}</strong> arrivent sur votre compte {mask(account.iban)} sous {delay}.
           </p>
         </div>
         <Card className="pt-1">
@@ -117,9 +122,9 @@ export function WithdrawFlow({ available, fee, min, delay, email, accounts }: { 
         >
           <Card>
             <span className="text-caption text-ink-muted">Vous retirez</span>
-            <p className="text-amount-xl m-0 mt-1 mb-2">{formatUSD(amount)}</p>
+            <p className="text-amount-xl m-0 mt-1 mb-2">{formatEUR(amount)}</p>
             <InfoRow label="Vers" value={mask(account.iban)} />
-            <InfoRow label="Frais" value={formatUSD(fee)} />
+            <InfoRow label="Frais" value={formatEUR(fee)} />
             <InfoRow label="Arrivée estimée" value={delay} />
           </Card>
           <div className="flex flex-col gap-3">
@@ -152,7 +157,7 @@ export function WithdrawFlow({ available, fee, min, delay, email, accounts }: { 
       <div className="flex flex-col gap-5 px-4 pt-2 pb-6 lg:px-0">
         <div className="flex items-center justify-between rounded-lg bg-surface-sunken px-4 py-3.5">
           <span className="text-sm text-ink-muted">Solde disponible au retrait</span>
-          <span className="text-amount">{formatUSD(max)}</span>
+          <span className="text-amount">{formatEUR(max)}</span>
         </div>
         <div className="flex flex-col gap-2">
           <label htmlFor="amount" className="text-label">
@@ -169,7 +174,7 @@ export function WithdrawFlow({ available, fee, min, delay, email, accounts }: { 
               className="text-amount-xl w-full min-w-0 bg-transparent outline-none placeholder:text-ink-muted/50"
               aria-invalid={tooLow || tooHigh || undefined}
             />
-            <span className="text-h2 text-ink-muted">$</span>
+            <span className="text-h2 text-ink-muted">€</span>
           </div>
           <div className="flex gap-2">
             {quick.map((q) => (
@@ -178,33 +183,78 @@ export function WithdrawFlow({ available, fee, min, delay, email, accounts }: { 
               </button>
             ))}
           </div>
-          {(tooLow || tooHigh) && <p className="m-0 text-sm text-down">{tooHigh ? `Maximum ${formatUSD(max)}.` : `Minimum ${formatUSD(min)}.`}</p>}
+          {(tooLow || tooHigh) && <p className="m-0 text-sm text-down">{tooHigh ? `Maximum ${formatEUR(max)}.` : `Minimum ${formatEUR(min)}.`}</p>}
         </div>
         <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
-          <legend className="text-label mb-2">Vers le compte</legend>
-          {accounts.map((a) => (
-            <label key={a.id} className={cn("flex cursor-pointer items-center gap-3 rounded-lg bg-surface-raised px-4 py-3.5", a.id === accountId ? "border-2 border-ink" : "border border-line")}>
-              <input type="radio" name="account" value={a.id} checked={a.id === accountId} onChange={() => setAccountId(a.id)} className="sr-only" />
-              <IconTile>
-                <IconBuildingBank size={22} stroke={1.75} />
-              </IconTile>
-              <span className="flex flex-1 flex-col">
-                <span className="font-bold tabular-nums">{mask(a.iban)}</span>
-                <span className="text-[13px] text-ink-muted">
-                  {a.holder}
-                  {a.bankName ? ` · ${a.bankName}` : ""}
-                </span>
-              </span>
-            </label>
-          ))}
+          <legend className="text-label mb-2">Vers le compte (touchez pour voir le RIB)</legend>
+          {accounts.map((a) => {
+            const sel = a.id === accountId;
+            const open = sel && ribOpen;
+            return (
+              <div key={a.id} className={cn("overflow-hidden rounded-lg bg-surface-raised", sel ? "border-2 border-ink" : "border border-line")}>
+                <button
+                  type="button"
+                  aria-pressed={sel}
+                  aria-expanded={open}
+                  onClick={() => {
+                    if (sel) setRibOpen((o) => !o);
+                    else {
+                      setAccountId(a.id);
+                      setRibOpen(true);
+                    }
+                    setEditing(false);
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-ink"
+                >
+                  <IconTile>
+                    <IconBuildingBank size={22} stroke={1.75} />
+                  </IconTile>
+                  <span className="flex flex-1 flex-col">
+                    <span className="font-bold tabular-nums">{mask(a.iban)}</span>
+                    <span className="text-[13px] text-ink-muted">
+                      {a.holder}
+                      {a.bankName ? ` · ${a.bankName}` : ""}
+                    </span>
+                  </span>
+                  <span className="text-sm font-semibold text-ink-muted">{open ? "Masquer" : "Voir le RIB"}</span>
+                </button>
+                {open && (
+                  <div className="flex flex-col gap-3 px-4 pb-4">
+                    {editing ? (
+                      <BankAccountForm
+                        id={a.id}
+                        initial={{ holder: a.holder, iban: groupIban(a.iban), bic: a.bic, bankName: a.bankName }}
+                        submitLabel="Enregistrer la correction"
+                        onCancel={() => setEditing(false)}
+                        onDone={(newId) => {
+                          setEditing(false);
+                          setAccountId(newId);
+                          router.refresh();
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <div className="rounded-md bg-surface-sunken px-3.5 py-1">
+                          <RibDetails v={a} />
+                        </div>
+                        <Button variant="secondary" className="self-start" onClick={() => setEditing(true)}>
+                          Modifier ce RIB
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
           <Link href="/account/reglages/comptes?retour=retrait" className="self-start text-sm font-semibold underline underline-offset-2">
             Ajouter un compte
           </Link>
         </fieldset>
         <div>
-          <InfoRow label="Frais de retrait" value={formatUSD(fee)} />
-          <InfoRow label="Vous recevrez" value={formatUSD(amount)} strong />
-          <InfoRow label="Débité du solde disponible" value={formatUSD(amount + (amount ? fee : 0))} />
+          <InfoRow label="Frais de retrait" value={formatEUR(fee)} />
+          <InfoRow label="Vous recevrez" value={formatEUR(amount)} strong />
+          <InfoRow label="Débité du solde disponible" value={formatEUR(amount + (amount ? fee : 0))} />
           <InfoRow label="Délai" value={delay} />
         </div>
         {error && <Alert tone="down" title={error} />}

@@ -30,10 +30,10 @@ export function SectionForm({ section, fields }: { section: "legal" | "contact" 
   );
 }
 
-type Bank = Settings["bank"]["USD"];
+type Bank = Settings["bank"]["EUR"];
 
 export function BankSettings({ bank, email }: { bank: Settings["bank"]; email: string }) {
-  const [currency, setCurrency] = useState<"USD" | "EUR">("USD");
+  const currency = "EUR" as const;
   const [closed, setClosed] = useState<string | null>(null);
   const [reqState, reqAction] = useActionState(requestBankChange, undefined);
   const router = useRouter();
@@ -48,23 +48,7 @@ export function BankSettings({ bank, email }: { bank: Settings["bank"]; email: s
 
   return (
     <Panel title="Coordonnées bancaires" right={<Badge tone="flash">Affichées aux clients</Badge>} className="max-w-[720px]">
-      <div role="tablist" aria-label="Devise" className="flex w-fit rounded-md bg-surface-sunken p-0.5">
-        {(["USD", "EUR"] as const).map((c) => (
-          <button
-            key={c}
-            type="button"
-            role="tab"
-            aria-selected={c === currency}
-            onClick={() => {
-              setCurrency(c);
-              setCodeId(null);
-            }}
-            className={cn("h-9 rounded-sm px-4 text-sm font-semibold", c === currency ? "bg-surface-raised text-ink" : "text-ink-muted")}
-          >
-            Compte {c}
-          </button>
-        ))}
-      </div>
+      <p className="m-0 text-sm text-ink-muted">Compte en euros sur lequel les clients font leurs dépôts. Les clients voient la mention « compte de notre gestionnaire de paiement ».</p>
       {codeId ? (
         <ActionForm
           action={confirmBankChange}
@@ -90,12 +74,12 @@ export function BankSettings({ bank, email }: { bank: Settings["bank"]; email: s
         <form action={reqAction} key={currency} className="flex flex-col gap-3.5">
           <input type="hidden" name="currency" value={currency} />
           <Field label="Bénéficiaire" name="beneficiary" defaultValue={b.beneficiary} placeholder="ex. FlashInv SAS" required />
-          <Field label={currency === "EUR" ? "IBAN" : "IBAN ou numéro de compte"} name="iban" defaultValue={b.iban} placeholder="ex. FR76 3000 6000 0112 3456 7890 189" spellCheck={false} required />
+          <Field label="IBAN" name="iban" defaultValue={b.iban} placeholder="ex. FR76 3000 6000 0112 3456 7890 189" spellCheck={false} required />
           <div className="grid gap-3.5 sm:grid-cols-2">
             <Field label="BIC / SWIFT" name="swift" defaultValue={b.swift} placeholder="ex. AGRIFRPP" spellCheck={false} />
             <Field label="Banque (facultatif)" name="bankName" defaultValue={b.bankName} placeholder="ex. Nom de la banque" />
           </div>
-          <Field label="Adresse de la banque (facultatif)" name="bankAddress" defaultValue={b.bankAddress} placeholder="Utile pour les virements internationaux en dollars" />
+          <Field label="Adresse de la banque (facultatif)" name="bankAddress" defaultValue={b.bankAddress} placeholder="ex. 12 rue de la Banque, 75002 Paris" />
           <Alert tone="warning" title="Changement sensible">
             Toute modification est confirmée par un code envoyé par e-mail et notée dans le journal.
           </Alert>

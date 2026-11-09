@@ -1,5 +1,5 @@
 import { IconArrowDownRight, IconArrowUpRight } from "@tabler/icons-react";
-import { cn, formatPct, formatUSD } from "@/lib/utils";
+import { cn, formatPct, formatEUR } from "@/lib/utils";
 import type { CryptoSymbol } from "@/lib/landing-data";
 
 export const ASSETS: Record<CryptoSymbol, { name: string; glyph: string; color: string }> = {
@@ -71,7 +71,7 @@ export function AssetRow({ symbol, value, change }: { symbol: CryptoSymbol; valu
         <span className="block text-xs leading-4 text-ink-muted">{symbol}</span>
       </span>
       <span className="flex flex-col items-end">
-        <span className="text-sm font-semibold tabular-nums">{formatUSD(value)}</span>
+        <span className="text-sm font-semibold tabular-nums">{formatEUR(value)}</span>
         <PriceChange value={change} />
       </span>
     </div>
@@ -142,10 +142,10 @@ export function BalanceCard({ amount, gain }: { amount: number; gain: number }) 
   return (
     <section aria-label="Solde total" className="rounded-lg bg-band p-4 text-on-band">
       <span className="text-overline text-flash">Solde total</span>
-      <p className="mt-1.5 mb-1 text-[28px] leading-8 font-bold tracking-tight tabular-nums">{formatUSD(amount)}</p>
+      <p className="mt-1.5 mb-1 text-[28px] leading-8 font-bold tracking-tight tabular-nums">{formatEUR(amount)}</p>
       <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
         <span className="inline-flex items-center gap-0.5 whitespace-nowrap rounded-xs bg-flash px-1.5 py-0.5 font-semibold text-on-flash tabular-nums">
-          <IconArrowUpRight size={14} stroke={2.5} aria-hidden="true" />+{formatUSD(gain)}
+          <IconArrowUpRight size={14} stroke={2.5} aria-hidden="true" />+{formatEUR(gain)}
         </span>
         depuis le début
       </p>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { IconArrowBackUp, IconArrowDownLeft, IconArrowUpRight, IconArrowsExchange, IconChartPie, IconUserCog, IconChevronRight } from "@tabler/icons-react";
 import { CryptoIcon, PriceChange } from "@/components/ui/finance";
 import type { CryptoSymbol } from "@/lib/landing-data";
-import { cn, formatDateShort, formatQty, formatUSD } from "@/lib/utils";
+import { cn, formatDateShort, formatQty, formatEUR } from "@/lib/utils";
 import { Badge, IconTile } from "@/components/app/primitives";
 
 export const KNOWN = ["BTC", "ETH", "BNB", "DOGE", "USDT", "SOL"];
@@ -20,7 +20,7 @@ export function assetColor(symbol: string) {
   return KNOWN.includes(symbol) ? `var(--crypto-${symbol.toLowerCase()})` : "var(--ink-muted)";
 }
 
-export function HoldingRow({ h, href }: { h: { symbol: string; name: string; quantity: number; valueUsd: number; change24h: number }; href?: string }) {
+export function HoldingRow({ h, href }: { h: { symbol: string; name: string; quantity: number; valueEur: number; change24h: number }; href?: string }) {
   const inner = (
     <>
       <AssetIcon symbol={h.symbol} size={36} />
@@ -29,7 +29,7 @@ export function HoldingRow({ h, href }: { h: { symbol: string; name: string; qua
         <span className="block text-xs leading-4 text-ink-muted tabular-nums">{formatQty(h.quantity, h.symbol)}</span>
       </span>
       <span className="flex flex-col items-end">
-        <span className="text-amount-sm text-[15px]">{formatUSD(h.valueUsd)}</span>
+        <span className="text-amount-sm text-[15px]">{formatEUR(h.valueEur)}</span>
         <PriceChange value={h.change24h} />
       </span>
       {href && <IconChevronRight size={18} stroke={1.75} className="text-ink-muted" aria-hidden="true" />}
@@ -54,7 +54,7 @@ const ACT = {
   PROFILE: { Icon: IconUserCog, tone: "sunken" as const, sign: "" },
 };
 
-export type ActivityItem = { id: string; type: keyof typeof ACT; title: string; subtitle: string | null; amountUsd: number | null; pending: boolean; createdAt: Date };
+export type ActivityItem = { id: string; type: keyof typeof ACT; title: string; subtitle: string | null; amountEur: number | null; pending: boolean; createdAt: Date };
 
 export function ActivityList({ items }: { items: ActivityItem[] }) {
   if (!items.length) return <p className="m-0 py-4 text-ink-muted">Aucune opération pour le moment.</p>;
@@ -75,10 +75,10 @@ export function ActivityList({ items }: { items: ActivityItem[] }) {
               </span>
             </span>
             <span className="flex flex-col items-end gap-0.5">
-              {a.amountUsd !== null && (
+              {a.amountEur !== null && (
                 <span className={cn("text-amount-sm text-[15px]", a.type === "DEPOSIT" && !a.pending && "text-up")}>
                   {t.sign}
-                  {formatUSD(a.amountUsd)}
+                  {formatEUR(a.amountEur)}
                 </span>
               )}
               {a.pending && <Badge tone="warning">En attente</Badge>}
@@ -90,6 +90,6 @@ export function ActivityList({ items }: { items: ActivityItem[] }) {
   );
 }
 
-export function toActivity(rows: { id: string; type: string; title: string; subtitle: string | null; amountUsd: unknown; pending: boolean; createdAt: Date }[]): ActivityItem[] {
-  return rows.map((r) => ({ ...r, type: r.type as ActivityItem["type"], amountUsd: r.amountUsd === null ? null : Number(r.amountUsd) }));
+export function toActivity(rows: { id: string; type: string; title: string; subtitle: string | null; amountEur: unknown; pending: boolean; createdAt: Date }[]): ActivityItem[] {
+  return rows.map((r) => ({ ...r, type: r.type as ActivityItem["type"], amountEur: r.amountEur === null ? null : Number(r.amountEur) }));
 }

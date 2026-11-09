@@ -29,7 +29,7 @@ model User {
   lastName      String?
   phone         String?
   reference     String?    @unique // référence de virement, ex. FI-48210
-  cashUsd       Decimal    @default(0) @db.Decimal(18, 2) // solde disponible, non investi
+  cashEur       Decimal    @default(0) @db.Decimal(18, 2) // solde disponible en euros, non investi
   profile       ProfileId?
   profileSetAt  DateTime?
   kycStatus     KycStatus  @default(NONE)
@@ -175,7 +175,7 @@ model Asset {
   symbol      String   @id
   name        String
   coingeckoId String   @unique
-  priceUsd    Decimal  @default(0) @db.Decimal(24, 8)
+  priceEur    Decimal  @default(0) @db.Decimal(24, 8) // cours en euros
   change24h   Decimal  @default(0) @db.Decimal(10, 4)
   priceAt     DateTime?
   active      Boolean  @default(true)
@@ -241,6 +241,7 @@ model BankAccount {
   bic       String?
   bankName  String?
   createdAt DateTime     @default(now())
+  archivedAt DateTime? // remplacé par une version corrigée ou supprimé par le client
   withdrawals Withdrawal[]
 }
 
@@ -257,7 +258,7 @@ model Deposit {
   status         DepositStatus @default(ANNOUNCED)
   receivedAmount Decimal?      @db.Decimal(18, 2)
   fxRate         Decimal?      @db.Decimal(12, 6)
-  creditedUsd    Decimal?      @db.Decimal(18, 2)
+  creditedEur    Decimal?      @db.Decimal(18, 2)
   receivedAt     DateTime?
   processedById  String?
   note           String?
@@ -271,8 +272,8 @@ model Withdrawal {
   userId        String
   user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   reference     String           @unique
-  amountUsd     Decimal          @db.Decimal(18, 2)
-  feeUsd        Decimal          @default(0) @db.Decimal(18, 2)
+  amountEur     Decimal          @db.Decimal(18, 2)
+  feeEur        Decimal          @default(0) @db.Decimal(18, 2)
   bankAccountId String
   bankAccount   BankAccount      @relation(fields: [bankAccountId], references: [id])
   status        WithdrawalStatus @default(REQUESTED)
@@ -293,7 +294,7 @@ model Activity {
   type      ActivityType
   title     String
   subtitle  String?
-  amountUsd Decimal?     @db.Decimal(18, 2)
+  amountEur Decimal?     @db.Decimal(18, 2)
   pending   Boolean      @default(false)
   createdAt DateTime     @default(now())
 
@@ -330,7 +331,7 @@ model PortfolioSnapshot {
   userId   String
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   day      DateTime @db.Date
-  valueUsd Decimal  @db.Decimal(18, 2)
+  valueEur Decimal  @db.Decimal(18, 2)
 
   @@unique([userId, day])
 }

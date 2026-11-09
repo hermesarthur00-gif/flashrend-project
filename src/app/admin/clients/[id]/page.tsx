@@ -7,7 +7,7 @@ import { ActivityList, toActivity } from "@/components/account/widgets";
 import { requireAdmin } from "@/lib/server/session";
 import { getPortfolioSummary } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
-import { PROFILE_LABELS, PROFILE_RISK, formatDate, formatDateTime, formatQty, formatUSD } from "@/lib/utils";
+import { PROFILE_LABELS, PROFILE_RISK, formatDate, formatDateTime, formatQty, formatEUR } from "@/lib/utils";
 import { AccountManagement } from "./client-actions";
 import { LiveAum, LiveGain } from "@/components/live/live-widgets";
 import { isAnonymized } from "@/lib/account-status";
@@ -19,14 +19,14 @@ const KYC = { NONE: ["Non commencée", "neutral"], PENDING: ["À vérifier", "wa
 export default async function ClientPage({ params }: PageProps<"/admin/clients/[id]">) {
   const admin = await requireAdmin();
   const { id } = await params;
-  const user = await db.user.findUnique({ where: { id }, include: { bankAccounts: true } });
+  const user = await db.user.findUnique({ where: { id }, include: { bankAccounts: { where: { archivedAt: null } } } });
   if (!user) notFound();
   const [summary, activity, kyc, pendingDeposits, pendingWd, lastSession, sessions] = await Promise.all([
     getPortfolioSummary(id),
     db.activity.findMany({ where: { userId: id }, orderBy: { createdAt: "desc" }, take: 15 }),
     db.kycSubmission.findFirst({ where: { userId: id }, orderBy: { createdAt: "desc" }, include: { reviewer: true } }),
     db.deposit.count({ where: { userId: id, status: "ANNOUNCED" } }),
-    db.withdrawal.aggregate({ where: { userId: id, status: "REQUESTED" }, _sum: { amountUsd: true }, _count: true }),
+    db.withdrawal.aggregate({ where: { userId: id, status: "REQUESTED" }, _sum: { amountEur: true }, _count: true }),
     db.session.findFirst({ where: { userId: id }, orderBy: { updatedAt: "desc" } }),
     db.session.count({ where: { userId: id, expiresAt: { gt: new Date() } } }),
   ]);
@@ -58,7 +58,7 @@ export default async function ClientPage({ params }: PageProps<"/admin/clients/[
       <div className="grid gap-5 lg:grid-cols-12">
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-8">
           <div className="grid gap-4 sm:grid-cols-3">
-            <Kpi label="Solde disponible" value={formatUSD(summary.cash)} sub="Non investi" />
+            <Kpi label="Solde disponible" value={formatEUR(summary.cash)} sub="Non investi" />
             <Kpi label="Investi" value={<LiveAum quantities={summary.items.map((h) => ({ symbol: h.symbol, quantity: h.quantity }))} cash={0} />} sub={<LiveGain positions={summary.items.map((h) => ({ symbol: h.symbol, name: h.name, quantity: h.quantity }))} investedNet={summary.investedNet} />} />
             <Kpi label="En attente" value={String(pendingDeposits + pendingWd._count)} sub={`${pendingDeposits} dépôt(s), ${pendingWd._count} retrait(s)`} tone={pendingDeposits + pendingWd._count ? "warn" : undefined} />
           </div>
@@ -69,8 +69,8 @@ export default async function ClientPage({ params }: PageProps<"/admin/clients/[
                 <tr key={h.symbol}>
                   <td className="font-semibold">{h.name}</td>
                   <td className="text-right tabular-nums">{formatQty(h.quantity, h.symbol)}</td>
-                  <td className="text-right tabular-nums">{formatUSD(h.priceUsd)}</td>
-                  <td className="text-right font-semibold tabular-nums">{formatUSD(h.valueUsd)}</td>
+                  <td className="text-right tabular-nums">{formatEUR(h.priceEur)}</td>
+                  <td className="text-right font-semibold tabular-nums">{formatEUR(h.valueEur)}</td>
                   <td className="text-right tabular-nums">{h.share.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %</td>
                 </tr>
               ))}
