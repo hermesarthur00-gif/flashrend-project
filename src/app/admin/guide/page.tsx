@@ -145,7 +145,7 @@ export default async function GuidePage() {
             <Sub title="Examiner un dossier">
               <ol>
                 <li>Dans l&apos;onglet En attente, cliquez sur un dossier. Le plus ancien est en haut.</li>
-                <li>Regardez le recto, le verso (carte d&apos;identité) ou la page photo (passeport), et le selfie. Agrandir ouvre l&apos;image en grand.</li>
+                <li>Regardez le recto, le verso (carte d&apos;identité) ou la page photo (passeport), et le selfie. Agrandir (ou un clic sur l&apos;image) l&apos;ouvre en grand dans une fenêtre ; Échap ou un clic à côté la referme.</li>
                 <li>Comparez avec les informations déclarées : nom, date de naissance, adresse, pays.</li>
               </ol>
               <p>Chaque consultation d&apos;un document est notée au Journal.</p>

@@ -6,6 +6,7 @@ import { db } from "@/lib/server/db";
 import type { KycStatus } from "@/generated/prisma/client";
 import { cn, formatDate, formatDateTime } from "@/lib/utils";
 import { KycDecision } from "./kyc-decision";
+import { DocViewer } from "./doc-viewer";
 
 export const metadata = { title: "Vérifications" };
 
@@ -16,21 +17,7 @@ const TABS: { key: string; label: string; status: KycStatus }[] = [
 ];
 
 function Doc({ id, side, label }: { id: string; side: string; label: string }) {
-  const src = `/admin/documents/${id}/${side}`;
-  return (
-    <figure className="m-0 flex flex-col gap-2">
-      <a href={src} target="_blank" rel="noreferrer" className="grid aspect-[4/3] place-items-center overflow-hidden rounded-lg bg-band">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={label} className="size-full object-contain" loading="lazy" />
-      </a>
-      <figcaption className="flex justify-between text-[13px]">
-        <span className="font-semibold">{label}</span>
-        <a href={src} target="_blank" rel="noreferrer">
-          Agrandir
-        </a>
-      </figcaption>
-    </figure>
-  );
+  return <DocViewer src={`/admin/documents/${id}/${side}`} label={label} />;
 }
 
 export default async function VerificationsPage({ searchParams }: PageProps<"/admin/verifications">) {
