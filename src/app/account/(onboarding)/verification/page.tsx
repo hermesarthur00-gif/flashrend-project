@@ -5,6 +5,7 @@ import { Coin, Stripes } from "@/components/ui/decor";
 import { ButtonLink } from "@/components/ui/button";
 import { requireUser } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
+import { getSettings } from "@/lib/server/settings";
 import { KycFlow } from "./kyc-flow";
 
 export const metadata: Metadata = { title: "Vérification d'identité" };
@@ -14,6 +15,7 @@ export default async function VerificationPage() {
 
   if (user.kycStatus === "PENDING" || user.kycStatus === "APPROVED") {
     const approved = user.kycStatus === "APPROVED";
+    const kycDelay = approved ? "" : (await getSettings()).money.kycDelay;
     return (
       <>
         <TopBar title="Vérification" back={user.profile ? "/account/reglages" : undefined} className="lg:flex" />
@@ -30,7 +32,7 @@ export default async function VerificationPage() {
           <div className="text-center">
             <h1 className="text-h2 m-0 mb-2">{approved ? "Identité vérifiée" : "Vérification en cours"}</h1>
             <p className="m-0 text-ink-muted">
-              {approved ? "Votre compte est actif : vous pouvez déposer et retirer." : "Nous vérifions vos documents. Vous recevrez une notification dès que c'est fait."}
+              {approved ? "Votre compte est actif : vous pouvez déposer et retirer." : `Nous vérifions vos documents${kycDelay ? `, généralement sous ${kycDelay}` : ""}. Vous recevrez une notification dès que c'est fait.`}
             </p>
           </div>
           <Card className="py-1 lg:py-1">
