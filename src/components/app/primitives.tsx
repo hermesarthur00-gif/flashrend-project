@@ -3,8 +3,9 @@ import Image from "next/image";
 import { IconChevronLeft, IconAlertTriangle, IconInfoCircle, IconCircleCheck, IconBolt, IconCircleX } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Stripes } from "@/components/ui/decor";
+import { NotificationBell } from "@/components/account/notifications-live";
 
-export function TopBar({ title, back, right, className }: { title?: string; back?: string; right?: React.ReactNode; className?: string }) {
+export function TopBar({ title, back, right, className, bell = true }: { title?: string; back?: string; right?: React.ReactNode; className?: string; bell?: boolean }) {
   return (
     <header className={cn("flex h-14 shrink-0 items-center gap-2 px-2 lg:hidden", className)}>
       {back ? (
@@ -15,7 +16,7 @@ export function TopBar({ title, back, right, className }: { title?: string; back
         <span className="w-11" />
       )}
       <h1 className="m-0 flex-1 text-center text-[17px] leading-6 font-bold">{title}</h1>
-      <span className="flex min-w-11 justify-end whitespace-nowrap">{right}</span>
+      <span className="flex min-w-11 justify-end whitespace-nowrap">{right ?? (bell ? <NotificationBell /> : null)}</span>
     </header>
   );
 }

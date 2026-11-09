@@ -1,12 +1,11 @@
 "use server";
-import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
 
 export async function markAllRead() {
   const user = await requireUser();
+  // Pas de revalidation : les pastilles « non lue » restent visibles pendant cette visite.
   await db.notification.updateMany({ where: { userId: user.id, readAt: null }, data: { readAt: new Date() } });
-  revalidatePath("/account", "layout");
 }
 
 export async function savePushSubscription(sub: { endpoint: string; keys: { p256dh: string; auth: string } }) {

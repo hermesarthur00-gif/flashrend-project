@@ -3,6 +3,7 @@ import Link from "next/link";
 import { IconArrowDownLeft, IconArrowUpRight, IconArrowsExchange, IconBell, IconShieldCheck } from "@tabler/icons-react";
 import { EmptyState, IconTile, Page, PageHeading, TopBar } from "@/components/app/primitives";
 import { PushOptIn } from "@/components/account/push";
+import { MarkSeen } from "@/components/account/notifications-live";
 import { requireUser } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
 import { formatDateTime } from "@/lib/utils";
@@ -21,20 +22,13 @@ const KIND = {
 export default async function NotificationsPage() {
   const user = await requireUser();
   const items = await db.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 60 });
-  const unread = items.some((n) => !n.readAt);
-  const readAll = unread ? (
-    <form action={markAllRead}>
-      <button type="submit" className="text-[13px] font-semibold underline-offset-2 hover:underline">
-        Tout lire
-      </button>
-    </form>
-  ) : null;
 
   return (
     <>
-      <TopBar title="Notifications" back="/account" right={readAll} />
+      <TopBar title="Notifications" back="/account" bell={false} />
+      <MarkSeen action={markAllRead} />
       <Page narrow>
-        <PageHeading title="Notifications" actions={readAll} />
+        <PageHeading title="Notifications" />
         <PushOptIn vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""} />
         {items.length === 0 ? (
           <EmptyState title="Aucune notification" text="Vous serez prévenu ici à chaque virement reçu, retrait envoyé ou ajustement de votre portefeuille." />

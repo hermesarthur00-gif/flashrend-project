@@ -4,7 +4,7 @@ import { PortfolioLiveChart } from "@/components/live/live-chart";
 import { LiveAum } from "@/components/live/live-widgets";
 import { ButtonLink } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/server/session";
-import { getAumParts } from "@/lib/server/portfolio";
+import { getAumParts, getFlows } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
 import { PROFILE_LABELS, daysAgo, formatDateTime, formatMoney, formatUSD } from "@/lib/utils";
 
@@ -14,7 +14,8 @@ export default async function AdminDashboard() {
   await requireAdmin();
   const since = daysAgo(90);
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  const [parts, active, newThisMonth, kycPending, oldestKyc, deposits, withdrawals, wdSum, byProfile, snaps] = await Promise.all([
+  const [flows, parts, active, newThisMonth, kycPending, oldestKyc, deposits, withdrawals, wdSum, byProfile, snaps] = await Promise.all([
+    getFlows(),
     getAumParts(),
     db.user.count({ where: { role: "CLIENT", kycStatus: "APPROVED", suspendedAt: null } }),
     db.user.count({ where: { role: "CLIENT", createdAt: { gte: monthStart } } }),
@@ -42,7 +43,7 @@ export default async function AdminDashboard() {
       </div>
       <div className="grid gap-5 lg:grid-cols-12">
         <Panel className="lg:col-span-8">
-          <PortfolioLiveChart positions={parts.quantities.map((q) => ({ ...q, name: q.symbol }))} daily={series} title="Encours investi" height={160} />
+          <PortfolioLiveChart positions={parts.quantities.map((q) => ({ ...q, name: q.symbol }))} daily={series} flows={flows} title="Encours investi" height={160} />
         </Panel>
         <Panel title="Clients par profil" className="lg:col-span-4">
           <div>

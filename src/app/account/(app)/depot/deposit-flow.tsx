@@ -131,7 +131,7 @@ export function DepositFlow({ reference, banks, minUsd, eurRate, delays }: { ref
   }
 
   if (step === 2) {
-    const shareText = `Virement FlashInv\nBénéficiaire : ${bank.beneficiary}\nIBAN : ${bank.iban}\nBIC / SWIFT : ${bank.swift}\nBanque : ${bank.bankName}\nRéférence : ${reference}`;
+    const shareText = ["Virement FlashInv", `Bénéficiaire : ${bank.beneficiary}`, `IBAN : ${bank.iban}`, bank.swift && `BIC / SWIFT : ${bank.swift}`, bank.bankName && `Banque : ${bank.bankName}`, `Référence : ${reference}`].filter(Boolean).join("\n");
     return (
       <>
         <Head title={`Virement en ${currency}`} onBack={() => setStep(1)} step={2} />

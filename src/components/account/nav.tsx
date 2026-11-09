@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { IconHome, IconChartLine, IconPlus, IconClock, IconUser, IconArrowUpRight, IconBell } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { NotificationBadge } from "./notifications-live";
 
 const MOBILE = [
   { href: "/account", label: "Accueil", Icon: IconHome },
@@ -60,7 +61,7 @@ export function BottomNavView({ pathname }: { pathname: string }) {
   );
 }
 
-export function SideNav({ unread }: { unread: number }) {
+export function SideNav() {
   const pathname = usePathname();
   return (
     <nav aria-label="Navigation de l'app" className="flex flex-col gap-1">
@@ -75,7 +76,7 @@ export function SideNav({ unread }: { unread: number }) {
           >
             <Icon size={20} stroke={1.75} />
             <span className="flex-1">{label}</span>
-            {href.endsWith("notifications") && unread > 0 && <span className="rounded-full bg-down-fill px-1.5 text-xs leading-5 font-bold text-on-down">{unread}</span>}
+            {href.endsWith("notifications") && <NotificationBadge />}
           </Link>
         );
       })}

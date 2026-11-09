@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { IconBell, IconChartLine } from "@tabler/icons-react";
+import { IconChartLine } from "@tabler/icons-react";
+import { NotificationBell } from "@/components/account/notifications-live";
 import { Logo } from "@/components/ui/logo";
 import { Alert, Badge, Card, IconTile, Page, SectionTitle } from "@/components/app/primitives";
 import { ActivityList, toActivity } from "@/components/account/widgets";
@@ -7,18 +8,18 @@ import { LiveAllocation, LiveBalanceCard, LiveHoldingRows } from "@/components/l
 import { PortfolioLiveChart } from "@/components/live/live-chart";
 import { ButtonLink } from "@/components/ui/button";
 import { requireOnboardedUser } from "@/lib/server/session";
-import { getPortfolioSummary, getSnapshots } from "@/lib/server/portfolio";
+import { getFlows, getPortfolioSummary, getSnapshots } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
 import { PROFILE_LABELS, PROFILE_RISK, formatMoney, formatUSD } from "@/lib/utils";
 
 export default async function HomePage() {
   const user = await requireOnboardedUser();
-  const [summary, activity, pendingDeposits, unread, series] = await Promise.all([
+  const [summary, activity, pendingDeposits, series, flows] = await Promise.all([
     getPortfolioSummary(user.id),
     db.activity.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 5 }),
     db.deposit.findMany({ where: { userId: user.id, status: "ANNOUNCED" }, orderBy: { announcedAt: "desc" } }),
-    db.notification.count({ where: { userId: user.id, readAt: null } }),
     getSnapshots(user.id),
+    getFlows(user.id),
   ]);
   const profile = user.profile!;
   const positions = summary.items.map((h) => ({ symbol: h.symbol, name: h.name, quantity: h.quantity }));
@@ -35,10 +36,7 @@ export default async function HomePage() {
             {user.firstName} {user.lastName}
           </span>
         </div>
-        <Link href="/account/notifications" aria-label={unread ? `Notifications, ${unread} non lues` : "Notifications"} className="relative grid size-11 place-items-center rounded-md text-ink hover:bg-ink/8">
-          <IconBell size={22} stroke={1.75} />
-          {unread > 0 && <span aria-hidden="true" className="absolute top-2.5 right-2.5 size-2 rounded-full bg-down-fill" />}
-        </Link>
+        <NotificationBell />
       </header>
       <Page>
         <div className="hidden items-end justify-between gap-4 lg:flex">
@@ -110,7 +108,7 @@ export default async function HomePage() {
             )}
           </div>
           <Card className="hidden lg:col-span-7 lg:block">
-            <PortfolioLiveChart positions={positions} daily={series} title="Valeur investie" />
+            <PortfolioLiveChart positions={positions} daily={series} flows={flows} investedNet={summary.investedNet} title="Valeur investie" />
           </Card>
 
           <section className="flex flex-col gap-1 lg:col-span-7 lg:rounded-lg lg:border lg:border-line lg:bg-surface-raised lg:p-6">

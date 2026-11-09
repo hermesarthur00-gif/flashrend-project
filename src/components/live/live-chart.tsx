@@ -152,10 +152,50 @@ export function AssetLiveChart({ symbol, name, fallback, height = 180 }: { symbo
 }
 
 /**
+ * Gain sur la période, hors argent ajouté ou retiré : valeur actuelle − valeur de départ − (investi − désinvesti pendant la période).
+ * Sur 24 h, la valeur de départ est reconstituée avec les quantités actuelles : chaque investissement de la période
+ * est retiré de ce départ, au prorata de l'évolution des cours depuis son exécution.
+ */
+function periodGain(range: Range, data: Point[], flows: Point[], now: number, intraday: Point[] | null) {
+  const t0 = data[0].t;
+  if (range === "24 h") {
+    const inRange = flows.filter((f) => f.t > t0);
+    const series = intraday ?? data;
+    const at = (t: number) => series.reduce((best, p) => (Math.abs(p.t - t) < Math.abs(best.t - t) ? p : best), series[0]).v || 1;
+    const start = data[0].v - inRange.reduce((s, f) => s + (f.v * data[0].v) / at(f.t), 0);
+    const added = inRange.reduce((s, f) => s + f.v, 0);
+    const gain = now - start - added;
+    return { gain, base: Math.max(0, start) + Math.max(0, added) };
+  }
+  // Relevé du jour de départ : il inclut déjà les opérations de ce jour-là.
+  const nextDay = new Date(t0).setHours(24, 0, 0, 0);
+  const inRange = flows.filter((f) => f.t >= nextDay);
+  const added = inRange.reduce((s, f) => s + f.v, 0);
+  return { gain: now - data[0].v - added, base: Math.max(0, data[0].v) + Math.max(0, added) };
+}
+
+function GainLine({ label, gain, base }: { label: string; gain: number; base: number }) {
+  const up = gain >= 0;
+  const pct = base > 0 ? (gain / base) * 100 : 0;
+  return (
+    <p className="m-0 flex flex-wrap items-center gap-x-1.5 text-sm">
+      <span className="text-ink-muted">{label}</span>
+      <span className={cn("inline-flex items-center gap-0.5 font-semibold tabular-nums", up ? "text-up" : "text-down")}>
+        {up ? <IconArrowUpRight size={16} stroke={2.5} aria-hidden="true" /> : <IconArrowDownRight size={16} stroke={2.5} aria-hidden="true" />}
+        {up ? "+" : "−"}
+        {formatUSD(Math.abs(gain))}
+        {base > 0 && ` (${up ? "+" : "−"}${Math.abs(pct).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %)`}
+      </span>
+    </p>
+  );
+}
+
+/**
  * Courbe de valeur d'un portefeuille (ou de l'encours) : 24 h reconstituées à partir des cours,
  * 7 j / 1 m / 3 m à partir des relevés quotidiens, dernier point en direct.
+ * En-tête : valeur investie, gain sur la période choisie et gain depuis le début.
  */
-export function PortfolioLiveChart({ positions, daily, title, height = 170 }: { positions: Position[]; daily: Point[]; title: string; height?: number }) {
+export function PortfolioLiveChart({ positions, daily, flows = [], investedNet, title, height = 170 }: { positions: Position[]; daily: Point[]; flows?: Point[]; investedNet?: number; title: string; height?: number }) {
   const [range, setRange] = useState<Range>("24 h");
   const [intraday, setIntraday] = useState<Point[] | null>(null);
   const { total } = useLiveHoldings(positions);
@@ -191,10 +231,28 @@ export function PortfolioLiveChart({ positions, daily, title, height = 170 }: { 
     return [...d, { t: now, v: total }];
   }, [range, intraday, daily, total, now]);
 
+  const period = data && data.length > 1 ? periodGain(range, data, flows, total, intraday) : null;
   const empty = positions.every((p) => p.quantity <= 0);
   return (
     <figure className="m-0 flex flex-col gap-3">
-      <Header value={total} first={data && data.length > 1 ? data[0].v : null} range={range} setRange={setRange} title={title} />
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div className="flex flex-col gap-0.5">
+          <p className="text-caption m-0 text-ink-muted">{title}</p>
+          <p className="text-amount-lg m-0 tabular-nums">{formatUSD(total)}</p>
+          {!empty && period && <GainLine label={`Gain sur ${range}`} gain={period.gain} base={period.base} />}
+          {!empty && investedNet !== undefined && <GainLine label="Depuis le début" gain={total - investedNet} base={investedNet} />}
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <LiveDot />
+          <div role="tablist" aria-label="Période" className="flex rounded-md bg-surface-sunken p-0.5">
+            {RANGES.map((r) => (
+              <button key={r} role="tab" type="button" aria-selected={range === r} onClick={() => setRange(r)} className={cn("h-8 rounded-sm px-2.5 text-sm font-semibold", range === r ? "bg-surface-raised text-ink" : "text-ink-muted")}>
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
       {empty ? (
         <Empty height={height} text="Rien d'investi pour l'instant. La courbe démarre avec votre premier investissement." />
       ) : data && data.length > 1 ? (

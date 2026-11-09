@@ -89,13 +89,13 @@ export function BankSettings({ bank, email }: { bank: Settings["bank"]; email: s
       ) : (
         <form action={reqAction} key={currency} className="flex flex-col gap-3.5">
           <input type="hidden" name="currency" value={currency} />
-          <Field label="Bénéficiaire" name="beneficiary" defaultValue={b.beneficiary} placeholder="ex. FlashInv SAS" />
-          <Field label={currency === "EUR" ? "IBAN" : "IBAN ou numéro de compte"} name="iban" defaultValue={b.iban} placeholder="ex. FR76 3000 6000 0112 3456 7890 189" spellCheck={false} />
+          <Field label="Bénéficiaire" name="beneficiary" defaultValue={b.beneficiary} placeholder="ex. FlashInv SAS" required />
+          <Field label={currency === "EUR" ? "IBAN" : "IBAN ou numéro de compte"} name="iban" defaultValue={b.iban} placeholder="ex. FR76 3000 6000 0112 3456 7890 189" spellCheck={false} required />
           <div className="grid gap-3.5 sm:grid-cols-2">
             <Field label="BIC / SWIFT" name="swift" defaultValue={b.swift} placeholder="ex. AGRIFRPP" spellCheck={false} />
-            <Field label="Banque" name="bankName" defaultValue={b.bankName} placeholder="ex. Nom de la banque" />
+            <Field label="Banque (facultatif)" name="bankName" defaultValue={b.bankName} placeholder="ex. Nom de la banque" />
           </div>
-          <Field label="Adresse de la banque" name="bankAddress" defaultValue={b.bankAddress} placeholder="Utile pour les virements internationaux en dollars" />
+          <Field label="Adresse de la banque (facultatif)" name="bankAddress" defaultValue={b.bankAddress} placeholder="Utile pour les virements internationaux en dollars" />
           <Alert tone="warning" title="Changement sensible">
             Toute modification est confirmée par un code envoyé par e-mail et notée dans le journal.
           </Alert>

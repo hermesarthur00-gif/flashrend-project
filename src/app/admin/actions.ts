@@ -287,8 +287,8 @@ export async function saveSettings(_: AdminState, form: FormData): Promise<Admin
 
 const bankFields = z.object({
   currency: z.enum(["USD", "EUR"]),
-  beneficiary: z.string().trim().max(120),
-  iban: z.string().trim().max(64),
+  beneficiary: z.string().trim().min(2, "Indiquez le bénéficiaire.").max(120),
+  iban: z.string().trim().min(6, "Indiquez l'IBAN ou le numéro de compte.").max(64),
   swift: z.string().trim().max(20),
   bankName: z.string().trim().max(120),
   bankAddress: z.string().trim().max(200),
@@ -298,7 +298,7 @@ const bankFields = z.object({
 export async function requestBankChange(_: BankState, form: FormData): Promise<BankState> {
   const admin = await requireAdmin();
   const parsed = bankFields.safeParse(Object.fromEntries(form));
-  if (!parsed.success) return { error: "Coordonnées invalides." };
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Coordonnées invalides." };
   const data = { ...parsed.data, iban: parsed.data.iban.replace(/\s/g, "").toUpperCase(), swift: parsed.data.swift.replace(/\s/g, "").toUpperCase() };
   try {
     const codeId = await sendActionCode(admin, "settings-change", data, `Modification des coordonnées bancaires ${data.currency} de FlashInv.`);

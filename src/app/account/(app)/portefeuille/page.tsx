@@ -4,7 +4,7 @@ import { PortfolioLiveChart } from "@/components/live/live-chart";
 import { LiveAllocation, LiveHoldingRows, LiveInvested } from "@/components/live/live-widgets";
 import { ButtonLink } from "@/components/ui/button";
 import { requireOnboardedUser } from "@/lib/server/session";
-import { getPortfolioSummary, getSnapshots } from "@/lib/server/portfolio";
+import { getFlows, getPortfolioSummary, getSnapshots } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
 import { PROFILE_LABELS, formatDate, formatUSD } from "@/lib/utils";
 
@@ -12,9 +12,10 @@ export const metadata: Metadata = { title: "Portefeuille" };
 
 export default async function PortfolioPage() {
   const user = await requireOnboardedUser();
-  const [s, series, lastRebalance] = await Promise.all([
+  const [s, series, flows, lastRebalance] = await Promise.all([
     getPortfolioSummary(user.id),
     getSnapshots(user.id),
+    getFlows(user.id),
     db.activity.findFirst({ where: { userId: user.id, type: { in: ["REBALANCE", "PROFILE"] } }, orderBy: { createdAt: "desc" } }),
   ]);
   const positions = s.items.map((h) => ({ symbol: h.symbol, name: h.name, quantity: h.quantity }));
@@ -57,7 +58,7 @@ export default async function PortfolioPage() {
         ) : (
           <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
             <Card className="lg:col-span-12">
-              <PortfolioLiveChart positions={positions} daily={series} title="Valeur investie" />
+              <PortfolioLiveChart positions={positions} daily={series} flows={flows} investedNet={s.investedNet} title="Valeur investie" />
             </Card>
             <div className="grid grid-cols-2 gap-2 lg:hidden">
               <ButtonLink href="/account/desinvestir" variant="secondary">

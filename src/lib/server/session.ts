@@ -1,12 +1,17 @@
 import "server-only";
 import { cache } from "react";
 import { headers } from "next/headers";
+import { connection } from "next/server";
 import { notFound, redirect } from "next/navigation";
 import type { Prisma } from "@/generated/prisma/client";
 import { auth } from "./auth";
 import { db } from "./db";
 
-export const getSession = cache(async () => auth.api.getSession({ headers: await headers() }));
+export const getSession = cache(async () => {
+  // Rendu à la demande : la session dépend de la requête (et Better Auth lit l'heure courante).
+  await connection();
+  return auth.api.getSession({ headers: await headers() });
+});
 
 /** Utilisateur connecté (données complètes), sinon redirection vers la connexion. */
 export const requireUser = cache(async () => {

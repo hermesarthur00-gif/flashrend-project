@@ -83,8 +83,10 @@ export function LivePricesProvider({ initial, children }: { initial: Prices; chi
       ws.onerror = () => ws?.close();
     }
 
-    connect();
+    // Connexion après l'hydratation de la page.
+    const start = setTimeout(connect, 1500);
     return () => {
+      clearTimeout(start);
       closed = true;
       clearInterval(flush);
       if (poll) clearInterval(poll);

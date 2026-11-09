@@ -18,7 +18,7 @@ export default async function VerificationPage() {
     const kycDelay = approved ? "" : (await getSettings()).money.kycDelay;
     return (
       <>
-        <TopBar title="Vérification" back={user.profile ? "/account/reglages" : undefined} className="lg:flex" />
+        <TopBar bell={false} title="Vérification" back={user.profile ? "/account/reglages" : undefined} className="lg:flex" />
         <Page narrow className="flex-1">
           <div className="relative grid h-[200px] place-items-center">
             <Coin tone="black" size={96} tilt={50} spin={-16} />

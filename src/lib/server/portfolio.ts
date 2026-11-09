@@ -153,6 +153,16 @@ export async function getSnapshots(userId: string, days = 90) {
   return rows.map((r) => ({ t: r.day.getTime(), v: Number(r.valueUsd) }));
 }
 
+/** Montants investis (+) et désinvestis (−) des 90 derniers jours, pour calculer le gain sur une période. */
+export async function getFlows(userId?: string, days = 90) {
+  const rows = await db.activity.findMany({
+    where: { ...(userId ? { userId } : {}), type: { in: ["INVEST", "DIVEST"] }, createdAt: { gte: new Date(Date.now() - days * 86400000) } },
+    select: { type: true, amountUsd: true, createdAt: true },
+    orderBy: { createdAt: "asc" },
+  });
+  return rows.map((r) => ({ t: r.createdAt.getTime(), v: (r.type === "INVEST" ? 1 : -1) * Number(r.amountUsd ?? 0) }));
+}
+
 /** Quantités détenues par crypto (tous clients) et total des soldes disponibles. */
 export async function getAumParts() {
   const [sums, cash] = await Promise.all([
