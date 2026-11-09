@@ -41,7 +41,7 @@ export default async function AdminDashboard() {
         <Kpi label="Dépôts à vérifier" value={String(deposits.length)} sub={deposits.length ? "Virements déclarés" : "Rien en attente"} tone={deposits.length ? "warn" : undefined} href="/admin/depots" />
         <Kpi label="Retraits à envoyer" value={String(wdSum._count)} sub={wdSum._count ? `${formatEUR(Number(wdSum._sum.amountEur ?? 0))} au total` : "Rien en attente"} tone={wdSum._count ? "warn" : undefined} href="/admin/retraits" />
       </div>
-      <div className="grid gap-5 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
         <Panel className="lg:col-span-8">
           <PortfolioLiveChart positions={parts.quantities.map((q) => ({ ...q, name: q.symbol }))} daily={series} flows={flows} title="Encours investi" height={160} />
         </Panel>

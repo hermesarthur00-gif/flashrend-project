@@ -80,7 +80,7 @@ export default async function HomePage() {
           </Alert>
         )}
 
-        <div className="grid gap-5 lg:grid-cols-12 lg:gap-6">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:gap-6">
           <div className="flex flex-col gap-5 lg:col-span-5 lg:gap-6">
             <LiveBalanceCard cash={summary.cash} positions={positions} investedNet={summary.investedNet} />
             <Link href="/account/profil" className="flex items-center gap-3 rounded-lg bg-flash-soft px-4 py-3.5 text-ink lg:hidden">

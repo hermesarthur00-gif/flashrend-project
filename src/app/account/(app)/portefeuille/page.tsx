@@ -56,7 +56,7 @@ export default async function PortfolioPage() {
             action={s.cash >= 0.01 ? <ButtonLink href="/account/investir">Investir</ButtonLink> : <ButtonLink href="/account/depot">Faire un dépôt</ButtonLink>}
           />
         ) : (
-          <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
             <Card className="lg:col-span-12">
               <PortfolioLiveChart positions={positions} daily={series} flows={flows} investedNet={s.investedNet} title="Valeur investie" />
             </Card>

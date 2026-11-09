@@ -26,7 +26,7 @@ export default async function AssetPage({ params }: PageProps<"/account/portefeu
       <TopBar title={asset.name} back="/account/portefeuille" />
       <Page>
         <PageHeading title={asset.name} back="/account/portefeuille" />
-        <div className="grid gap-5 lg:grid-cols-12 lg:gap-6">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:gap-6">
           <div className="flex flex-col gap-5 lg:col-span-5">
             <div className="relative flex items-center gap-3.5 overflow-hidden rounded-lg bg-band p-5 text-on-band">
               <div className="pointer-events-none absolute -right-2 -bottom-2.5">

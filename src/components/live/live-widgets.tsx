@@ -52,14 +52,14 @@ export function LiveBalanceCard({ cash, positions, investedNet, actions = true }
       </dl>
       {actions && (
         <div className="relative mt-4 grid grid-cols-3 gap-2">
-          <ButtonLink href="/account/investir" variant="primary" className="px-2">
-            <IconChartPie size={20} stroke={2} /> Investir
+          <ButtonLink href="/account/investir" variant="primary" className="min-w-0 gap-1.5 px-1.5 text-sm sm:text-[15px]">
+            <IconChartPie size={18} stroke={2} className="hidden min-[360px]:block" /> Investir
           </ButtonLink>
-          <ButtonLink href="/account/depot" variant="secondary" className="border-transparent px-2">
-            <IconPlus size={20} stroke={2} /> Déposer
+          <ButtonLink href="/account/depot" variant="secondary" className="min-w-0 gap-1.5 border-transparent px-1.5 text-sm sm:text-[15px]">
+            <IconPlus size={18} stroke={2} className="hidden min-[360px]:block" /> Déposer
           </ButtonLink>
-          <ButtonLink href="/account/retrait" variant="secondary" className="border-transparent px-2">
-            <IconBuildingBank size={20} stroke={2} /> Retirer
+          <ButtonLink href="/account/retrait" variant="secondary" className="min-w-0 gap-1.5 border-transparent px-1.5 text-sm sm:text-[15px]">
+            <IconBuildingBank size={18} stroke={2} className="hidden min-[360px]:block" /> Retirer
           </ButtonLink>
         </div>
       )}

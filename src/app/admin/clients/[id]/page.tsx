@@ -55,7 +55,7 @@ export default async function ClientPage({ params }: PageProps<"/admin/clients/[
           {anonymized ? `Compte supprimé le ${formatDateTime(user.suspendedAt)}. Seul l'historique financier est conservé.` : `Compte banni le ${formatDateTime(user.suspendedAt)}${user.suspendReason ? ` : ${user.suspendReason}` : ""}.`}
         </p>
       )}
-      <div className="grid gap-5 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-8">
           <div className="grid gap-4 sm:grid-cols-3">
             <Kpi label="Solde disponible" value={formatEUR(summary.cash)} sub="Non investi" />
