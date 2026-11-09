@@ -8,7 +8,8 @@ export default defineConfig({
     path: "prisma/migrations",
     seed: "tsx prisma/seed.ts",
   },
+  // Lu sans exiger la variable : « prisma generate » (postinstall, build) n'a pas besoin de la base.
   datasource: {
-    url: env("DATABASE_URL"),
+    url: process.env.DATABASE_URL ?? "",
   },
 });
