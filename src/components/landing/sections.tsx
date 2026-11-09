@@ -5,15 +5,22 @@ import { ButtonLink } from "@/components/ui/button";
 import { ASSETS, CryptoIcon, PriceChange } from "@/components/ui/finance";
 import { BoltWatermark, Coin, FloatingGlyph, Stripes } from "@/components/ui/decor";
 import { IconArrowRight, IconBuildingBank, IconCircleCheck, IconEye, IconId, IconShieldCheck, iconProps } from "@/components/ui/icons";
-import { faq, profiles, security, steps, ticker } from "@/lib/landing-data";
-import { navLinks, siteConfig } from "@/lib/site-config";
+import { getFaq, profiles, security, steps, ticker as fallbackTicker, type CryptoSymbol } from "@/lib/landing-data";
+import { getPublicConfig } from "@/lib/server/public-config";
+import { getMarket } from "@/lib/server/prices";
+import { navLinks } from "@/lib/site-config";
 import { formatUSD } from "@/lib/utils";
 
 /* ---------------- Bandeau des cours ---------------- */
-export function Ticker() {
+const TICKER_ORDER: CryptoSymbol[] = ["BTC", "ETH", "SOL", "BNB", "DOGE", "USDT"];
+
+export async function Ticker() {
+  const market = await getMarket();
+  const live = TICKER_ORDER.map((sym) => market.find((m) => m.symbol === sym && m.priceUsd > 0)).filter((m) => m !== undefined);
+  const ticker = live.length === TICKER_ORDER.length ? live.map((m) => ({ symbol: m.symbol as CryptoSymbol, name: m.name, price: m.priceUsd, change: m.change24h })) : fallbackTicker;
   const loop = [...ticker, ...ticker];
   return (
-    <section aria-label="Cours indicatifs" className="relative mt-5 overflow-hidden border-y border-line bg-surface-raised md:mt-7">
+    <section aria-label="Cours des cryptos" className="relative mt-5 overflow-hidden border-y border-line bg-surface-raised md:mt-7">
       <div className="flex w-max animate-marquee hover:[animation-play-state:paused]">
         {loop.map((t, i) => (
           <div key={i} aria-hidden={i >= ticker.length} className="flex items-center gap-2.5 border-r border-line px-5 py-3 md:px-7 md:py-4">
@@ -198,7 +205,9 @@ export function Security() {
 }
 
 /* ---------------- FAQ ---------------- */
-export function Faq() {
+export async function Faq() {
+  const siteConfig = await getPublicConfig();
+  const faq = getFaq(siteConfig);
   return (
     <section id="faq" className="mx-auto grid max-w-[1200px] gap-3 px-4 pb-14 md:grid-cols-3 md:gap-16 md:px-8 md:pb-30">
       <div data-reveal className="relative flex flex-col gap-3 md:gap-4">
@@ -209,8 +218,8 @@ export function Faq() {
         <h2 className="relative text-h1 md:text-display-lg">Vos questions</h2>
         <p className="relative hidden text-ink-muted md:block">
           Une autre question ? Écrivez-nous depuis l&apos;app ou à{" "}
-          <a href={`mailto:${siteConfig.contactEmail}`} className="font-semibold text-ink underline underline-offset-2">
-            {siteConfig.contactEmail}
+          <a href={`mailto:${siteConfig.contact.email}`} className="font-semibold text-ink underline underline-offset-2">
+            {siteConfig.contact.email}
           </a>
           .
         </p>
@@ -234,8 +243,8 @@ export function Faq() {
         <div className="border-t border-line" />
         <p className="mt-4 text-body-sm text-ink-muted md:hidden">
           Une autre question ? Écrivez-nous depuis l&apos;app ou à{" "}
-          <a href={`mailto:${siteConfig.contactEmail}`} className="font-semibold text-ink underline underline-offset-2">
-            {siteConfig.contactEmail}
+          <a href={`mailto:${siteConfig.contact.email}`} className="font-semibold text-ink underline underline-offset-2">
+            {siteConfig.contact.email}
           </a>
           .
         </p>
@@ -264,7 +273,7 @@ export function FinalCta() {
           Prêt à placer vos premiers dollars ?
         </h2>
         <div className="relative">
-          <ButtonLink href="/inscription" variant="band" size="lg" className="w-full md:w-auto">
+          <ButtonLink href="/account/inscription" variant="band" size="lg" className="w-full md:w-auto">
             Ouvrir un compte <IconArrowRight size={20} {...iconProps} />
           </ButtonLink>
         </div>

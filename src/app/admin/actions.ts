@@ -1,0 +1,318 @@
+"use server";
+import { revalidatePath, updateTag } from "next/cache";
+import { z } from "zod";
+import type { ProfileId } from "@/generated/prisma/client";
+import { audit, requireAdmin } from "@/lib/server/session";
+import { db } from "@/lib/server/db";
+import { investUsd, priceMap, rebalanceUser, snapshotUser } from "@/lib/server/portfolio";
+import { notify } from "@/lib/server/notify";
+import { getSettings, SETTINGS_TAG } from "@/lib/server/settings";
+import { consumeActionCode, sendActionCode } from "@/lib/server/action-codes";
+import { mergeSettings, settingsSchema } from "@/lib/settings-schema";
+import { isAnonymized } from "@/lib/account-status";
+import { deleteOrAnonymize } from "@/lib/server/user-admin";
+import { PROFILE_LABELS, formatMoney, formatUSD } from "@/lib/utils";
+
+export type AdminState = { error?: string; ok?: string } | undefined;
+export type BankState = { error?: string; ok?: string; codeId?: string } | undefined;
+const fail = (e: unknown, fallback: string): AdminState => ({ error: e instanceof Error ? e.message : fallback });
+const num = (v: FormDataEntryValue | null) => Number(String(v ?? "").replace(/\s/g, "").replace(",", "."));
+
+// ---------------------------------------------------------------- utilisateurs
+
+/** Cible d'une action sur un compte, avec les garde-fous communs. */
+async function target(adminId: string, form: FormData) {
+  const id = String(form.get("userId") ?? "");
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const user = id ? await db.user.findUnique({ where: { id } }) : email ? await db.user.findUnique({ where: { email } }) : null;
+  if (!user) return { error: email ? "Aucun compte avec cet e-mail. La personne doit d'abord créer un compte." : "Compte introuvable." } as const;
+  if (user.id === adminId) return { error: "Vous ne pouvez pas faire cette action sur votre propre compte." } as const;
+  if (isAnonymized(user.email)) return { error: "Ce compte a été supprimé." } as const;
+  return { user } as const;
+}
+
+async function isLastAdmin(userId: string) {
+  const admins = await db.user.count({ where: { role: "ADMIN", suspendedAt: null, id: { not: userId } } });
+  return admins === 0;
+}
+
+export async function setRole(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const t = await target(admin.id, form);
+  if ("error" in t) return { error: t.error };
+  const role = String(form.get("role")) === "ADMIN" ? "ADMIN" : "CLIENT";
+  if (t.user.role === role) return { ok: "Rôle inchangé" };
+  if (role === "CLIENT" && (await isLastAdmin(t.user.id))) return { error: "Il doit rester au moins un administrateur." };
+  await db.user.update({ where: { id: t.user.id }, data: { role } });
+  if (role === "CLIENT") await db.session.deleteMany({ where: { userId: t.user.id } });
+  await audit(admin.id, role === "ADMIN" ? "team.add" : "team.remove", { type: "user", id: t.user.id }, { email: t.user.email });
+  revalidatePath("/admin", "layout");
+  return { ok: role === "ADMIN" ? `${t.user.name} est maintenant administrateur` : `${t.user.name} n'est plus administrateur` };
+}
+
+export async function banUser(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const t = await target(admin.id, form);
+  if ("error" in t) return { error: t.error };
+  const reason = String(form.get("reason") ?? "").trim();
+  if (reason.length < 3) return { error: "Indiquez le motif du bannissement." };
+  if (t.user.suspendedAt) return { error: "Ce compte est déjà banni." };
+  if (t.user.role === "ADMIN" && (await isLastAdmin(t.user.id))) return { error: "Il doit rester au moins un administrateur." };
+  await db.user.update({ where: { id: t.user.id }, data: { suspendedAt: new Date(), suspendReason: reason } });
+  await db.session.deleteMany({ where: { userId: t.user.id } });
+  await audit(admin.id, "client.suspend", { type: "user", id: t.user.id }, { reason });
+  revalidatePath("/admin", "layout");
+  return { ok: "Compte banni, sessions fermées" };
+}
+
+export async function unbanUser(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const t = await target(admin.id, form);
+  if ("error" in t) return { error: t.error };
+  if (!t.user.suspendedAt) return { error: "Ce compte n'est pas banni." };
+  await db.user.update({ where: { id: t.user.id }, data: { suspendedAt: null, suspendReason: null } });
+  await audit(admin.id, "client.reactivate", { type: "user", id: t.user.id });
+  revalidatePath("/admin", "layout");
+  return { ok: "Compte réactivé" };
+}
+
+export async function deleteUser(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const t = await target(admin.id, form);
+  if ("error" in t) return { error: t.error };
+  if (String(form.get("confirm") ?? "").trim().toLowerCase() !== t.user.email) return { error: "L'e-mail saisi ne correspond pas." };
+  if (t.user.role === "ADMIN" && (await isLastAdmin(t.user.id))) return { error: "Il doit rester au moins un administrateur." };
+  try {
+    const result = await deleteOrAnonymize(t.user.id);
+    await audit(admin.id, result === "deleted" ? "client.delete" : "client.anonymize", { type: "user", id: t.user.id }, { email: t.user.email, reference: t.user.reference });
+    revalidatePath("/admin", "layout");
+    return { ok: result === "deleted" ? "Compte supprimé" : "Compte anonymisé, historique financier conservé" };
+  } catch (e) {
+    return fail(e, "Suppression impossible.");
+  }
+}
+
+// ---------------------------------------------------------------- identité
+
+export async function reviewKyc(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id"));
+  const decision = String(form.get("decision"));
+  const reason = String(form.get("reason") ?? "").trim();
+  const sub = await db.kycSubmission.findUnique({ where: { id } });
+  if (!sub || sub.status !== "PENDING") return { error: "Ce dossier a déjà été traité." };
+  if (decision === "reject" && reason.length < 4) return { error: "Indiquez le motif du refus, il sera visible par le client." };
+  const approved = decision === "approve";
+  await db.$transaction([
+    db.kycSubmission.update({ where: { id }, data: { status: approved ? "APPROVED" : "REJECTED", rejectReason: approved ? null : reason, reviewerId: admin.id, reviewedAt: new Date() } }),
+    db.user.update({ where: { id: sub.userId }, data: { kycStatus: approved ? "APPROVED" : "REJECTED" } }),
+  ]);
+  await notify(sub.userId, approved
+    ? { kind: "kyc", title: "Identité vérifiée", body: "Votre compte est actif, vous pouvez déposer.", url: "/account/depot", email: { cta: "Faire un dépôt" } }
+    : { kind: "kyc", title: "Vérification à reprendre", body: `Motif : ${reason}`, url: "/account/verification", email: { lines: ["Nous n'avons pas pu valider votre identité.", `Motif : ${reason}`, "Vous pouvez recommencer la vérification depuis l'app."], cta: "Reprendre la vérification" } });
+  await audit(admin.id, approved ? "kyc.approve" : "kyc.reject", { type: "user", id: sub.userId }, approved ? undefined : { reason });
+  revalidatePath("/admin", "layout");
+  return { ok: approved ? "Identité validée" : "Dossier refusé" };
+}
+
+// ---------------------------------------------------------------- dépôts
+
+export async function reconcileDeposit(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id"));
+  const amount = num(form.get("amount"));
+  const rate = num(form.get("rate"));
+  const receivedAt = form.get("receivedAt") ? new Date(String(form.get("receivedAt"))) : new Date();
+  const d = await db.deposit.findUnique({ where: { id }, include: { user: true } });
+  if (!d || d.status !== "ANNOUNCED") return { error: "Ce dépôt a déjà été traité." };
+  if (!(amount > 0)) return { error: "Indiquez le montant reçu." };
+  if (d.currency === "EUR" && !(rate > 0.1 && rate < 10)) return { error: "Indiquez le taux EUR → USD appliqué." };
+  if (!d.user.profile) return { error: "Le client n'a pas encore choisi de profil." };
+  const credited = Math.round((d.currency === "EUR" ? amount * rate : amount) * 100) / 100;
+  const pm = await priceMap();
+  try {
+    await db.$transaction(async (tx) => {
+      await tx.deposit.update({ where: { id }, data: { status: "INVESTED", receivedAmount: amount, fxRate: d.currency === "EUR" ? rate : null, creditedUsd: credited, receivedAt, processedById: admin.id } });
+      await investUsd(tx, d.userId, credited, d.user.profile!, pm);
+      await tx.activity.updateMany({ where: { userId: d.userId, type: "DEPOSIT", pending: true, subtitle: `Réf. ${d.reference}` }, data: { pending: false } });
+      await tx.activity.create({ data: { userId: d.userId, type: "INVEST", title: "Placement", subtitle: `${formatMoney(amount, d.currency)} reçus · profil ${PROFILE_LABELS[d.user.profile!].toLowerCase()}`, amountUsd: credited } });
+    });
+  } catch (e) {
+    return fail(e, "Le placement a échoué.");
+  }
+  await snapshotUser(d.userId, pm);
+  await notify(d.userId, { kind: "deposit", title: "Virement reçu et placé", body: `${formatUSD(credited)} placés sur votre profil ${PROFILE_LABELS[d.user.profile].toLowerCase()}.`, url: "/account/portefeuille", email: { cta: "Voir mon portefeuille" } });
+  await audit(admin.id, "deposit.invest", { type: "deposit", id }, { amount, currency: d.currency, rate: d.currency === "EUR" ? rate : null, credited });
+  revalidatePath("/admin", "layout");
+  return { ok: `${formatUSD(credited)} placés pour ${d.user.name}` };
+}
+
+export async function rejectDeposit(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id"));
+  const note = String(form.get("note") ?? "").trim();
+  if (note.length < 4) return { error: "Indiquez la raison, elle sera visible par le client." };
+  const d = await db.deposit.findUnique({ where: { id } });
+  if (!d || d.status !== "ANNOUNCED") return { error: "Ce dépôt a déjà été traité." };
+  await db.deposit.update({ where: { id }, data: { status: "REJECTED", note, processedById: admin.id } });
+  await db.activity.updateMany({ where: { userId: d.userId, type: "DEPOSIT", pending: true, subtitle: `Réf. ${d.reference}` }, data: { pending: false, title: "Virement non accepté" } });
+  await notify(d.userId, { kind: "deposit", title: "Virement non accepté", body: note, url: `/account/depot/${d.id}`, email: { cta: "Voir le détail" } });
+  await audit(admin.id, "deposit.reject", { type: "deposit", id }, { note });
+  revalidatePath("/admin", "layout");
+  return { ok: "Dépôt marqué comme refusé" };
+}
+
+/** Virement reçu sans annonce préalable : retrouvé par sa référence. */
+export async function recordUnannouncedDeposit(_: AdminState, form: FormData): Promise<AdminState> {
+  await requireAdmin();
+  const reference = String(form.get("reference") ?? "").trim().toUpperCase();
+  const currency = String(form.get("currency")) === "EUR" ? "EUR" : "USD";
+  const user = await db.user.findUnique({ where: { reference } });
+  if (!user) return { error: `Aucun client avec la référence ${reference}.` };
+  const d = await db.deposit.create({ data: { userId: user.id, reference, currency } });
+  await db.activity.create({ data: { userId: user.id, type: "DEPOSIT", title: `Virement en ${currency} reçu`, subtitle: `Réf. ${reference}`, pending: true } });
+  const fd = new FormData();
+  fd.set("id", d.id);
+  fd.set("amount", String(form.get("amount")));
+  fd.set("rate", String(form.get("rate") ?? ""));
+  const res = await reconcileDeposit(undefined, fd);
+  if (res?.error) {
+    await db.deposit.delete({ where: { id: d.id } });
+    await db.activity.deleteMany({ where: { userId: user.id, type: "DEPOSIT", pending: true, subtitle: `Réf. ${reference}`, title: `Virement en ${currency} reçu` } });
+  }
+  return res;
+}
+
+// ---------------------------------------------------------------- retraits
+
+export async function markWithdrawalSent(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id"));
+  const bankReference = String(form.get("bankReference") ?? "").trim();
+  const w = await db.withdrawal.findUnique({ where: { id }, include: { bankAccount: true } });
+  if (!w || w.status !== "REQUESTED") return { error: "Ce retrait a déjà été traité." };
+  await db.withdrawal.update({ where: { id }, data: { status: "SENT", sentAt: new Date(), bankReference: bankReference || null, processedById: admin.id } });
+  await db.activity.updateMany({ where: { userId: w.userId, type: "WITHDRAW", pending: true, amountUsd: w.amountUsd }, data: { pending: false, title: "Retrait envoyé" } });
+  const masked = `${w.bankAccount.iban.slice(0, 4)} •••• ${w.bankAccount.iban.slice(-4)}`;
+  await notify(w.userId, { kind: "withdrawal", title: "Retrait envoyé", body: `${formatUSD(Number(w.amountUsd))} partis vers ${masked}.`, url: "/account/activite", email: { cta: "Voir l'activité" } });
+  await audit(admin.id, "withdrawal.sent", { type: "withdrawal", id }, { bankReference });
+  revalidatePath("/admin", "layout");
+  return { ok: "Retrait marqué comme envoyé" };
+}
+
+export async function rejectWithdrawal(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id"));
+  const reason = String(form.get("reason") ?? "").trim();
+  if (reason.length < 4) return { error: "Indiquez le motif, il sera visible par le client." };
+  const w = await db.withdrawal.findUnique({ where: { id }, include: { user: true } });
+  if (!w || w.status !== "REQUESTED") return { error: "Ce retrait a déjà été traité." };
+  const refund = Number(w.amountUsd) + Number(w.feeUsd);
+  const pm = await priceMap();
+  try {
+    await db.$transaction(async (tx) => {
+      await tx.withdrawal.update({ where: { id }, data: { status: "REJECTED", rejectReason: reason, processedById: admin.id } });
+      if (w.user.profile) await investUsd(tx, w.userId, refund, w.user.profile, pm);
+      await tx.activity.updateMany({ where: { userId: w.userId, type: "WITHDRAW", pending: true, amountUsd: w.amountUsd }, data: { pending: false, title: "Retrait annulé", subtitle: "Montant replacé sur votre profil" } });
+    });
+  } catch (e) {
+    return fail(e, "L'annulation a échoué.");
+  }
+  await notify(w.userId, { kind: "withdrawal", title: "Retrait annulé", body: `${reason} Le montant a été replacé sur votre portefeuille.`, url: "/account/activite", email: { cta: "Voir l'activité" } });
+  await audit(admin.id, "withdrawal.reject", { type: "withdrawal", id }, { reason });
+  revalidatePath("/admin", "layout");
+  return { ok: "Retrait refusé, montant replacé" };
+}
+
+// ---------------------------------------------------------------- profils
+
+export async function saveAllocation(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const profile = String(form.get("profile")) as ProfileId;
+  if (!["CAREFUL", "BALANCED", "BOLD"].includes(profile)) return { error: "Profil inconnu." };
+  const assets = await db.asset.findMany({ where: { active: true } });
+  const rows = assets.map((a) => ({ symbol: a.symbol, percent: Math.round(num(form.get(`p_${a.symbol}`)) * 100) / 100 || 0 })).filter((r) => r.percent > 0);
+  const total = rows.reduce((s, r) => s + r.percent, 0);
+  if (rows.some((r) => r.percent < 0 || r.percent > 100)) return { error: "Chaque part doit être comprise entre 0 et 100 %." };
+  if (Math.abs(total - 100) > 0.001) return { error: `Le total doit faire 100 % (actuellement ${total.toLocaleString("fr-FR")} %).` };
+
+  const before = await db.profileAllocation.findMany({ where: { profile } });
+  const summary = rows.map((r) => `${r.symbol} ${r.percent} %`).join(", ");
+  await db.$transaction([db.profileAllocation.deleteMany({ where: { profile } }), ...rows.map((r) => db.profileAllocation.create({ data: { profile, symbol: r.symbol, percent: r.percent } }))]);
+
+  let clients = 0;
+  if (form.get("rebalance") === "on") {
+    const pm = await priceMap();
+    const users = await db.user.findMany({ where: { profile, positions: { some: { quantity: { gt: 0 } } } }, select: { id: true } });
+    for (const u of users) {
+      const value = await db.$transaction((tx) => rebalanceUser(tx, u.id, profile, pm));
+      if (value > 0) {
+        clients++;
+        await db.activity.create({ data: { userId: u.id, type: "REBALANCE", title: "Portefeuille rééquilibré", subtitle: `Nouvelle répartition ${PROFILE_LABELS[profile].toLowerCase()}` } });
+        await notify(u.id, { kind: "rebalance", title: "Portefeuille rééquilibré", body: `La répartition de votre profil ${PROFILE_LABELS[profile]} a été ajustée.`, url: "/account/portefeuille" });
+      }
+    }
+  }
+  await db.rebalance.create({ data: { profile, summary, clients, actorId: admin.id } });
+  await audit(admin.id, "profile.allocation", { type: "profile", id: profile }, { before: before.map((b) => ({ symbol: b.symbol, percent: Number(b.percent) })), after: rows, clients });
+  updateTag("allocations");
+  revalidatePath("/admin/profils");
+  return { ok: clients ? `Répartition enregistrée, ${clients} portefeuille${clients > 1 ? "s" : ""} rééquilibré${clients > 1 ? "s" : ""}` : "Répartition enregistrée" };
+}
+
+// ---------------------------------------------------------------- réglages
+
+const SECTIONS = ["legal", "contact", "money"] as const;
+
+export async function saveSettings(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const section = String(form.get("section")) as (typeof SECTIONS)[number];
+  if (!SECTIONS.includes(section)) return { error: "Section inconnue." };
+  const current = await getSettings();
+  const raw = Object.fromEntries([...form.entries()].filter(([k]) => !k.startsWith("$") && k !== "section").map(([k, v]) => [k, String(v)]));
+  const shape = settingsSchema.shape[section];
+  const parsed = shape.safeParse(section === "money" ? Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, /Usd|Rate/.test(k) ? v.replace(",", ".").replace(/\s/g, "") : v])) : raw);
+  if (!parsed.success) return { error: `${parsed.error.issues[0].path.join(".")} : valeur invalide.` };
+  const next = mergeSettings({ ...current, [section]: { ...current[section], ...parsed.data } });
+  await db.siteSettings.upsert({ where: { id: "site" }, create: { id: "site", data: next }, update: { data: next } });
+  await audit(admin.id, `settings.${section}`, { type: "settings", id: section }, parsed.data);
+  updateTag(SETTINGS_TAG);
+  return { ok: "Réglages enregistrés" };
+}
+
+const bankFields = z.object({
+  currency: z.enum(["USD", "EUR"]),
+  beneficiary: z.string().trim().max(120),
+  iban: z.string().trim().max(64),
+  swift: z.string().trim().max(20),
+  bankName: z.string().trim().max(120),
+  bankAddress: z.string().trim().max(200),
+});
+
+/** Coordonnées bancaires : changement sensible, confirmé par un code envoyé à l'admin. */
+export async function requestBankChange(_: BankState, form: FormData): Promise<BankState> {
+  const admin = await requireAdmin();
+  const parsed = bankFields.safeParse(Object.fromEntries(form));
+  if (!parsed.success) return { error: "Coordonnées invalides." };
+  const data = { ...parsed.data, iban: parsed.data.iban.replace(/\s/g, "").toUpperCase(), swift: parsed.data.swift.replace(/\s/g, "").toUpperCase() };
+  try {
+    const codeId = await sendActionCode(admin, "settings-change", data, `Modification des coordonnées bancaires ${data.currency} de FlashInv.`);
+    return { ok: "Code envoyé par e-mail", codeId };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Envoi du code impossible." };
+  }
+}
+
+export async function confirmBankChange(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const check = await consumeActionCode(admin.id, String(form.get("codeId")), "settings-change", String(form.get("code") ?? ""));
+  if (!check.ok) return { error: check.error };
+  const data = bankFields.parse(check.payload);
+  const current = await getSettings();
+  const { currency, ...bank } = data;
+  const next = mergeSettings({ ...current, bank: { ...current.bank, [currency]: bank } });
+  await db.siteSettings.upsert({ where: { id: "site" }, create: { id: "site", data: next }, update: { data: next } });
+  await audit(admin.id, "settings.bank", { type: "settings", id: currency }, { before: current.bank[currency], after: bank });
+  updateTag(SETTINGS_TAG);
+  return { ok: `Coordonnées ${currency} enregistrées` };
+}

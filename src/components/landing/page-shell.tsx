@@ -1,5 +1,5 @@
 import { BoltWatermark, FloatingGlyph, Stripes } from "@/components/ui/decor";
-import { siteConfig } from "@/lib/site-config";
+import { getSettings } from "@/lib/server/settings";
 
 /** En-tête des pages secondaires : bloc jaune + bande noire, comme le hero. */
 export function PageHero({
@@ -36,7 +36,7 @@ export function PageHero({
 export type LegalSection = { id: string; title: string; body: React.ReactNode };
 
 /** Page de texte juridique avec sommaire. */
-export function LegalPage({ eyebrow, title, intro, sections }: { eyebrow: string; title: string; intro?: string; sections: LegalSection[] }) {
+export async function LegalPage({ eyebrow, title, intro, sections }: { eyebrow: string; title: string; intro?: string; sections: LegalSection[] }) {
   return (
     <>
       <PageHero eyebrow={eyebrow} title={title} lead={intro} />
@@ -54,7 +54,7 @@ export function LegalPage({ eyebrow, title, intro, sections }: { eyebrow: string
                 </li>
               ))}
             </ol>
-            <p className="text-caption mt-4 border-t border-line pt-3 text-ink-muted">Mis à jour le {siteConfig.legal.lastUpdated}</p>
+            <p className="text-caption mt-4 border-t border-line pt-3 text-ink-muted">Mis à jour le {(await getSettings()).legal.lastUpdated}</p>
           </nav>
         </aside>
         <article className="flex flex-col gap-10 md:col-span-8">

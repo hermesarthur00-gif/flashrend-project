@@ -3,15 +3,16 @@ import Link from "next/link";
 import { PageHero } from "@/components/landing/page-shell";
 import { ContactForm } from "@/components/landing/contact-form";
 import { Stripes } from "@/components/ui/decor";
-import { IconBell, IconShieldCheck, iconProps } from "@/components/ui/icons";
-import { siteConfig } from "@/lib/site-config";
+import { IconBell, IconMapPin, IconPhone, IconShieldCheck, iconProps } from "@/components/ui/icons";
+import { getPublicConfig } from "@/lib/server/public-config";
 
 export const metadata: Metadata = {
   title: "Contact",
   description: "Une question sur FlashInv ? Écrivez-nous.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const siteConfig = await getPublicConfig();
   return (
     <>
       <PageHero eyebrow="Contact" title="Parlons-en." lead="Une question sur FlashInv, votre compte ou un partenariat ? Écrivez-nous, on vous répond par e-mail." glyph="doge" />
@@ -26,11 +27,32 @@ export default function ContactPage() {
           <div className="relative overflow-hidden rounded-xl bg-band p-6 text-on-band md:p-8">
             <Stripes count={4} height={72} color="var(--flash)" className="absolute top-5 right-5" />
             <p className="text-overline text-flash">Par e-mail</p>
-            <a href={`mailto:${siteConfig.contactEmail}`} className="relative mt-6 block font-display text-[24px] leading-8 break-all text-on-band no-underline hover:text-flash md:text-[28px]">
-              {siteConfig.contactEmail}
+            <a href={`mailto:${siteConfig.contact.email}`} className="relative mt-6 block font-display text-[24px] leading-8 break-all text-on-band no-underline hover:text-flash md:text-[28px]">
+              {siteConfig.contact.email}
             </a>
             <p className="relative mt-3 max-w-[30ch] text-sm opacity-80">Pour toute question générale, partenariat ou demande presse.</p>
           </div>
+
+          <dl className="m-0 grid gap-px overflow-hidden rounded-lg border border-line bg-line">
+            <div className="flex items-center gap-4 bg-surface-raised p-5">
+              <span className="grid size-10 shrink-0 place-items-center rounded-md bg-flash-soft text-flash-text">
+                <IconPhone size={22} {...iconProps} />
+              </span>
+              <div>
+                <dt className="text-caption text-ink-muted">Téléphone</dt>
+                <dd className="m-0 font-semibold">{siteConfig.contact.phone}</dd>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 bg-surface-raised p-5">
+              <span className="grid size-10 shrink-0 place-items-center rounded-md bg-flash-soft text-flash-text">
+                <IconMapPin size={22} {...iconProps} />
+              </span>
+              <div>
+                <dt className="text-caption text-ink-muted">Adresse</dt>
+                <dd className="m-0 font-semibold">{siteConfig.contact.address}</dd>
+              </div>
+            </div>
+          </dl>
 
           <div className="flex gap-4 rounded-lg border border-line bg-surface-raised p-5">
             <span className="grid size-10 shrink-0 place-items-center rounded-md bg-flash-soft text-flash-text">

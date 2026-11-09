@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/landing/page-shell";
-import { siteConfig } from "@/lib/site-config";
+import { getPublicConfig } from "@/lib/server/public-config";
 
 export const metadata: Metadata = { title: "Avertissement sur les risques" };
 
-export default function RisksPage() {
+export default async function RisksPage() {
+  const siteConfig = await getPublicConfig();
   return (
     <LegalPage
       eyebrow="Avant d'investir"
@@ -57,7 +58,7 @@ export default function RisksPage() {
                 <li>d&apos;installer un logiciel de prise en main à distance.</li>
               </ul>
               <p>
-                En cas de doute, ne faites rien et écrivez-nous à <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>.
+                En cas de doute, ne faites rien et écrivez-nous à <a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a>.
               </p>
             </>
           ),

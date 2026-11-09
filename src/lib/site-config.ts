@@ -1,23 +1,13 @@
 /**
- * Informations générales du site.
- * À terme, ces valeurs viendront des réglages de l'admin (base de données).
+ * Informations fixes du site.
+ * Contact, mentions légales, coordonnées bancaires, frais et délais sont gérés
+ * dans l'admin (Réglages) : voir src/lib/server/settings.ts.
  */
 export const siteConfig = {
   name: "FlashInv",
   url: "https://flashinv.com",
-  contactEmail: "contact@flashinv.com",
-  legal: {
-    companyName: "[RAISON SOCIALE]",
-    legalForm: "[FORME JURIDIQUE]",
-    address: "[ADRESSE DU SIÈGE]",
-    registration: "[RCCM]",
-    taxId: "[IFU]",
-    director: "[DIRECTEUR DE LA PUBLICATION]",
-    host: "[HÉBERGEUR ET ADRESSE]",
-    lastUpdated: "5 novembre 2026",
-  },
-  withdrawalDelay: "[DÉLAI DE RETRAIT]",
-  fees: "[FRAIS DE GESTION ET FRAIS DE RETRAIT]",
+  contact: { email: "contact@flashinv.com" },
+  legal: { lastUpdated: "5 novembre 2026" },
 } as const;
 
 export const navLinks = [
