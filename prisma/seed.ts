@@ -32,8 +32,6 @@ async function main() {
     for (const [symbol, percent] of rows) await db.profileAllocation.create({ data: { profile, symbol, percent } });
   }
   await db.siteSettings.upsert({ where: { id: "site" }, create: { id: "site", data: DEFAULT_SETTINGS }, update: {} });
-  const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
-  if (admins.length) await db.user.updateMany({ where: { email: { in: admins } }, data: { role: "ADMIN" } });
   console.log("Seed terminé.");
 }
 

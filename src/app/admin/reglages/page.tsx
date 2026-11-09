@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AdminHead, LinkTabs, Panel, Person, Table } from "@/components/admin/ui";
 import { Badge } from "@/components/app/primitives";
 import { requireAdmin } from "@/lib/server/session";
@@ -85,7 +86,18 @@ export default async function SettingsPage({ searchParams }: PageProps<"/admin/r
               <tr key={u.id}>
                 <td><Person name={u.name} email={u.email} /></td>
                 <td>{formatDate(u.createdAt)}</td>
-                <td className="text-right">{u.id === admin.id ? <Badge>Vous</Badge> : <TeamForm email={u.email} remove />}</td>
+                <td className="text-right">
+                  {u.id === admin.id ? (
+                    <Badge>Vous</Badge>
+                  ) : (
+                    <span className="inline-flex items-center gap-1">
+                      <Link href={`/admin/clients/${u.id}`} className="px-2 text-sm font-semibold">
+                        Fiche
+                      </Link>
+                      <TeamForm email={u.email} remove />
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
           </Table>

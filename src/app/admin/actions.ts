@@ -9,6 +9,8 @@ import { notify } from "@/lib/server/notify";
 import { getSettings, SETTINGS_TAG } from "@/lib/server/settings";
 import { consumeActionCode, sendActionCode } from "@/lib/server/action-codes";
 import { mergeSettings, settingsSchema } from "@/lib/settings-schema";
+import { isAnonymized } from "@/lib/account-status";
+import { deleteOrAnonymize } from "@/lib/server/user-admin";
 import { PROFILE_LABELS, formatMoney, formatUSD } from "@/lib/utils";
 
 export type AdminState = { error?: string; ok?: string } | undefined;
@@ -16,16 +18,78 @@ export type BankState = { error?: string; ok?: string; codeId?: string } | undef
 const fail = (e: unknown, fallback: string): AdminState => ({ error: e instanceof Error ? e.message : fallback });
 const num = (v: FormDataEntryValue | null) => Number(String(v ?? "").replace(/\s/g, "").replace(",", "."));
 
-// ---------------------------------------------------------------- clients
+// ---------------------------------------------------------------- utilisateurs
 
-export async function setSuspended(userId: string, suspend: boolean, reason?: string): Promise<AdminState> {
+/** Cible d'une action sur un compte, avec les garde-fous communs. */
+async function target(adminId: string, form: FormData) {
+  const id = String(form.get("userId") ?? "");
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const user = id ? await db.user.findUnique({ where: { id } }) : email ? await db.user.findUnique({ where: { email } }) : null;
+  if (!user) return { error: email ? "Aucun compte avec cet e-mail. La personne doit d'abord créer un compte." : "Compte introuvable." } as const;
+  if (user.id === adminId) return { error: "Vous ne pouvez pas faire cette action sur votre propre compte." } as const;
+  if (isAnonymized(user.email)) return { error: "Ce compte a été supprimé." } as const;
+  return { user } as const;
+}
+
+async function isLastAdmin(userId: string) {
+  const admins = await db.user.count({ where: { role: "ADMIN", suspendedAt: null, id: { not: userId } } });
+  return admins === 0;
+}
+
+export async function setRole(_: AdminState, form: FormData): Promise<AdminState> {
   const admin = await requireAdmin();
-  if (userId === admin.id) return { error: "Vous ne pouvez pas suspendre votre propre compte." };
-  await db.user.update({ where: { id: userId }, data: suspend ? { suspendedAt: new Date(), suspendReason: reason || null } : { suspendedAt: null, suspendReason: null } });
-  if (suspend) await db.session.deleteMany({ where: { userId } });
-  await audit(admin.id, suspend ? "client.suspend" : "client.reactivate", { type: "user", id: userId }, reason ? { reason } : undefined);
-  revalidatePath(`/admin/clients/${userId}`);
-  return { ok: suspend ? "Compte suspendu" : "Compte réactivé" };
+  const t = await target(admin.id, form);
+  if ("error" in t) return { error: t.error };
+  const role = String(form.get("role")) === "ADMIN" ? "ADMIN" : "CLIENT";
+  if (t.user.role === role) return { ok: "Rôle inchangé" };
+  if (role === "CLIENT" && (await isLastAdmin(t.user.id))) return { error: "Il doit rester au moins un administrateur." };
+  await db.user.update({ where: { id: t.user.id }, data: { role } });
+  if (role === "CLIENT") await db.session.deleteMany({ where: { userId: t.user.id } });
+  await audit(admin.id, role === "ADMIN" ? "team.add" : "team.remove", { type: "user", id: t.user.id }, { email: t.user.email });
+  revalidatePath("/admin", "layout");
+  return { ok: role === "ADMIN" ? `${t.user.name} est maintenant administrateur` : `${t.user.name} n'est plus administrateur` };
+}
+
+export async function banUser(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const t = await target(admin.id, form);
+  if ("error" in t) return { error: t.error };
+  const reason = String(form.get("reason") ?? "").trim();
+  if (reason.length < 3) return { error: "Indiquez le motif du bannissement." };
+  if (t.user.suspendedAt) return { error: "Ce compte est déjà banni." };
+  if (t.user.role === "ADMIN" && (await isLastAdmin(t.user.id))) return { error: "Il doit rester au moins un administrateur." };
+  await db.user.update({ where: { id: t.user.id }, data: { suspendedAt: new Date(), suspendReason: reason } });
+  await db.session.deleteMany({ where: { userId: t.user.id } });
+  await audit(admin.id, "client.suspend", { type: "user", id: t.user.id }, { reason });
+  revalidatePath("/admin", "layout");
+  return { ok: "Compte banni, sessions fermées" };
+}
+
+export async function unbanUser(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const t = await target(admin.id, form);
+  if ("error" in t) return { error: t.error };
+  if (!t.user.suspendedAt) return { error: "Ce compte n'est pas banni." };
+  await db.user.update({ where: { id: t.user.id }, data: { suspendedAt: null, suspendReason: null } });
+  await audit(admin.id, "client.reactivate", { type: "user", id: t.user.id });
+  revalidatePath("/admin", "layout");
+  return { ok: "Compte réactivé" };
+}
+
+export async function deleteUser(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const t = await target(admin.id, form);
+  if ("error" in t) return { error: t.error };
+  if (String(form.get("confirm") ?? "").trim().toLowerCase() !== t.user.email) return { error: "L'e-mail saisi ne correspond pas." };
+  if (t.user.role === "ADMIN" && (await isLastAdmin(t.user.id))) return { error: "Il doit rester au moins un administrateur." };
+  try {
+    const result = await deleteOrAnonymize(t.user.id);
+    await audit(admin.id, result === "deleted" ? "client.delete" : "client.anonymize", { type: "user", id: t.user.id }, { email: t.user.email, reference: t.user.reference });
+    revalidatePath("/admin", "layout");
+    return { ok: result === "deleted" ? "Compte supprimé" : "Compte anonymisé, historique financier conservé" };
+  } catch (e) {
+    return fail(e, "Suppression impossible.");
+  }
 }
 
 // ---------------------------------------------------------------- identité
@@ -251,17 +315,4 @@ export async function confirmBankChange(_: AdminState, form: FormData): Promise<
   await audit(admin.id, "settings.bank", { type: "settings", id: currency }, { before: current.bank[currency], after: bank });
   updateTag(SETTINGS_TAG);
   return { ok: `Coordonnées ${currency} enregistrées` };
-}
-
-export async function setAdminRole(_: AdminState, form: FormData): Promise<AdminState> {
-  const admin = await requireAdmin();
-  const email = String(form.get("email") ?? "").trim().toLowerCase();
-  const role = String(form.get("role")) === "ADMIN" ? "ADMIN" : "CLIENT";
-  const user = await db.user.findUnique({ where: { email } });
-  if (!user) return { error: "Aucun compte avec cet e-mail. La personne doit d'abord créer un compte." };
-  if (user.id === admin.id && role === "CLIENT") return { error: "Vous ne pouvez pas retirer vos propres droits." };
-  await db.user.update({ where: { id: user.id }, data: { role } });
-  await audit(admin.id, role === "ADMIN" ? "team.add" : "team.remove", { type: "user", id: user.id }, { email });
-  revalidatePath("/admin/reglages");
-  return { ok: role === "ADMIN" ? `${email} est maintenant administrateur` : `${email} n'est plus administrateur` };
 }

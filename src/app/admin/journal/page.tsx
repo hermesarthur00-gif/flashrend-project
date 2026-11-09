@@ -8,7 +8,9 @@ import { formatDateTime } from "@/lib/utils";
 export const metadata = { title: "Journal" };
 
 const LABELS: Record<string, string> = {
-  "client.suspend": "Compte suspendu",
+  "client.suspend": "Compte banni",
+  "client.delete": "Compte supprimé",
+  "client.anonymize": "Compte anonymisé",
   "client.reactivate": "Compte réactivé",
   "clients.export": "Export des clients",
   "kyc.approve": "Identité validée",

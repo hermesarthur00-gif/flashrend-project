@@ -21,6 +21,8 @@ export function authErrorMessage(error: { code?: string; message?: string; statu
     TOO_MANY_ATTEMPTS: "Trop d'essais. Demandez un nouveau code.",
     PASSWORD_TOO_SHORT: "Le mot de passe doit contenir au moins 8 caractères.",
     INVALID_TWO_FACTOR_COOKIE: "La session a expiré. Reconnectez-vous.",
+    // Seul refus de session prévu : compte banni (voir databaseHooks dans auth.ts).
+    FAILED_TO_CREATE_SESSION: "Ce compte est suspendu. Contactez le support.",
   };
   if (error.status === 429) return "Trop de tentatives. Patientez une minute.";
   if (error.status === 403 && !error.code) return "Ce compte est suspendu. Contactez le support.";

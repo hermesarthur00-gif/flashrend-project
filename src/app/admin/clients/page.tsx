@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/server/session";
 import { priceMap } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
 import { PROFILE_LABELS, formatDate, formatUSD } from "@/lib/utils";
+import { isAnonymized } from "@/lib/account-status";
 
 export const metadata = { title: "Clients" };
 
@@ -22,7 +23,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/admin/cl
   const where: Prisma.UserWhereInput = { role: "CLIENT" };
   if (tab === "actifs") Object.assign(where, { kycStatus: "APPROVED", suspendedAt: null });
   if (tab === "a-verifier") Object.assign(where, { kycStatus: "PENDING" });
-  if (tab === "suspendus") Object.assign(where, { suspendedAt: { not: null } });
+  if (tab === "suspendus") Object.assign(where, { suspendedAt: { not: null }, NOT: { email: { endsWith: "@supprime.flashinv.invalid" } } });
   if (q) where.OR = [{ name: { contains: q, mode: "insensitive" } }, { email: { contains: q, mode: "insensitive" } }, { reference: { contains: q, mode: "insensitive" } }];
 
   const [users, total, counts, pm] = await Promise.all([
@@ -31,7 +32,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/admin/cl
     Promise.all([
       db.user.count({ where: { role: "CLIENT", kycStatus: "APPROVED", suspendedAt: null } }),
       db.user.count({ where: { role: "CLIENT", kycStatus: "PENDING" } }),
-      db.user.count({ where: { role: "CLIENT", suspendedAt: { not: null } } }),
+      db.user.count({ where: { role: "CLIENT", suspendedAt: { not: null }, NOT: { email: { endsWith: "@supprime.flashinv.invalid" } } } }),
     ]),
     priceMap(),
   ]);
@@ -40,7 +41,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/admin/cl
 
   return (
     <>
-      <AdminHead title="Clients" sub={`${counts[0]} actifs · ${counts[1]} à vérifier · ${counts[2]} suspendu${counts[2] > 1 ? "s" : ""}`} actions={<ButtonLink href="/admin/clients/export" variant="secondary" prefetch={false}>Exporter en CSV</ButtonLink>} />
+      <AdminHead title="Clients" sub={`${counts[0]} actifs · ${counts[1]} à vérifier · ${counts[2]} banni${counts[2] > 1 ? "s" : ""}`} actions={<ButtonLink href="/admin/clients/export" variant="secondary" prefetch={false}>Exporter en CSV</ButtonLink>} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <LinkTabs
           base="/admin/clients"
@@ -50,7 +51,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/admin/cl
             { key: "tous", label: "Tous" },
             { key: "actifs", label: "Actifs" },
             { key: "a-verifier", label: "À vérifier", count: counts[1] },
-            { key: "suspendus", label: "Suspendus" },
+            { key: "suspendus", label: "Bannis" },
           ]}
         />
         <SearchBox placeholder="Nom, e-mail, référence" value={q} hidden={{ statut: tab !== "tous" ? tab : undefined }} />
@@ -58,7 +59,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/admin/cl
       <Table head={["Client", "Référence", "Profil", "Identité", "Solde", "Inscrit le", ""]} align={["left", "left", "left", "left", "right", "left", "right"]}>
         {users.length === 0 && <EmptyRow cols={7} text="Aucun client ne correspond." />}
         {users.map((u) => {
-          const k = u.suspendedAt ? (["Suspendu", "down"] as const) : KYC_BADGE[u.kycStatus];
+          const k = isAnonymized(u.email) ? (["Supprimé", "neutral"] as const) : u.suspendedAt ? (["Banni", "down"] as const) : KYC_BADGE[u.kycStatus];
           return (
             <tr key={u.id}>
               <td><Person name={u.name} email={u.email} /></td>

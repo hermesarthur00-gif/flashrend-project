@@ -7,12 +7,6 @@ import { db } from "./db";
 import { sendEmail } from "./email";
 import { codeEmail } from "./email-templates";
 
-const adminEmails = () =>
-  (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-
 /** Référence de virement unique, ex. FI-48210. */
 export async function newReference() {
   for (let i = 0; i < 10; i++) {
@@ -57,17 +51,10 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
-        before: async (user) => {
-          const email = String(user.email).toLowerCase();
-          return {
-            data: {
-              ...user,
-              twoFactorEnabled: true,
-              role: adminEmails().includes(email) ? "ADMIN" : "CLIENT",
-              reference: await newReference(),
-            },
-          };
-        },
+        // Tout nouveau compte est client. Les rôles se gèrent dans l'admin (premier admin : pnpm admin:promote).
+        before: async (user) => ({
+          data: { ...user, twoFactorEnabled: true, role: "CLIENT", reference: await newReference() },
+        }),
       },
     },
     session: {

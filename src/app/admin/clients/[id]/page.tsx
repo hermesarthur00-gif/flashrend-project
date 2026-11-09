@@ -8,7 +8,8 @@ import { requireAdmin } from "@/lib/server/session";
 import { getPortfolioSummary } from "@/lib/server/portfolio";
 import { db } from "@/lib/server/db";
 import { PROFILE_LABELS, PROFILE_RISK, formatDate, formatDateTime, formatQty, formatUSD } from "@/lib/utils";
-import { SuspendButton } from "./client-actions";
+import { AccountManagement } from "./client-actions";
+import { isAnonymized } from "@/lib/account-status";
 
 export const metadata = { title: "Fiche client" };
 
@@ -29,6 +30,8 @@ export default async function ClientPage({ params }: PageProps<"/admin/clients/[
     db.session.count({ where: { userId: id, expiresAt: { gt: new Date() } } }),
   ]);
   const k = KYC[user.kycStatus];
+  const anonymized = isAnonymized(user.email);
+  const blocker = summary.total > 0.01 ? "le client a encore un solde, il doit d'abord tout retirer." : pendingDeposits + pendingWd._count > 0 ? "une opération est en attente." : null;
 
   return (
     <>
@@ -39,18 +42,16 @@ export default async function ClientPage({ params }: PageProps<"/admin/clients/[
         title={user.name}
         sub={`${user.email}${user.phone ? ` · ${user.phone}` : ""} · client depuis le ${formatDate(user.createdAt)} · réf. ${user.reference}`}
         actions={
-          <>
+          anonymized ? undefined : (
             <a href={`mailto:${user.email}`} className="inline-flex h-11 items-center rounded-md border border-line-strong bg-surface-raised px-5 text-[15px] font-semibold text-ink hover:bg-surface-sunken">
               Envoyer un e-mail
             </a>
-            {user.id !== admin.id && <SuspendButton userId={user.id} suspended={Boolean(user.suspendedAt)} />}
-          </>
+          )
         }
       />
       {user.suspendedAt && (
         <p className="m-0 rounded-lg bg-down-soft p-4 font-semibold text-down">
-          Compte suspendu le {formatDateTime(user.suspendedAt)}
-          {user.suspendReason ? ` : ${user.suspendReason}` : ""}.
+          {anonymized ? `Compte supprimé le ${formatDateTime(user.suspendedAt)}. Seul l'historique financier est conservé.` : `Compte banni le ${formatDateTime(user.suspendedAt)}${user.suspendReason ? ` : ${user.suspendReason}` : ""}.`}
         </p>
       )}
       <div className="grid gap-5 lg:grid-cols-12">
@@ -79,6 +80,8 @@ export default async function ClientPage({ params }: PageProps<"/admin/clients/[
           </Panel>
         </div>
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-4">
+          {!anonymized && user.id !== admin.id && <AccountManagement userId={user.id} email={user.email} role={user.role} banned={Boolean(user.suspendedAt)} deletable={blocker} />}
+          {user.id === admin.id && <Panel title="Gestion du compte"><p className="m-0 text-sm text-ink-muted">C&apos;est votre compte : un autre administrateur doit faire ces actions.</p></Panel>}
           <Panel title="Identité">
             <div>
               <KV label="Statut" value={<Badge tone={k[1]}>{k[0]}</Badge>} />

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { maskEmail } from "@/components/account/auth-ui";
 import type { Settings } from "@/lib/settings-schema";
 import { cn } from "@/lib/utils";
-import { confirmBankChange, requestBankChange, saveSettings, setAdminRole } from "../actions";
+import { confirmBankChange, requestBankChange, saveSettings, setRole } from "../actions";
 
 type F = { name: string; label: string; value: string; placeholder?: string; hint?: string; type?: string; wide?: boolean };
 
@@ -111,7 +111,7 @@ export function BankSettings({ bank, email }: { bank: Settings["bank"]; email: s
 export function TeamForm({ email, remove }: { email?: string; remove?: boolean }) {
   if (remove)
     return (
-      <ActionForm action={setAdminRole}>
+      <ActionForm action={setRole}>
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="role" value="CLIENT" />
         <Button type="submit" variant="ghost" size="sm" className="text-down">
@@ -120,7 +120,7 @@ export function TeamForm({ email, remove }: { email?: string; remove?: boolean }
       </ActionForm>
     );
   return (
-    <ActionForm action={setAdminRole} className="flex flex-col gap-3" resetOnOk>
+    <ActionForm action={setRole} className="flex flex-col gap-3" resetOnOk>
       <input type="hidden" name="role" value="ADMIN" />
       <Field label="E-mail" name="email" type="email" required />
       <SubmitButton size="md" pendingLabel="Ajout…">

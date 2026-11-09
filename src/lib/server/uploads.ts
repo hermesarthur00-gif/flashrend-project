@@ -1,5 +1,5 @@
 import "server-only";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { v2 as cloudinary } from "cloudinary";
@@ -58,4 +58,16 @@ export async function resolveDocument(id: string): Promise<{ redirect: string } 
     return { redirect: url };
   }
   return null;
+}
+
+/** Supprime définitivement un document (suppression ou anonymisation d'un compte). */
+export async function deletePrivate(id: string | null | undefined) {
+  if (!id) return;
+  const parts = id.split("|");
+  try {
+    if (parts[0] === "local") await unlink(path.join(LOCAL_DIR, path.basename(parts[2])));
+    else if (parts[0] === "cld" && configured()) await cloudinary.uploader.destroy(parts[3], { type: "authenticated", resource_type: parts[1], invalidate: true });
+  } catch (e) {
+    console.warn("[documents] suppression impossible", id, e instanceof Error ? e.message : e);
+  }
 }

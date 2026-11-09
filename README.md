@@ -44,7 +44,13 @@ pnpm build
 pnpm lint
 ```
 
-Créez ensuite votre compte sur `/account/inscription` avec une adresse listée dans `ADMIN_EMAILS` : il reçoit le rôle administrateur et accède à `/admin`.
+Créez ensuite votre compte sur `/account/inscription`, confirmez votre e-mail, puis donnez-lui le rôle administrateur (une seule fois) :
+
+```bash
+pnpm admin:promote vous@exemple.com
+```
+
+Les autres rôles, bannissements et suppressions se gèrent ensuite dans l'admin, depuis la fiche de chaque utilisateur.
 
 Sans `RESEND_API_KEY`, les e-mails (dont les codes de vérification) s'affichent dans la console du serveur.
 
