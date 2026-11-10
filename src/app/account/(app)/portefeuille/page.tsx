@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Badge, Card, Page, PageHeading, SectionTitle, TopBar, EmptyState } from "@/components/app/primitives";
 import { PortfolioLiveChart } from "@/components/live/live-chart";
-import { LiveAllocation, LiveHoldingRows, LiveInvested } from "@/components/live/live-widgets";
+import { LiveAllocation, LiveHoldingRows, LiveInvestmentCard } from "@/components/live/live-widgets";
 import { ButtonLink } from "@/components/ui/button";
 import { requireOnboardedUser } from "@/lib/server/session";
 import { getFlows, getPortfolioSummary, getSnapshots } from "@/lib/server/portfolio";
@@ -38,17 +38,8 @@ export default async function PortfolioPage() {
             ) : undefined
           }
         />
-        <div className="grid grid-cols-2 gap-3 lg:gap-4">
-          <Card className="p-3.5 lg:p-5">
-            <span className="text-caption text-ink-muted">Solde disponible</span>
-            <p className="text-amount m-0 mt-1 text-lg tabular-nums">{formatEUR(s.cash)}</p>
-            <span className="text-sm text-ink-muted">Non investi</span>
-          </Card>
-          <Card className="p-3.5 lg:p-5">
-            <span className="text-caption text-ink-muted">Investi</span>
-            <LiveInvested positions={positions} investedNet={s.investedNet} />
-          </Card>
-        </div>
+        <LiveInvestmentCard positions={positions} investedNet={s.investedNet} cash={s.cash} />
+        <p className="text-caption m-0 -mt-1 text-ink-muted">Solde disponible, non investi : {formatEUR(s.cash)}</p>
         {positions.length === 0 ? (
           <EmptyState
             title="Rien d'investi pour l'instant"

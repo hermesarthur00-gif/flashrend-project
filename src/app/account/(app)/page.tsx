@@ -4,7 +4,7 @@ import { NotificationBell } from "@/components/account/notifications-live";
 import { Logo } from "@/components/ui/logo";
 import { Alert, Badge, Card, IconTile, Page, SectionTitle } from "@/components/app/primitives";
 import { ActivityList, toActivity } from "@/components/account/widgets";
-import { LiveAllocation, LiveBalanceCard, LiveHoldingRows } from "@/components/live/live-widgets";
+import { LiveAllocation, LiveBalanceCard, LiveHoldingRows, LiveInvestmentCard } from "@/components/live/live-widgets";
 import { PortfolioLiveChart } from "@/components/live/live-chart";
 import { ButtonLink } from "@/components/ui/button";
 import { requireOnboardedUser } from "@/lib/server/session";
@@ -82,7 +82,8 @@ export default async function HomePage() {
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:gap-6">
           <div className="flex flex-col gap-5 lg:col-span-5 lg:gap-6">
-            <LiveBalanceCard cash={summary.cash} positions={positions} investedNet={summary.investedNet} />
+            <LiveBalanceCard cash={summary.cash} />
+            <LiveInvestmentCard positions={positions} investedNet={summary.investedNet} cash={summary.cash} href="/account/portefeuille" />
             <Link href="/account/profil" className="flex items-center gap-3 rounded-lg bg-flash-soft px-4 py-3.5 text-ink lg:hidden">
               <IconTile tone="flash">
                 <IconChartLine size={22} stroke={1.75} />

@@ -20,36 +20,16 @@ export function Gain({ value, className }: { value: number; className?: string }
   );
 }
 
-/** Solde : disponible + investi (en direct), gain des investissements, actions. */
-export function LiveBalanceCard({ cash, positions, investedNet, actions = true }: { cash: number; positions: Position[]; investedNet: number; actions?: boolean }) {
-  const { total: invested } = useLiveHoldings(positions);
-  const gain = invested - investedNet;
-  const up = gain >= 0;
+/** Solde : uniquement l'argent disponible (non investi), actions. */
+export function LiveBalanceCard({ cash, actions = true }: { cash: number; actions?: boolean }) {
   return (
     <section aria-label="Solde" className="relative overflow-hidden rounded-lg bg-band p-5 text-on-band lg:p-6">
       <div className="pointer-events-none absolute -top-1.5 -right-1.5">
         <Stripes count={4} height={64} />
       </div>
-      <span className="text-overline relative text-flash">Solde total</span>
-      <p className="text-amount-xl relative m-0 mt-1.5 mb-2 tabular-nums">{formatEUR(cash + invested)}</p>
-      <p className="relative m-0 flex flex-wrap items-center gap-2 text-xs">
-        <span className={cn("inline-flex items-center gap-0.5 rounded-xs px-1.5 py-0.5 font-semibold tabular-nums", up ? "bg-up-fill text-ink-inverse" : "bg-down-fill text-on-down")}>
-          {up ? <IconArrowUpRight size={14} stroke={2.5} aria-hidden="true" /> : <IconArrowDownRight size={14} stroke={2.5} aria-hidden="true" />}
-          {up ? "+" : "−"}
-          {formatEUR(Math.abs(gain))}
-        </span>
-        sur vos investissements
-      </p>
-      <dl className="relative m-0 mt-4 grid grid-cols-2 gap-3 border-t border-on-band/15 pt-3.5">
-        <div>
-          <dt className="text-caption opacity-75">Disponible</dt>
-          <dd className="m-0 text-[17px] font-bold tabular-nums">{formatEUR(cash)}</dd>
-        </div>
-        <div>
-          <dt className="text-caption opacity-75">Investi</dt>
-          <dd className="m-0 text-[17px] font-bold tabular-nums">{formatEUR(invested)}</dd>
-        </div>
-      </dl>
+      <span className="text-overline relative text-flash">Solde</span>
+      <p className="text-amount-xl relative m-0 mt-1.5 mb-1 tabular-nums">{formatEUR(cash)}</p>
+      <p className="relative m-0 text-xs opacity-75">Disponible, non investi</p>
       {actions && (
         <div className="relative mt-4 grid grid-cols-3 gap-2">
           <ButtonLink href="/account/investir" variant="primary" className="min-w-0 gap-1.5 px-1.5 text-sm sm:text-[15px]">
@@ -65,6 +45,61 @@ export function LiveBalanceCard({ cash, positions, investedNet, actions = true }
       )}
     </section>
   );
+}
+
+/** Mon investissement : montant investi, valeur actuelle et gain (en direct). */
+export function LiveInvestmentCard({ positions, investedNet, cash = 0, href, bare = false }: { positions: Position[]; investedNet: number; cash?: number; href?: string; bare?: boolean }) {
+  const { total } = useLiveHoldings(positions);
+  const gain = total - investedNet;
+  const pct = investedNet > 0.01 ? (gain / investedNet) * 100 : 0;
+  const up = gain >= 0;
+  const empty = positions.length === 0;
+  const body = (
+    <>
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-h3 m-0">Mon investissement</h2>
+        {href && !empty && (
+          <Link href={href} className="text-sm font-semibold text-ink underline underline-offset-2">
+            Voir le détail
+          </Link>
+        )}
+      </div>
+      {empty ? (
+        <p className="m-0 mt-2 text-ink-muted">
+          Rien d&apos;investi pour l&apos;instant.{" "}
+          {cash >= 0.01 ? (
+            <Link href="/account/investir" className="font-semibold text-ink underline underline-offset-2">
+              Investir mon solde
+            </Link>
+          ) : (
+            "Une fois votre dépôt crédité, vous pourrez l'investir."
+          )}
+        </p>
+      ) : (
+        <>
+          <dl className="m-0 mt-3 grid grid-cols-2 gap-3">
+            <div>
+              <dt className="text-caption text-ink-muted">Montant investi</dt>
+              <dd className="text-amount m-0 mt-0.5 text-lg tabular-nums">{formatEUR(investedNet)}</dd>
+            </div>
+            <div>
+              <dt className="text-caption text-ink-muted">Valeur actuelle</dt>
+              <dd className="text-amount m-0 mt-0.5 text-lg tabular-nums">{formatEUR(total)}</dd>
+            </div>
+          </dl>
+          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-line pt-3">
+            <span className="text-sm text-ink-muted">Gain sur cet investissement</span>
+            <Gain value={gain} />
+            <span className={cn("text-sm font-semibold tabular-nums", up ? "text-up" : "text-down")}>
+              ({up ? "+" : "−"}
+              {Math.abs(pct).toFixed(2).replace(".", ",")} %)
+            </span>
+          </div>
+        </>
+      )}
+    </>
+  );
+  return bare ? <div>{body}</div> : <section aria-label="Mon investissement" className="rounded-lg border border-line bg-surface-raised p-5 lg:p-6">{body}</section>;
 }
 
 /** Lignes d'actifs avec valeur et variation en direct. */
