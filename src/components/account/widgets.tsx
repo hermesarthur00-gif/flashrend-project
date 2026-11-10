@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IconArrowBackUp, IconArrowDownLeft, IconArrowUpRight, IconArrowsExchange, IconChartPie, IconUserCog, IconChevronRight } from "@tabler/icons-react";
+import { IconArrowBackUp, IconArrowDownLeft, IconArrowUpRight, IconArrowsExchange, IconChartPie, IconUserCog, IconChevronRight, IconBolt } from "@tabler/icons-react";
 import { CryptoIcon, PriceChange } from "@/components/ui/finance";
 import type { CryptoSymbol } from "@/lib/landing-data";
 import { cn, formatDateShort, formatQty, formatEUR } from "@/lib/utils";
@@ -52,6 +52,7 @@ const ACT = {
   WITHDRAW: { Icon: IconArrowUpRight, tone: "sunken" as const, sign: "−" },
   REBALANCE: { Icon: IconArrowsExchange, tone: "soft" as const, sign: "" },
   PROFILE: { Icon: IconUserCog, tone: "sunken" as const, sign: "" },
+  FLASH: { Icon: IconBolt, tone: "flash" as const, sign: "" },
 };
 
 export type ActivityItem = { id: string; type: keyof typeof ACT; title: string; subtitle: string | null; amountEur: number | null; pending: boolean; createdAt: Date };

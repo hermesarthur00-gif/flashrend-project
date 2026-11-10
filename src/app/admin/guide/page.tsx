@@ -15,6 +15,7 @@ const SECTIONS = [
   { id: "investissements", label: "Investissements" },
   { id: "retraits", label: "Retraits" },
   { id: "profils", label: "Profils" },
+  { id: "flash", label: "Flash 24 h" },
   { id: "reglages", label: "Réglages" },
   { id: "journal", label: "Journal" },
   { id: "parcours", label: "Parcours complets" },
@@ -244,7 +245,28 @@ export default async function GuidePage() {
             <p className="m-0 text-sm text-ink-muted">Quand un client change lui-même de profil depuis l&apos;app, son portefeuille est rééquilibré automatiquement vers la répartition du nouveau profil.</p>
           </Section>
 
-          <Section id="reglages" n={9} title="Réglages" href="/admin/reglages" intro="Les informations affichées sur le site public et dans l'app des clients. Chaque enregistrement est noté au Journal.">
+          <Section id="flash" n={9} title="Flash 24 h" href="/admin/flash" intro="Un investissement court : le client bloque un montant pendant 24 h et récupère son capital plus un rendement que vous avez fixé à l'avance.">
+            <Sub title="Créer une offre">
+              <ol>
+                <li>Dans Nouvelle offre, saisissez un nom, le rendement pour 24 h en %, le montant minimum et, si vous le souhaitez, un maximum.</li>
+                <li>Cliquez sur Créer l&apos;offre : elle apparaît tout de suite chez les clients.</li>
+              </ol>
+              <Client>la page Flash 24 h propose l&apos;offre. Dès qu&apos;il saisit un montant, il voit le rendement possible et une courbe jusqu&apos;à l&apos;échéance.</Client>
+            </Sub>
+            <Sub title="Modifier, fermer, supprimer">
+              <ul>
+                <li>Modifier le rendement ne change pas les Flash déjà lancés : leur rendement est figé à la souscription.</li>
+                <li>Fermer l&apos;offre empêche les nouvelles souscriptions ; les Flash en cours vont à leur terme.</li>
+                <li>Supprimer n&apos;est possible que pour une offre sans souscription.</li>
+              </ul>
+            </Sub>
+            <Sub title="À l'échéance">
+              <p>Au bout de 24 h, le capital et le rendement sont versés automatiquement sur le solde disponible du client, qui reçoit une notification et un e-mail. Le versement se fait dès que le client ouvre l&apos;app, par la tâche planifiée quotidienne ou en cliquant sur Clôturer les échéances.</p>
+              <p>Le tableau « À verser à l&apos;échéance » indique la somme à prévoir : le rendement est financé par FlashInv, pas par le client.</p>
+            </Sub>
+          </Section>
+
+          <Section id="reglages" n={10} title="Réglages" href="/admin/reglages" intro="Les informations affichées sur le site public et dans l'app des clients. Chaque enregistrement est noté au Journal.">
             <Sub title="Société">
               <p>Raison sociale, forme juridique, capital, RCS et SIREN, TVA, directeur de la publication, siège, hébergeur, médiateur de la consommation, date de mise à jour. Ces champs alimentent les mentions légales, les conditions générales et la politique de confidentialité. Tant qu&apos;un champ est vide, le site affiche un repère entre crochets, par exemple [RAISON SOCIALE].</p>
             </Sub>
@@ -275,7 +297,7 @@ export default async function GuidePage() {
             </Sub>
           </Section>
 
-          <Section id="journal" n={10} title="Journal" href="/admin/journal" intro="L'historique de toutes les actions sensibles, du plus récent au plus ancien, 50 par page.">
+          <Section id="journal" n={11} title="Journal" href="/admin/journal" intro="L'historique de toutes les actions sensibles, du plus récent au plus ancien, 50 par page.">
             <Sub title="Lire une ligne">
               <ul>
                 <li><strong>Date</strong> et <strong>Par</strong> : quand et quel administrateur.</li>
@@ -287,7 +309,7 @@ export default async function GuidePage() {
             <p className="m-0 text-sm text-ink-muted">Le Journal ne se modifie pas et ne se vide pas.</p>
           </Section>
 
-          <Section id="parcours" n={11} title="Parcours complets" intro="Les enchaînements les plus fréquents, de bout en bout.">
+          <Section id="parcours" n={12} title="Parcours complets" intro="Les enchaînements les plus fréquents, de bout en bout.">
             <Sub title="D'une inscription au premier investissement">
               <ol>
                 <li>Le client s&apos;inscrit, confirme son e-mail par code, envoie sa pièce d&apos;identité et son selfie, puis choisit son profil.</li>

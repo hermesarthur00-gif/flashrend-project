@@ -21,7 +21,7 @@ export default async function ClientPage({ params }: PageProps<"/admin/clients/[
   const { id } = await params;
   const user = await db.user.findUnique({ where: { id }, include: { bankAccounts: { where: { archivedAt: null } } } });
   if (!user) notFound();
-  const [summary, activity, kyc, pendingDeposits, pendingWd, lastSession, sessions] = await Promise.all([
+  const [summary, activity, kyc, pendingDeposits, pendingWd, lastSession, sessions, flash] = await Promise.all([
     getPortfolioSummary(id),
     db.activity.findMany({ where: { userId: id }, orderBy: { createdAt: "desc" }, take: 15 }),
     db.kycSubmission.findFirst({ where: { userId: id }, orderBy: { createdAt: "desc" }, include: { reviewer: true } }),
@@ -29,10 +29,11 @@ export default async function ClientPage({ params }: PageProps<"/admin/clients/[
     db.withdrawal.aggregate({ where: { userId: id, status: "REQUESTED" }, _sum: { amountEur: true }, _count: true }),
     db.session.findFirst({ where: { userId: id }, orderBy: { updatedAt: "desc" } }),
     db.session.count({ where: { userId: id, expiresAt: { gt: new Date() } } }),
+    db.flashInvestment.aggregate({ where: { userId: id, status: "RUNNING" }, _sum: { amountEur: true, gainEur: true }, _count: true }),
   ]);
   const k = KYC[user.kycStatus];
   const anonymized = isAnonymized(user.email);
-  const blocker = summary.total > 0.01 ? "le client a encore un solde (disponible ou investi), il doit d'abord tout retirer." : pendingDeposits + pendingWd._count > 0 ? "une opération est en attente." : null;
+  const blocker = summary.total > 0.01 ? "le client a encore un solde (disponible ou investi), il doit d'abord tout retirer." : flash._count > 0 ? "un investissement Flash est en cours." : pendingDeposits + pendingWd._count > 0 ? "une opération est en attente." : null;
 
   return (
     <>
@@ -57,9 +58,10 @@ export default async function ClientPage({ params }: PageProps<"/admin/clients/[
       )}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-8">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi label="Solde disponible" value={formatEUR(summary.cash)} sub="Non investi" />
             <Kpi label="Investi" value={<LiveAum quantities={summary.items.map((h) => ({ symbol: h.symbol, quantity: h.quantity }))} cash={0} />} sub={<LiveGain positions={summary.items.map((h) => ({ symbol: h.symbol, name: h.name, quantity: h.quantity }))} investedNet={summary.investedNet} />} />
+            <Kpi label="Flash en cours" value={formatEUR(Number(flash._sum.amountEur ?? 0))} sub={flash._count ? `${flash._count} en cours, +${formatEUR(Number(flash._sum.gainEur ?? 0))} à l'échéance` : "Aucun"} />
             <Kpi label="En attente" value={String(pendingDeposits + pendingWd._count)} sub={`${pendingDeposits} dépôt(s), ${pendingWd._count} retrait(s)`} tone={pendingDeposits + pendingWd._count ? "warn" : undefined} />
           </div>
           <Panel title="Positions">

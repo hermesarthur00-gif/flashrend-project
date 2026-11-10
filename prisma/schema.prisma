@@ -51,6 +51,7 @@ model User {
   actionCodes   ActionCode[]
   auditLogs     AuditLog[]       @relation("actor")
   kycReviews    KycSubmission[]  @relation("reviewer")
+  flashes       FlashInvestment[]
 
   @@map("user")
 }
@@ -168,6 +169,7 @@ enum ActivityType {
   REBALANCE
   PROFILE
   DIVEST
+  FLASH
 }
 
 /// Cryptos proposées (BTC, ETH…)
@@ -379,4 +381,42 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   @@index([createdAt])
+}
+
+enum FlashStatus {
+  RUNNING
+  MATURED
+}
+
+/// Offre « Flash 24 h » : rendement fixé à l'avance par l'admin
+model FlashOffer {
+  id          String            @id @default(cuid())
+  name        String
+  ratePercent Decimal           @db.Decimal(6, 2) // rendement pour 24 h
+  minEur      Decimal           @db.Decimal(18, 2)
+  maxEur      Decimal?          @db.Decimal(18, 2)
+  active      Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  investments FlashInvestment[]
+}
+
+/// Souscription d'un client : montant bloqué 24 h, rendement figé à la souscription
+model FlashInvestment {
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offerId      String?
+  offer        FlashOffer? @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  offerName    String
+  ratePercent  Decimal     @db.Decimal(6, 2)
+  amountEur    Decimal     @db.Decimal(18, 2)
+  gainEur      Decimal     @db.Decimal(18, 2)
+  status       FlashStatus @default(RUNNING)
+  startsAt     DateTime    @default(now())
+  endsAt       DateTime
+  settledAt    DateTime?
+
+  @@index([userId, status])
+  @@index([status, endsAt])
 }

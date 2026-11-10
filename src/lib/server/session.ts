@@ -6,6 +6,7 @@ import { notFound, redirect } from "next/navigation";
 import type { Prisma } from "@/generated/prisma/client";
 import { auth } from "./auth";
 import { db } from "./db";
+import { settleDueFlash } from "./flash";
 
 export const getSession = cache(async () => {
   // Rendu à la demande : la session dépend de la requête (et Better Auth lit l'heure courante).
@@ -17,6 +18,8 @@ export const getSession = cache(async () => {
 export const requireUser = cache(async () => {
   const session = await getSession();
   if (!session) redirect("/account/connexion");
+  // Les investissements Flash arrivés à échéance sont versés avant d'afficher le solde.
+  await settleDueFlash(session.user.id).catch(() => 0);
   const user = await db.user.findUnique({ where: { id: session.user.id } });
   if (!user) redirect("/account/connexion");
   if (user.suspendedAt) redirect("/account/connexion?suspendu=1");

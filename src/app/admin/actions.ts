@@ -6,6 +6,7 @@ import { audit, requireAdmin } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
 import { executionPrices, rebalanceUser } from "@/lib/server/portfolio";
 import { notify } from "@/lib/server/notify";
+import { settleDueFlash } from "@/lib/server/flash";
 import { getSettings, SETTINGS_TAG } from "@/lib/server/settings";
 import { consumeActionCode, sendActionCode } from "@/lib/server/action-codes";
 import { mergeSettings, settingsSchema } from "@/lib/settings-schema";
@@ -317,4 +318,65 @@ export async function confirmBankChange(_: AdminState, form: FormData): Promise<
   await audit(admin.id, "settings.bank", { type: "settings", id: currency }, { before: current.bank[currency], after: bank });
   updateTag(SETTINGS_TAG);
   return { ok: `Coordonnées ${currency} enregistrées` };
+}
+
+// ---------------------------------------------------------------- flash 24 h
+
+/** Crée ou modifie une offre. Le changement ne touche pas les investissements déjà lancés (rendement figé). */
+export async function saveFlashOffer(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id") ?? "");
+  const name = String(form.get("name") ?? "").trim();
+  const rate = Math.round(num(form.get("rate")) * 100) / 100;
+  const min = Math.round(num(form.get("min")) * 100) / 100;
+  const maxRaw = String(form.get("max") ?? "").trim();
+  const max = maxRaw ? Math.round(num(form.get("max")) * 100) / 100 : null;
+  if (name.length < 2 || name.length > 40) return { error: "Donnez un nom à l'offre (2 à 40 caractères)." };
+  if (!Number.isFinite(rate) || rate <= 0 || rate > 100) return { error: "Le rendement doit être compris entre 0,01 et 100 %." };
+  if (!Number.isFinite(min) || min <= 0) return { error: "Indiquez un montant minimum." };
+  if (max !== null && (!Number.isFinite(max) || max < min)) return { error: "Le maximum doit être supérieur ou égal au minimum." };
+  const data = { name, ratePercent: rate, minEur: min, maxEur: max };
+  if (id) {
+    const before = await db.flashOffer.findUnique({ where: { id } });
+    if (!before) return { error: "Offre introuvable." };
+    await db.flashOffer.update({ where: { id }, data });
+    await audit(admin.id, "flash.offer.update", { type: "flash-offer", id }, { before: { name: before.name, rate: Number(before.ratePercent), min: Number(before.minEur), max: before.maxEur === null ? null : Number(before.maxEur) }, after: { name, rate, min, max } });
+  } else {
+    const created = await db.flashOffer.create({ data });
+    await audit(admin.id, "flash.offer.create", { type: "flash-offer", id: created.id }, { name, rate, min, max });
+  }
+  revalidatePath("/admin/flash");
+  return { ok: id ? "Offre enregistrée" : "Offre créée" };
+}
+
+export async function toggleFlashOffer(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id") ?? "");
+  const offer = await db.flashOffer.findUnique({ where: { id } });
+  if (!offer) return { error: "Offre introuvable." };
+  await db.flashOffer.update({ where: { id }, data: { active: !offer.active } });
+  await audit(admin.id, offer.active ? "flash.offer.close" : "flash.offer.open", { type: "flash-offer", id }, { name: offer.name });
+  revalidatePath("/admin/flash");
+  return { ok: offer.active ? "Offre fermée aux nouvelles souscriptions" : "Offre ouverte aux clients" };
+}
+
+export async function deleteFlashOffer(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id") ?? "");
+  const offer = await db.flashOffer.findUnique({ where: { id }, include: { _count: { select: { investments: true } } } });
+  if (!offer) return { error: "Offre introuvable." };
+  if (offer._count.investments > 0) return { error: "Cette offre a déjà des souscriptions. Fermez-la plutôt que de la supprimer." };
+  await db.flashOffer.delete({ where: { id } });
+  await audit(admin.id, "flash.offer.delete", { type: "flash-offer", id }, { name: offer.name });
+  revalidatePath("/admin/flash");
+  return { ok: "Offre supprimée" };
+}
+
+/** Verse tout de suite les investissements arrivés à échéance. */
+export async function settleFlashNow(): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const n = await settleDueFlash();
+  await audit(admin.id, "flash.settle", undefined, { settled: n });
+  revalidatePath("/admin/flash");
+  return { ok: n ? `${n} investissement${n > 1 ? "s" : ""} clôturé${n > 1 ? "s" : ""}` : "Rien à clôturer pour l'instant" };
 }

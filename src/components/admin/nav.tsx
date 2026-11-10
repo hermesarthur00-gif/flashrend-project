@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { IconLayoutDashboard, IconUsers, IconId, IconArrowDownLeft, IconArrowUpRight, IconChartPie, IconSettings, IconHistory, IconBook, IconLogout, IconExternalLink } from "@tabler/icons-react";
+import { IconLayoutDashboard, IconUsers, IconId, IconArrowDownLeft, IconArrowUpRight, IconChartPie, IconBolt, IconSettings, IconHistory, IconBook, IconLogout, IconExternalLink } from "@tabler/icons-react";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const ITEMS = [
   { href: "/admin/depots", label: "Dépôts", Icon: IconArrowDownLeft, count: "deposits" },
   { href: "/admin/retraits", label: "Retraits", Icon: IconArrowUpRight, count: "withdrawals" },
   { href: "/admin/profils", label: "Profils", Icon: IconChartPie },
+  { href: "/admin/flash", label: "Flash 24 h", Icon: IconBolt },
   { href: "/admin/reglages", label: "Réglages", Icon: IconSettings },
   { href: "/admin/journal", label: "Journal", Icon: IconHistory },
   { href: "/admin/guide", label: "Guide", Icon: IconBook },

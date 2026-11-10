@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { IconChartLine } from "@tabler/icons-react";
+import { IconBolt, IconChartLine } from "@tabler/icons-react";
 import { NotificationBell } from "@/components/account/notifications-live";
 import { Logo } from "@/components/ui/logo";
 import { Alert, Badge, Card, IconTile, Page, SectionTitle } from "@/components/app/primitives";
 import { ActivityList, toActivity } from "@/components/account/widgets";
 import { LiveAllocation, LiveBalanceCard, LiveHoldingRows, LiveInvestmentCard } from "@/components/live/live-widgets";
 import { PortfolioLiveChart } from "@/components/live/live-chart";
+import { LiveFlashCard } from "@/components/live/flash-chart";
 import { ButtonLink } from "@/components/ui/button";
 import { requireOnboardedUser } from "@/lib/server/session";
 import { getFlows, getPortfolioSummary, getSnapshots } from "@/lib/server/portfolio";
@@ -14,12 +15,14 @@ import { PROFILE_LABELS, PROFILE_RISK, formatMoney, formatEUR } from "@/lib/util
 
 export default async function HomePage() {
   const user = await requireOnboardedUser();
-  const [summary, activity, pendingDeposits, series, flows] = await Promise.all([
+  const [summary, activity, pendingDeposits, series, flows, flashRunning, flashOffers] = await Promise.all([
     getPortfolioSummary(user.id),
     db.activity.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 5 }),
     db.deposit.findMany({ where: { userId: user.id, status: "ANNOUNCED" }, orderBy: { announcedAt: "desc" } }),
     getSnapshots(user.id),
     getFlows(user.id),
+    db.flashInvestment.findMany({ where: { userId: user.id, status: "RUNNING" }, orderBy: { endsAt: "asc" } }),
+    db.flashOffer.findMany({ where: { active: true }, orderBy: { ratePercent: "desc" }, take: 1 }),
   ]);
   const profile = user.profile!;
   const positions = summary.items.map((h) => ({ symbol: h.symbol, name: h.name, quantity: h.quantity }));
@@ -84,6 +87,21 @@ export default async function HomePage() {
           <div className="flex flex-col gap-5 lg:col-span-5 lg:gap-6">
             <LiveBalanceCard cash={summary.cash} />
             <LiveInvestmentCard positions={positions} investedNet={summary.investedNet} cash={summary.cash} href="/account/portefeuille" />
+            {flashRunning.map((f) => (
+              <LiveFlashCard key={f.id} compact f={{ id: f.id, offerName: f.offerName, ratePercent: Number(f.ratePercent), amount: Number(f.amountEur), gain: Number(f.gainEur), startsAt: f.startsAt.getTime(), endsAt: f.endsAt.getTime() }} />
+            ))}
+            {flashRunning.length === 0 && flashOffers[0] && user.kycStatus === "APPROVED" && (
+              <Link href="/account/flash" className="flex items-center gap-3 rounded-lg border border-line bg-surface-raised px-4 py-3.5 text-ink hover:border-line-strong">
+                <IconTile tone="flash">
+                  <IconBolt size={22} stroke={2} />
+                </IconTile>
+                <span className="flex flex-1 flex-col">
+                  <span className="font-bold">Flash 24 h</span>
+                  <span className="text-sm text-ink-muted">Jusqu&apos;à +{Number(flashOffers[0].ratePercent).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} % en 24 h</span>
+                </span>
+                <span className="text-sm font-semibold">Découvrir</span>
+              </Link>
+            )}
             <Link href="/account/profil" className="flex items-center gap-3 rounded-lg bg-flash-soft px-4 py-3.5 text-ink lg:hidden">
               <IconTile tone="flash">
                 <IconChartLine size={22} stroke={1.75} />

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconHome, IconChartLine, IconPlus, IconClock, IconUser, IconArrowUpRight, IconBell } from "@tabler/icons-react";
+import { IconHome, IconChartLine, IconPlus, IconBolt, IconClock, IconUser, IconArrowUpRight, IconBell } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { NotificationBadge } from "./notifications-live";
 
@@ -17,6 +17,7 @@ const DESKTOP = [
   { href: "/account", label: "Accueil", Icon: IconHome },
   { href: "/account/portefeuille", label: "Portefeuille", Icon: IconChartLine },
   { href: "/account/depot", label: "Déposer", Icon: IconPlus },
+  { href: "/account/flash", label: "Flash 24 h", Icon: IconBolt },
   { href: "/account/retrait", label: "Retirer", Icon: IconArrowUpRight },
   { href: "/account/activite", label: "Activité", Icon: IconClock },
   { href: "/account/notifications", label: "Notifications", Icon: IconBell },
