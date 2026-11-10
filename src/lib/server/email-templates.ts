@@ -11,9 +11,7 @@ function layout({ title, body, cta, footer }: { title: string; body: string; cta
   return `<!doctype html><html lang="fr"><body style="margin:0;background:#F6F4EC;font-family:Helvetica,Arial,sans-serif;color:#111110">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F4EC;padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFDF7;border:1px solid #E0DCCD;border-radius:12px;overflow:hidden">
-<tr><td style="background:#111110;padding:18px 32px"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
-<td style="width:28px;height:28px;background:#FDD700;border-radius:7px;text-align:center;font-size:17px;line-height:28px;color:#111110;font-weight:700">&#9889;&#xFE0E;</td>
-<td style="padding-left:10px;color:#F6F4EC;font-size:18px;font-weight:700;letter-spacing:-.01em">FlashInv</td></tr></table></td></tr>
+<tr><td style="background:#111110;padding:20px 32px"><a href="${APP_URL()}" style="text-decoration:none"><img src="${APP_URL()}/email/logo-flashinv.png" alt="FlashInv" width="150" height="31" style="display:block;border:0;outline:none;height:31px;width:150px;color:#F6F4EC;font-size:18px;font-weight:700"></a></td></tr></table></td></tr>
 <tr><td style="padding:28px 32px 4px"><h1 style="margin:0;font-size:22px;line-height:28px">${escapeHtml(title)}</h1></td></tr>
 <tr><td style="padding:12px 32px 12px;font-size:15px;line-height:23px;color:#2b2a26">${body}</td></tr>
 ${button}
