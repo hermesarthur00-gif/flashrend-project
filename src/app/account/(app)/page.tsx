@@ -88,7 +88,7 @@ export default async function HomePage() {
             <LiveBalanceCard cash={summary.cash} />
             <LiveInvestmentCard positions={positions} investedNet={summary.investedNet} cash={summary.cash} href="/account/portefeuille" />
             {flashRunning.map((f) => (
-              <LiveFlashCard key={f.id} compact f={{ id: f.id, offerName: f.offerName, ratePercent: Number(f.ratePercent), amount: Number(f.amountEur), gain: Number(f.gainEur), startsAt: f.startsAt.getTime(), endsAt: f.endsAt.getTime() }} />
+              <LiveFlashCard key={f.id} compact f={{ id: f.id, offerName: f.offerName, ratePercent: Number(f.ratePercent), amount: Number(f.amountEur), gain: Number(f.gainEur), startsAt: f.startsAt.getTime(), endsAt: f.endsAt.getTime(), seed: f.seed }} />
             ))}
             {flashRunning.length === 0 && flashOffers[0] && user.kycStatus === "APPROVED" && (
               <Link href="/account/flash" className="flex items-center gap-3 rounded-lg border border-line bg-surface-raised px-4 py-3.5 text-ink hover:border-line-strong">

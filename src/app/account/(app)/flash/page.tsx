@@ -31,7 +31,7 @@ export default async function FlashPage() {
       <Page narrow>
         <PageHeading title="Flash 24 h" sub="Bloquez un montant 24 h au rendement annoncé." back="/account" />
         {running.map((f) => (
-          <LiveFlashCard key={f.id} f={{ id: f.id, offerName: f.offerName, ratePercent: Number(f.ratePercent), amount: Number(f.amountEur), gain: Number(f.gainEur), startsAt: f.startsAt.getTime(), endsAt: f.endsAt.getTime() }} />
+          <LiveFlashCard key={f.id} f={{ id: f.id, offerName: f.offerName, ratePercent: Number(f.ratePercent), amount: Number(f.amountEur), gain: Number(f.gainEur), startsAt: f.startsAt.getTime(), endsAt: f.endsAt.getTime(), seed: f.seed }} />
         ))}
         {running.length > 0 && <SectionTitle title="Lancer un nouveau Flash" />}
         {form}

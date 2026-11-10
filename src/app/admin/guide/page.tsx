@@ -252,7 +252,7 @@ export default async function GuidePage() {
                 <li>Dans Nouvelle offre, saisissez un nom, le rendement pour 24 h en %, le montant minimum et, si vous le souhaitez, un maximum.</li>
                 <li>Cliquez sur Créer l&apos;offre : elle apparaît tout de suite chez les clients.</li>
               </ol>
-              <Client>la page Flash 24 h propose l&apos;offre. Dès qu&apos;il saisit un montant, il voit le rendement possible et une courbe jusqu&apos;à l&apos;échéance.</Client>
+              <Client>la page Flash 24 h propose l&apos;offre. Dès qu&apos;il saisit un montant, il voit le rendement possible et le total à l&apos;échéance.</Client>
             </Sub>
             <Sub title="Modifier, fermer, supprimer">
               <ul>
@@ -262,6 +262,7 @@ export default async function GuidePage() {
               </ul>
             </Sub>
             <Sub title="À l'échéance">
+              <p>Une fois le Flash lancé, le client voit une courbe « Progression du rendement » qui se dessine et fluctue pendant 24 h. Elle est propre à chaque investissement et rejoint toujours le rendement fixé par l&apos;offre : ce n&apos;est pas une performance de marché.</p>
               <p>Au bout de 24 h, le capital et le rendement sont versés automatiquement sur le solde disponible du client, qui reçoit une notification et un e-mail. Le versement se fait dès que le client ouvre l&apos;app, par la tâche planifiée quotidienne ou en cliquant sur Clôturer les échéances.</p>
               <p>Le tableau « À verser à l&apos;échéance » indique la somme à prévoir : le rendement est financé par FlashInv, pas par le client.</p>
             </Sub>

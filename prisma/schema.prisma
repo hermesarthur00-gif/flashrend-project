@@ -417,6 +417,7 @@ model FlashInvestment {
   startsAt     DateTime    @default(now())
   endsAt       DateTime
   settledAt    DateTime?
+  seed         Int         @default(0) // graine de la courbe de progression affichée
 
   @@index([userId, status])
   @@index([status, endsAt])

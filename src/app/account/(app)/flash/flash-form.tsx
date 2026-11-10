@@ -6,7 +6,6 @@ import { IconBolt } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { Alert, Card, InfoRow } from "@/components/app/primitives";
 import { Button } from "@/components/ui/button";
-import { FlashChart } from "@/components/live/flash-chart";
 import { FLASH_HOURS, flashGain } from "@/lib/flash";
 import { cn, formatEUR } from "@/lib/utils";
 import { AmountInput, QuickAmounts } from "../investir/invest-form";
@@ -91,7 +90,7 @@ export function FlashForm({ cash, offers }: { cash: number; offers: Offer[] }) {
       </div>
 
       <Card>
-        <div className="mb-3 flex items-end justify-between gap-3">
+        <div className="mb-2 flex items-end justify-between gap-3">
           <div>
             <p className="text-caption m-0 text-ink-muted">{amount > 0 ? "Rendement possible" : `Exemple avec ${formatEUR(offer.min)}`}</p>
             <p className="text-amount-lg m-0 tabular-nums text-up">+{formatEUR(gain)}</p>
@@ -101,7 +100,7 @@ export function FlashForm({ cash, offers }: { cash: number; offers: Offer[] }) {
             <p className="text-amount m-0 text-lg tabular-nums">{formatEUR(sample + gain)}</p>
           </div>
         </div>
-        <FlashChart amount={sample} gain={gain} />
+        <p className="m-0 text-sm text-ink-muted">La courbe de progression apparaît dès le lancement et évolue pendant 24 h.</p>
       </Card>
 
       <div>

@@ -3,7 +3,7 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IconBolt, IconArrowUpRight } from "@tabler/icons-react";
-import { FLASH_MS } from "@/lib/flash";
+import { FLASH_MS, flashProgress } from "@/lib/flash";
 import { cn, formatEUR } from "@/lib/utils";
 
 const subscribe = (cb: () => void) => {
@@ -23,44 +23,39 @@ export function formatRemaining(ms: number) {
 }
 
 const HOURS_LABELS = ["0 h", "6 h", "12 h", "18 h", "24 h"];
+const STEP = FLASH_MS / 144;
 
 /**
- * Courbe d'un investissement Flash : le montant progresse en ligne droite jusqu'à montant + rendement à 24 h.
- * Sans `startsAt`, c'est la projection avant souscription. Avec `startsAt`, un point marque l'instant présent.
+ * Progression du rendement d'un investissement Flash : la courbe se dessine au fil des 24 h et fluctue.
+ * Seul le passé est tracé : la suite n'est pas visible. Elle rejoint le rendement de l'offre à l'échéance.
  */
-export function FlashChart({ amount, gain, startsAt, height = 150 }: { amount: number; gain: number; startsAt?: number; height?: number }) {
+export function FlashChart({ amount, gain, startsAt, seed, height = 150 }: { amount: number; gain: number; startsAt: number; seed: number; height?: number }) {
   const now = useClock();
   const W = 600;
   const H = height;
-  const min = amount;
-  const max = amount + gain;
-  const rng = max - min || 1;
+  if (!now) return <div style={{ height: height + 22 }} aria-hidden="true" />;
+  const elapsed = Math.min(FLASH_MS, Math.max(0, now - startsAt));
+  const pts: { f: number; v: number }[] = [];
+  for (let t = 0; t < elapsed; t += STEP) pts.push({ f: t / FLASH_MS, v: amount + gain * flashProgress(seed, t / FLASH_MS) });
+  pts.push({ f: elapsed / FLASH_MS, v: amount + gain * flashProgress(seed, elapsed / FLASH_MS) });
+  const lo = Math.min(...pts.map((p) => p.v), amount);
+  const hi = Math.max(...pts.map((p) => p.v), amount + gain * 0.35);
+  const rng = hi - lo || 1;
   const x = (f: number) => f * W;
-  const y = (v: number) => H - 10 - ((v - min) / rng) * (H - 20);
-  const progress = startsAt && now ? Math.min(1, Math.max(0, (now - startsAt) / FLASH_MS)) : startsAt ? 0 : null;
-  const endY = y(max);
-  const startY = y(min);
-  const doneY = progress === null ? endY : y(min + gain * progress);
-  const color = "var(--up)";
+  const y = (v: number) => H - 10 - ((v - lo) / rng) * (H - 20);
+  const line = pts.map((p) => `${x(p.f).toFixed(1)},${y(p.v).toFixed(1)}`).join(" ");
+  const last = pts[pts.length - 1];
   return (
     <div className="flex flex-col gap-1.5">
       <div className="relative">
-        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={`Évolution de ${formatEUR(amount)} à ${formatEUR(max)} en 24 heures`} className="block w-full" style={{ height }}>
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="Progression du rendement sur 24 heures" className="block w-full" style={{ height }}>
           {[0.25, 0.5, 0.75].map((f) => (
             <line key={f} x1={x(f)} x2={x(f)} y1={0} y2={H} stroke="var(--line)" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
           ))}
-          <polygon points={`0,${H} 0,${startY} ${W * (progress ?? 1)},${doneY} ${W * (progress ?? 1)},${H}`} fill={color} opacity={0.1} />
-          {progress === null ? (
-            <line x1={0} y1={startY} x2={W} y2={endY} stroke={color} strokeWidth={2.5} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
-          ) : (
-            <>
-              <line x1={W * progress} y1={doneY} x2={W} y2={endY} stroke="var(--line-strong)" strokeWidth={2} strokeDasharray="5 5" vectorEffect="non-scaling-stroke" />
-              <line x1={0} y1={startY} x2={W * progress} y2={doneY} stroke={color} strokeWidth={2.5} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
-            </>
-          )}
+          <polygon points={`0,${H} ${line} ${x(last.f)},${H}`} fill="var(--up)" opacity={0.1} />
+          <polyline points={line} fill="none" stroke="var(--up)" strokeWidth={2.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
         </svg>
-        {progress !== null && now > 0 && <span className="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-up" style={{ left: `${progress * 100}%`, top: `${(doneY / H) * 100}%` }} aria-hidden="true" />}
-        <span className="pointer-events-none absolute right-0 size-2.5 translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-up bg-surface-raised" style={{ top: `${(endY / H) * 100}%` }} aria-hidden="true" />
+        <span className="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-up" style={{ left: `${last.f * 100}%`, top: `${(y(last.v) / H) * 100}%` }} aria-hidden="true" />
       </div>
       <div className="flex justify-between text-xs text-ink-muted tabular-nums" aria-hidden="true">
         {HOURS_LABELS.map((l) => (
@@ -71,7 +66,7 @@ export function FlashChart({ amount, gain, startsAt, height = 150 }: { amount: n
   );
 }
 
-export type FlashItem = { id: string; offerName: string; ratePercent: number; amount: number; gain: number; startsAt: number; endsAt: number };
+export type FlashItem = { id: string; offerName: string; ratePercent: number; amount: number; gain: number; startsAt: number; endsAt: number; seed: number };
 
 /** Investissement Flash en cours : compte à rebours, progression et courbe. */
 export function LiveFlashCard({ f, compact = false }: { f: FlashItem; compact?: boolean }) {
@@ -80,7 +75,7 @@ export function LiveFlashCard({ f, compact = false }: { f: FlashItem; compact?: 
   const refreshed = useRef(false);
   const ended = now > 0 && now >= f.endsAt;
   const progress = now ? Math.min(1, Math.max(0, (now - f.startsAt) / FLASH_MS)) : 0;
-  const earned = f.gain * progress;
+  const earned = f.gain * flashProgress(f.seed, progress);
   useEffect(() => {
     // À l'échéance, le serveur verse le montant : on recharge la page une seule fois.
     if (ended && !refreshed.current) {
@@ -123,16 +118,21 @@ export function LiveFlashCard({ f, compact = false }: { f: FlashItem; compact?: 
         <span className="inline-flex items-center gap-0.5 font-semibold text-up tabular-nums">
           <IconArrowUpRight size={16} stroke={2.5} aria-hidden="true" />+{formatEUR(f.gain)}
         </span>
-        <span className="text-ink-muted">de rendement, versé à l&apos;échéance</span>
+        <span className="text-ink-muted">de rendement fixé par l&apos;offre, versé à l&apos;échéance</span>
       </div>
-      {!compact && <FlashChart amount={f.amount} gain={f.gain} startsAt={f.startsAt} />}
+      {!compact && (
+        <div className="flex flex-col gap-1">
+          <p className="text-caption m-0 text-ink-muted">Progression du rendement</p>
+          <FlashChart amount={f.amount} gain={f.gain} startsAt={f.startsAt} seed={f.seed} />
+        </div>
+      )}
       <div className="flex flex-col gap-1.5">
         <div className="h-2 overflow-hidden rounded-full bg-surface-sunken" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label="Avancement">
           <div className={cn("h-full rounded-full bg-flash")} style={{ width: `${progress * 100}%` }} />
         </div>
         <p className="m-0 flex justify-between gap-3 text-sm text-ink-muted tabular-nums">
           <span>{now === 0 ? " " : ended ? "Versement en cours…" : `Il reste ${formatRemaining(f.endsAt - now)}`}</span>
-          <span>{now ? `${formatEUR(earned)} acquis au prorata` : " "}</span>
+          <span>{now ? `Progression : +${formatEUR(earned)}` : " "}</span>
         </p>
       </div>
     </section>

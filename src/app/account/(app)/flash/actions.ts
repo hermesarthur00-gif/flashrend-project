@@ -1,4 +1,5 @@
 "use server";
+import { randomInt } from "node:crypto";
 import { requireOnboardedUser } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
 import { notify } from "@/lib/server/notify";
@@ -27,7 +28,7 @@ export async function subscribeFlash(input: { offerId: string; amount: number })
   const ok = await db.$transaction(async (tx) => {
     const debit = await tx.user.updateMany({ where: { id: user.id, cashEur: { gte: amount } }, data: { cashEur: { decrement: amount } } });
     if (debit.count === 0) return false;
-    await tx.flashInvestment.create({ data: { userId: user.id, offerId: offer.id, offerName: offer.name, ratePercent: rate, amountEur: amount, gainEur: gain, startsAt, endsAt } });
+    await tx.flashInvestment.create({ data: { userId: user.id, offerId: offer.id, offerName: offer.name, ratePercent: rate, amountEur: amount, gainEur: gain, startsAt, endsAt, seed: randomInt(1, 2_000_000_000) } });
     await tx.activity.create({ data: { userId: user.id, type: "FLASH", title: "Flash 24 h lancé", subtitle: `${offer.name} · rendement ${rate.toLocaleString("fr-FR")} %`, amountEur: amount } });
     return true;
   });
