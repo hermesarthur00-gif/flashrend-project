@@ -52,6 +52,7 @@ model User {
   auditLogs     AuditLog[]       @relation("actor")
   kycReviews    KycSubmission[]  @relation("reviewer")
   flashes       FlashInvestment[]
+  broadcasts    EmailBroadcast[]
 
   @@map("user")
 }
@@ -419,4 +420,35 @@ model FlashInvestment {
 
   @@index([userId, status])
   @@index([status, endsAt])
+}
+
+enum BroadcastAudience {
+  ALL
+  USER
+  CUSTOM
+}
+
+enum BroadcastStatus {
+  SENDING
+  DONE
+}
+
+/// E-mail envoyé depuis l'admin (à tous les clients, à un client ou à des adresses saisies)
+model EmailBroadcast {
+  id          String            @id @default(cuid())
+  authorId    String
+  author      User              @relation(fields: [authorId], references: [id])
+  subject     String
+  bodyHtml    String
+  audience    BroadcastAudience
+  target      String? // client ou adresses saisies
+  recipients  Int
+  sent        Int               @default(0)
+  failed      Int               @default(0)
+  attachments Json?
+  status      BroadcastStatus   @default(SENDING)
+  createdAt   DateTime          @default(now())
+  finishedAt  DateTime?
+
+  @@index([createdAt])
 }

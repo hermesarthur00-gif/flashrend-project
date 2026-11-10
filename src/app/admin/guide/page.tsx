@@ -16,6 +16,7 @@ const SECTIONS = [
   { id: "retraits", label: "Retraits" },
   { id: "profils", label: "Profils" },
   { id: "flash", label: "Flash 24 h" },
+  { id: "emails", label: "E-mails" },
   { id: "reglages", label: "Réglages" },
   { id: "journal", label: "Journal" },
   { id: "parcours", label: "Parcours complets" },
@@ -266,7 +267,23 @@ export default async function GuidePage() {
             </Sub>
           </Section>
 
-          <Section id="reglages" n={10} title="Réglages" href="/admin/reglages" intro="Les informations affichées sur le site public et dans l'app des clients. Chaque enregistrement est noté au Journal.">
+          <Section id="emails" n={10} title="E-mails" href="/admin/emails" intro="Écrire à tous les clients, à un seul client ou à une adresse saisie, avec mise en forme et pièces jointes.">
+            <Sub title="Envoyer un message">
+              <ol>
+                <li>Choisissez les destinataires : Tous (clients actifs, adresse confirmée, sans admins ni comptes bannis), Un client (recherche par nom, e-mail ou référence) ou Adresse (une ou plusieurs adresses, 20 au maximum).</li>
+                <li>Saisissez l&apos;objet puis rédigez le message : titres, gras, listes, couleurs, alignement, liens (URL) et images (adresse web en https).</li>
+                <li>Ajoutez des pièces jointes si besoin : 5 fichiers et 4 Mo au total. Les fichiers exécutables sont refusés.</li>
+                <li>Ouvrez l&apos;onglet Aperçu pour voir le rendu, puis M&apos;envoyer un test pour le recevoir sur votre adresse.</li>
+                <li>Cliquez sur Envoyer. Pour « Tous », une confirmation est demandée.</li>
+              </ol>
+              <Client>un e-mail aux couleurs de FlashInv, signé « L&apos;équipe FlashInv ». Il peut répondre directement.</Client>
+            </Sub>
+            <Sub title="Suivi">
+              <p>Les envois récents listent la date, l&apos;objet, les destinataires et le résultat (envoyés sur total, échecs). Un envoi à tous les clients continue en arrière-plan : la page se met à jour toute seule. Chaque envoi est inscrit au journal.</p>
+            </Sub>
+          </Section>
+
+          <Section id="reglages" n={11} title="Réglages" href="/admin/reglages" intro="Les informations affichées sur le site public et dans l'app des clients. Chaque enregistrement est noté au Journal.">
             <Sub title="Société">
               <p>Raison sociale, forme juridique, capital, RCS et SIREN, TVA, directeur de la publication, siège, hébergeur, médiateur de la consommation, date de mise à jour. Ces champs alimentent les mentions légales, les conditions générales et la politique de confidentialité. Tant qu&apos;un champ est vide, le site affiche un repère entre crochets, par exemple [RAISON SOCIALE].</p>
             </Sub>
@@ -297,7 +314,7 @@ export default async function GuidePage() {
             </Sub>
           </Section>
 
-          <Section id="journal" n={11} title="Journal" href="/admin/journal" intro="L'historique de toutes les actions sensibles, du plus récent au plus ancien, 50 par page.">
+          <Section id="journal" n={12} title="Journal" href="/admin/journal" intro="L'historique de toutes les actions sensibles, du plus récent au plus ancien, 50 par page.">
             <Sub title="Lire une ligne">
               <ul>
                 <li><strong>Date</strong> et <strong>Par</strong> : quand et quel administrateur.</li>
@@ -309,7 +326,7 @@ export default async function GuidePage() {
             <p className="m-0 text-sm text-ink-muted">Le Journal ne se modifie pas et ne se vide pas.</p>
           </Section>
 
-          <Section id="parcours" n={12} title="Parcours complets" intro="Les enchaînements les plus fréquents, de bout en bout.">
+          <Section id="parcours" n={13} title="Parcours complets" intro="Les enchaînements les plus fréquents, de bout en bout.">
             <Sub title="D'une inscription au premier investissement">
               <ol>
                 <li>Le client s&apos;inscrit, confirme son e-mail par code, envoie sa pièce d&apos;identité et son selfie, puis choisit son profil.</li>

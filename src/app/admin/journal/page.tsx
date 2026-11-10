@@ -28,6 +28,7 @@ const LABELS: Record<string, string> = {
   "flash.offer.close": "Offre Flash fermée",
   "flash.offer.open": "Offre Flash rouverte",
   "flash.offer.delete": "Offre Flash supprimée",
+  "email.broadcast": "E-mail envoyé",
   "flash.settle": "Flash clôturés à la main",
   "settings.legal": "Informations légales modifiées",
   "settings.contact": "Contact modifié",

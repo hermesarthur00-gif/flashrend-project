@@ -208,3 +208,18 @@
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Éditeur de texte riche de l'admin (e-mails) */
+.mail-editor .tiptap { min-height: 280px; padding: 16px; outline: none; font-size: 16px; line-height: 26px; }
+.mail-editor .tiptap > * + * { margin-top: 12px; }
+.mail-editor .tiptap h1 { font-size: 24px; line-height: 30px; font-weight: 700; }
+.mail-editor .tiptap h2 { font-size: 20px; line-height: 26px; font-weight: 700; }
+.mail-editor .tiptap h3 { font-size: 17px; line-height: 24px; font-weight: 700; }
+.mail-editor .tiptap ul { list-style: disc; padding-left: 22px; }
+.mail-editor .tiptap ol { list-style: decimal; padding-left: 22px; }
+.mail-editor .tiptap blockquote { border-left: 3px solid var(--flash); padding-left: 14px; color: var(--ink-muted); }
+.mail-editor .tiptap hr { border: 0; border-top: 1px solid var(--line-strong); margin: 18px 0; }
+.mail-editor .tiptap a { color: var(--ink); font-weight: 700; text-decoration: underline; }
+.mail-editor .tiptap img { max-width: 100%; height: auto; border-radius: 8px; }
+.mail-editor .tiptap img.ProseMirror-selectednode { outline: 2px solid var(--ink); }
+.mail-editor .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; pointer-events: none; color: var(--ink-muted); opacity: .7; }

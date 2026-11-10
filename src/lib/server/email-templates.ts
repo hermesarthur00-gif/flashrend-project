@@ -4,7 +4,7 @@ import { escapeHtml } from "./email";
 const APP_URL = () => process.env.NEXT_PUBLIC_APP_URL ?? "https://flashinv.com";
 
 /** Gabarit commun : fond crème, bandeau noir, éclair jaune. Tableaux pour la compatibilité des clients mail. */
-function layout({ title, body, cta }: { title: string; body: string; cta?: { label: string; href: string } }) {
+function layout({ title, body, cta, footer }: { title: string; body: string; cta?: { label: string; href: string }; footer?: string }) {
   const button = cta
     ? `<tr><td style="padding:8px 32px 8px"><a href="${cta.href}" style="display:inline-block;background:#FDD700;color:#111110;font-weight:700;text-decoration:none;padding:14px 22px;border-radius:8px;font-size:15px">${escapeHtml(cta.label)}</a></td></tr>`
     : "";
@@ -17,7 +17,7 @@ function layout({ title, body, cta }: { title: string; body: string; cta?: { lab
 <tr><td style="padding:28px 32px 4px"><h1 style="margin:0;font-size:22px;line-height:28px">${escapeHtml(title)}</h1></td></tr>
 <tr><td style="padding:12px 32px 12px;font-size:15px;line-height:23px;color:#2b2a26">${body}</td></tr>
 ${button}
-<tr><td style="padding:20px 32px 28px;font-size:12px;line-height:18px;color:#5C584E;border-top:1px solid #E0DCCD">Vous recevez cet e-mail car vous avez un compte FlashInv. Si vous n'êtes pas à l'origine de cette demande, ignorez-le et changez votre mot de passe.</td></tr>
+<tr><td style="padding:20px 32px 28px;font-size:12px;line-height:18px;color:#5C584E;border-top:1px solid #E0DCCD">${footer ?? "Vous recevez cet e-mail car vous avez un compte FlashInv. Si vous n'êtes pas à l'origine de cette demande, ignorez-le et changez votre mot de passe."}</td></tr>
 </table></td></tr></table></body></html>`;
 }
 
@@ -59,5 +59,18 @@ export function noticeEmail({ title, lines, cta }: { title: string; lines: strin
       cta: cta && href ? { label: cta.label, href } : undefined,
     }),
     text: `${title}\n\n${lines.join("\n")}${href ? `\n\n${href}` : ""}`,
+  };
+}
+
+/** Message rédigé par un administrateur : contenu HTML déjà nettoyé, dans le gabarit FlashInv. */
+export function broadcastEmail({ subject, bodyHtml, bodyText }: { subject: string; bodyHtml: string; bodyText: string }) {
+  return {
+    subject,
+    html: layout({
+      title: subject,
+      body: bodyHtml,
+      footer: "Message de l'équipe FlashInv. Pour toute question, répondez à cet e-mail ou écrivez-nous depuis flashinv.com.",
+    }),
+    text: `${subject}\n\n${bodyText}\n\n— L'équipe FlashInv`,
   };
 }
