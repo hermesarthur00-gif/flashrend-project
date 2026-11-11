@@ -1,5 +1,6 @@
 import { SiteHeader } from "@/components/landing/site-header";
 import { SiteFooter } from "@/components/landing/sections";
+import { SupportChat } from "@/components/support-chat";
 import { ScrollAnimations } from "@/components/landing/scroll-animations";
 
 export default function PublicLayout({ children }: LayoutProps<"/">) {
@@ -8,6 +9,7 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
       <SiteHeader />
       <main className="overflow-x-clip">{children}</main>
       <SiteFooter />
+      <SupportChat />
     </ScrollAnimations>
   );
 }

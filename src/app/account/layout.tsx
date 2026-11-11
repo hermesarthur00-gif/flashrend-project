@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { SupportChat } from "@/components/support-chat";
 import { PwaRegister } from "@/components/account/pwa-register";
 
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export default function AccountLayout({ children }: LayoutProps<"/account">) {
       <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       {children}
       <PwaRegister />
+      <SupportChat />
     </>
   );
 }

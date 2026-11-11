@@ -6,6 +6,7 @@ import { SideNav } from "@/components/account/nav";
 import { PageSkeleton, Skeleton } from "@/components/app/primitives";
 import { requireUser } from "@/lib/server/session";
 import { PROFILE_LABELS } from "@/lib/utils";
+import { SupportChatLift } from "@/components/support-chat";
 import { LiveRoot } from "@/components/live/live-root";
 import { NotificationBell, NotificationsProvider, NotificationsRouteWatcher } from "@/components/account/notifications-live";
 
@@ -31,6 +32,7 @@ async function SidebarUser() {
 export default function AppLayout({ children }: LayoutProps<"/account">) {
   return (
     <NotificationsProvider>
+    <SupportChatLift />
     <div className="flex min-h-dvh flex-1 flex-col lg:flex-row">
       <aside className="sticky top-0 hidden h-dvh w-[260px] shrink-0 flex-col gap-7 border-r border-line bg-surface-raised px-4 py-6 lg:flex">
         <Link href="/account" aria-label="Accueil FlashInv" className="w-fit px-2">
