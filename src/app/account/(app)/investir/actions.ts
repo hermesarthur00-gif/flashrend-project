@@ -24,7 +24,7 @@ export async function investNow(input: { amount: number; all?: boolean }): Promi
   try {
     await db.$transaction(async (tx) => {
       await investFromCash(tx, user.id, amount, profile, pm);
-      await tx.activity.create({ data: { userId: user.id, type: "INVEST", title: "Investissement", subtitle: `Profil ${PROFILE_LABELS[profile].toLowerCase()}`, amountEur: amount } });
+      await tx.activity.create({ data: { userId: user.id, type: "INVEST", href: "/account/portefeuille", title: "Investissement", subtitle: `Profil ${PROFILE_LABELS[profile].toLowerCase()}`, amountEur: amount } });
     });
   } catch (e) {
     return { error: e instanceof Error ? e.message : "L'investissement n'a pas pu être fait." };
@@ -49,7 +49,7 @@ export async function divestNow(input: { amount: number; all?: boolean }): Promi
   try {
     await db.$transaction(async (tx) => {
       await divestToCash(tx, user.id, amount, pm);
-      await tx.activity.create({ data: { userId: user.id, type: "DIVEST", title: "Désinvestissement", subtitle: "Ajouté au solde disponible", amountEur: amount } });
+      await tx.activity.create({ data: { userId: user.id, type: "DIVEST", href: "/account/portefeuille", title: "Désinvestissement", subtitle: "Ajouté au solde disponible", amountEur: amount } });
     });
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Le désinvestissement n'a pas pu être fait." };

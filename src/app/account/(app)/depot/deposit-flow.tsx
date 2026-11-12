@@ -107,6 +107,12 @@ export function DepositFlow({ reference, bank, min, delays }: { reference: strin
           <Button size="lg" block className="mt-2" onClick={() => setStep(2)}>
             Voir les coordonnées
           </Button>
+          <p className="m-0 text-center text-sm text-ink-muted">
+            Un dépôt fait par erreur ?{" "}
+            <Link href="/account/remboursement" className="font-semibold text-ink underline underline-offset-2">
+              Demander un remboursement
+            </Link>
+          </p>
         </div>
       </>
     );

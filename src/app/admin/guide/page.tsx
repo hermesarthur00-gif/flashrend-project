@@ -14,6 +14,7 @@ const SECTIONS = [
   { id: "depots", label: "Dépôts" },
   { id: "investissements", label: "Investissements" },
   { id: "retraits", label: "Retraits" },
+  { id: "remboursements", label: "Remboursements" },
   { id: "profils", label: "Profils" },
   { id: "flash", label: "Flash 24 h" },
   { id: "emails", label: "E-mails" },
@@ -227,7 +228,22 @@ export default async function GuidePage() {
             </Sub>
           </Section>
 
-          <Section id="profils" n={8} title="Profils et répartition" href="/admin/profils" intro="Chaque profil (Prudent, Équilibré, Dynamique) a une répartition cible entre les cryptos. Elle s'applique à chaque nouvel investissement d'un client.">
+          <Section id="remboursements" n={8} title="Remboursements" href="/admin/remboursements" intro="Un client peut demander le remboursement d'un dépôt crédité par erreur, tant que le montant n'est pas investi. Le montant est mis de côté dès la demande.">
+            <Sub title="Traiter une demande">
+              <ol>
+                <li>Ouvrez la demande et consultez le dépôt d&apos;origine (preuve et compte source) via le lien affiché.</li>
+                <li>Cliquez sur Accepter la demande.</li>
+                <li>Faites le virement vers le compte d&apos;origine depuis votre banque.</li>
+                <li>Saisissez la référence du virement puis cliquez sur Marquer comme remboursé.</li>
+              </ol>
+              <Client>notification et e-mail à chaque étape (acceptée, envoyée).</Client>
+            </Sub>
+            <Sub title="Refuser une demande">
+              <p>Un motif est obligatoire et visible par le client. Le montant mis de côté revient sur son solde disponible.</p>
+            </Sub>
+          </Section>
+
+          <Section id="profils" n={9} title="Profils et répartition" href="/admin/profils" intro="Chaque profil (Prudent, Équilibré, Dynamique) a une répartition cible entre les cryptos. Elle s'applique à chaque nouvel investissement d'un client.">
             <Sub title="Modifier une répartition">
               <ol>
                 <li>Dans la carte du profil, saisissez la part de chaque crypto en %. Laissez vide ou 0 pour l&apos;exclure.</li>
@@ -246,7 +262,7 @@ export default async function GuidePage() {
             <p className="m-0 text-sm text-ink-muted">Quand un client change lui-même de profil depuis l&apos;app, son portefeuille est rééquilibré automatiquement vers la répartition du nouveau profil.</p>
           </Section>
 
-          <Section id="flash" n={9} title="Flash 24 h" href="/admin/flash" intro="Un investissement court : le client bloque un montant pendant 24 h et récupère son capital plus un rendement que vous avez fixé à l'avance.">
+          <Section id="flash" n={10} title="Flash 24 h" href="/admin/flash" intro="Un investissement court : le client bloque un montant pendant 24 h et récupère son capital plus un rendement que vous avez fixé à l'avance.">
             <Sub title="Créer une offre">
               <ol>
                 <li>Dans Nouvelle offre, saisissez un nom, le rendement pour 24 h en %, le montant minimum et, si vous le souhaitez, un maximum.</li>
@@ -268,7 +284,7 @@ export default async function GuidePage() {
             </Sub>
           </Section>
 
-          <Section id="emails" n={10} title="E-mails" href="/admin/emails" intro="Écrire à tous les clients, à un seul client ou à une adresse saisie, avec mise en forme et pièces jointes.">
+          <Section id="emails" n={11} title="E-mails" href="/admin/emails" intro="Écrire à tous les clients, à un seul client ou à une adresse saisie, avec mise en forme et pièces jointes.">
             <Sub title="Envoyer un message">
               <ol>
                 <li>Choisissez les destinataires : Tous (clients actifs, adresse confirmée, sans admins ni comptes bannis), Un client (recherche par nom, e-mail ou référence) ou Adresse (une ou plusieurs adresses, 20 au maximum).</li>
@@ -284,7 +300,7 @@ export default async function GuidePage() {
             </Sub>
           </Section>
 
-          <Section id="reglages" n={11} title="Réglages" href="/admin/reglages" intro="Les informations affichées sur le site public et dans l'app des clients. Chaque enregistrement est noté au Journal.">
+          <Section id="reglages" n={12} title="Réglages" href="/admin/reglages" intro="Les informations affichées sur le site public et dans l'app des clients. Chaque enregistrement est noté au Journal.">
             <Sub title="Société">
               <p>Raison sociale, forme juridique, capital, RCS et SIREN, TVA, directeur de la publication, siège, hébergeur, médiateur de la consommation, date de mise à jour. Ces champs alimentent les mentions légales, les conditions générales et la politique de confidentialité. Tant qu&apos;un champ est vide, le site affiche un repère entre crochets, par exemple [RAISON SOCIALE].</p>
             </Sub>
@@ -315,7 +331,7 @@ export default async function GuidePage() {
             </Sub>
           </Section>
 
-          <Section id="journal" n={12} title="Journal" href="/admin/journal" intro="L'historique de toutes les actions sensibles, du plus récent au plus ancien, 50 par page.">
+          <Section id="journal" n={13} title="Journal" href="/admin/journal" intro="L'historique de toutes les actions sensibles, du plus récent au plus ancien, 50 par page.">
             <Sub title="Lire une ligne">
               <ul>
                 <li><strong>Date</strong> et <strong>Par</strong> : quand et quel administrateur.</li>
@@ -327,7 +343,7 @@ export default async function GuidePage() {
             <p className="m-0 text-sm text-ink-muted">Le Journal ne se modifie pas et ne se vide pas.</p>
           </Section>
 
-          <Section id="parcours" n={13} title="Parcours complets" intro="Les enchaînements les plus fréquents, de bout en bout.">
+          <Section id="parcours" n={14} title="Parcours complets" intro="Les enchaînements les plus fréquents, de bout en bout.">
             <Sub title="D'une inscription au premier investissement">
               <ol>
                 <li>Le client s&apos;inscrit, confirme son e-mail par code, envoie sa pièce d&apos;identité et son selfie, puis choisit son profil.</li>

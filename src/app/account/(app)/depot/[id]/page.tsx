@@ -102,6 +102,11 @@ export default async function DepositTrackingPage({ params }: PageProps<"/accoun
               Investir maintenant
             </ButtonLink>
           )}
+          {credited && (
+            <ButtonLink href={`/account/remboursement?depot=${d.id}`} variant="ghost" size="lg" block>
+              Demander un remboursement
+            </ButtonLink>
+          )}
           {rejected && (
             <ButtonLink href="/account/depot" size="lg" block>
               Faire un nouveau dépôt

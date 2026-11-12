@@ -14,12 +14,13 @@ export const metadata: Metadata = {
 
 async function NavWithCounts() {
   const admin = await requireAdmin();
-  const [kyc, deposits, withdrawals] = await Promise.all([
+  const [kyc, deposits, withdrawals, refunds] = await Promise.all([
     db.kycSubmission.count({ where: { status: "PENDING" } }),
     db.deposit.count({ where: { status: "ANNOUNCED" } }),
     db.withdrawal.count({ where: { status: "REQUESTED" } }),
+    db.refundRequest.count({ where: { status: { in: ["REQUESTED", "ACCEPTED"] } } }),
   ]);
-  return <AdminNav counts={{ kyc, deposits, withdrawals }} name={`${admin.firstName ?? ""} ${admin.lastName ?? ""}`.trim() || admin.email} />;
+  return <AdminNav counts={{ kyc, deposits, withdrawals, refunds }} name={`${admin.firstName ?? ""} ${admin.lastName ?? ""}`.trim() || admin.email} />;
 }
 
 function ContentSkeleton() {

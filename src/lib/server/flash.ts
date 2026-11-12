@@ -18,7 +18,7 @@ export async function settleDueFlash(userId?: string) {
       if (res.count === 0) return false;
       await tx.user.update({ where: { id: f.userId }, data: { cashEur: { increment: payout } } });
       await tx.activity.create({
-        data: { userId: f.userId, type: "FLASH", title: "Flash 24 h terminé", subtitle: `${f.offerName} · rendement ${Number(f.ratePercent).toLocaleString("fr-FR")} %`, amountEur: payout },
+        data: { userId: f.userId, type: "FLASH", href: "/account/flash", title: "Flash 24 h terminé", subtitle: `${f.offerName} · rendement ${Number(f.ratePercent).toLocaleString("fr-FR")} %`, amountEur: payout },
       });
       return true;
     });

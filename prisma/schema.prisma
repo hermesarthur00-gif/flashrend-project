@@ -53,6 +53,7 @@ model User {
   kycReviews    KycSubmission[]  @relation("reviewer")
   flashes       FlashInvestment[]
   broadcasts    EmailBroadcast[]
+  refunds       RefundRequest[]
 
   @@map("user")
 }
@@ -171,6 +172,7 @@ enum ActivityType {
   PROFILE
   DIVEST
   FLASH
+  REFUND
 }
 
 /// Cryptos proposées (BTC, ETH…)
@@ -268,6 +270,7 @@ model Deposit {
   createdAt      DateTime      @default(now())
 
   @@index([status])
+  refunds         RefundRequest[]
 }
 
 model Withdrawal {
@@ -299,6 +302,7 @@ model Activity {
   subtitle  String?
   amountEur Decimal?     @db.Decimal(18, 2)
   pending   Boolean      @default(false)
+  href      String? // page de détail ouverte au clic dans l'activité
   createdAt DateTime     @default(now())
 
   @@index([userId, createdAt])
@@ -452,4 +456,42 @@ model EmailBroadcast {
   finishedAt  DateTime?
 
   @@index([createdAt])
+}
+
+enum RefundStatus {
+  REQUESTED
+  ACCEPTED
+  REFUNDED
+  REJECTED
+}
+
+enum RefundReason {
+  MISTAKE
+  DUPLICATE
+  OTHER
+}
+
+/// Demande de remboursement d'un dépôt crédité, avant investissement. Le montant est bloqué dès la demande.
+model RefundRequest {
+  id            String       @id @default(cuid())
+  reference     String       @unique
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  depositId     String
+  deposit       Deposit      @relation(fields: [depositId], references: [id], onDelete: Cascade)
+  amountEur     Decimal      @db.Decimal(18, 2)
+  reason        RefundReason
+  details       String?
+  status        RefundStatus @default(REQUESTED)
+  adminNote     String? // motif du refus ou précision de l'admin
+  bankReference String?
+  processedById String?
+  createdAt     DateTime     @default(now())
+  acceptedAt    DateTime?
+  refundedAt    DateTime?
+  rejectedAt    DateTime?
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([depositId])
 }

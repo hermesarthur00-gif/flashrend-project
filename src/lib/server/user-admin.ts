@@ -14,7 +14,7 @@ export async function deleteOrAnonymize(userId: string) {
   const user = await db.user.findUnique({ where: { id: userId }, include: { kyc: true } });
   if (!user) throw new Error("Compte introuvable.");
 
-  const [{ total }, pendingDeposits, pendingWithdrawals, deposits, withdrawals, actor, reviews, flashes, flashRunning] = await Promise.all([
+  const [{ total }, pendingDeposits, pendingWithdrawals, deposits, withdrawals, actor, reviews, flashes, flashRunning, refunds, refundsActive] = await Promise.all([
     getHoldings(userId),
     db.deposit.count({ where: { userId, status: "ANNOUNCED" } }),
     db.withdrawal.count({ where: { userId, status: "REQUESTED" } }),
@@ -24,13 +24,15 @@ export async function deleteOrAnonymize(userId: string) {
     db.kycSubmission.count({ where: { reviewerId: userId } }),
     db.flashInvestment.count({ where: { userId } }),
     db.flashInvestment.count({ where: { userId, status: "RUNNING" } }),
+    db.refundRequest.count({ where: { userId } }),
+    db.refundRequest.count({ where: { userId, status: { in: ["REQUESTED", "ACCEPTED"] } } }),
   ]);
   if (flashRunning) throw new Error("Ce compte a un investissement Flash en cours. Attendez son échéance.");
   if (total > 0.01 || Number(user.cashEur) > 0.004) throw new Error("Ce compte a encore un solde (disponible ou investi). Le client doit d'abord tout retirer.");
-  if (pendingDeposits || pendingWithdrawals) throw new Error("Ce compte a une opération en attente. Traitez-la d'abord.");
+  if (pendingDeposits || pendingWithdrawals || refundsActive) throw new Error("Ce compte a une opération en attente. Traitez-la d'abord.");
 
   const docs = user.kyc.flatMap((k) => [k.frontId, k.backId, k.selfieId]);
-  const hasHistory = deposits + withdrawals + actor + reviews + flashes > 0;
+  const hasHistory = deposits + withdrawals + actor + reviews + flashes + refunds > 0;
 
   if (!hasHistory) {
     await db.user.delete({ where: { id: userId } });

@@ -174,7 +174,7 @@ export async function recordUnannouncedDeposit(_: AdminState, form: FormData): P
   const user = await db.user.findUnique({ where: { reference } });
   if (!user) return { error: `Aucun client avec la référence ${reference}.` };
   const d = await db.deposit.create({ data: { userId: user.id, reference, currency, declaredAmount: num(form.get("amount")) || null } });
-  await db.activity.create({ data: { userId: user.id, type: "DEPOSIT", title: "Dépôt en vérification", subtitle: `Virement reçu · réf. ${reference}`, pending: true, createdAt: d.announcedAt } });
+  await db.activity.create({ data: { userId: user.id, type: "DEPOSIT", title: "Dépôt en vérification", subtitle: `Virement reçu · réf. ${reference}`, pending: true, href: `/account/depot/${d.id}`, createdAt: d.announcedAt } });
   const fd = new FormData();
   fd.set("id", d.id);
   fd.set("amount", String(form.get("amount")));
@@ -251,7 +251,7 @@ export async function saveAllocation(_: AdminState, form: FormData): Promise<Adm
       const value = await db.$transaction((tx) => rebalanceUser(tx, u.id, profile, pm));
       if (value > 0) {
         clients++;
-        await db.activity.create({ data: { userId: u.id, type: "REBALANCE", title: "Portefeuille rééquilibré", subtitle: `Nouvelle répartition ${PROFILE_LABELS[profile].toLowerCase()}` } });
+        await db.activity.create({ data: { userId: u.id, type: "REBALANCE", href: "/account/portefeuille", title: "Portefeuille rééquilibré", subtitle: `Nouvelle répartition ${PROFILE_LABELS[profile].toLowerCase()}` } });
         await notify(u.id, { kind: "rebalance", title: "Portefeuille rééquilibré", body: `La répartition de votre profil ${PROFILE_LABELS[profile]} a été ajustée.`, url: "/account/portefeuille" });
       }
     }
@@ -379,4 +379,60 @@ export async function settleFlashNow(): Promise<AdminState> {
   await audit(admin.id, "flash.settle", undefined, { settled: n });
   revalidatePath("/admin/flash");
   return { ok: n ? `${n} investissement${n > 1 ? "s" : ""} clôturé${n > 1 ? "s" : ""}` : "Rien à clôturer pour l'instant" };
+}
+
+// ---------------------------------------------------------------- remboursements
+
+const REFUND_ACTIVITY = { type: "REFUND" as const, pending: true };
+
+export async function acceptRefund(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id"));
+  const r = await db.refundRequest.findUnique({ where: { id } });
+  if (!r) return { error: "Demande introuvable." };
+  const claimed = await db.refundRequest.updateMany({ where: { id, status: "REQUESTED" }, data: { status: "ACCEPTED", acceptedAt: new Date(), processedById: admin.id } });
+  if (claimed.count !== 1) return { error: "Cette demande a déjà été traitée." };
+  await db.activity.updateMany({ where: { userId: r.userId, ...REFUND_ACTIVITY, subtitle: { contains: r.reference } }, data: { title: "Remboursement accepté" } });
+  await notify(r.userId, { kind: "deposit", title: "Remboursement accepté", body: `${formatEUR(Number(r.amountEur))} seront virés vers votre compte d'origine. Réf. ${r.reference}.`, url: "/account/remboursement", email: { cta: "Suivre ma demande" } });
+  await audit(admin.id, "refund.accept", { type: "refund", id }, { reference: r.reference });
+  revalidatePath("/admin", "layout");
+  return { ok: "Demande acceptée" };
+}
+
+export async function markRefundSent(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id"));
+  const bankReference = String(form.get("bankReference") ?? "").trim();
+  const r = await db.refundRequest.findUnique({ where: { id } });
+  if (!r) return { error: "Demande introuvable." };
+  const claimed = await db.refundRequest.updateMany({ where: { id, status: "ACCEPTED" }, data: { status: "REFUNDED", refundedAt: new Date(), bankReference: bankReference || null, processedById: admin.id } });
+  if (claimed.count !== 1) return { error: "Cette demande a déjà été traitée." };
+  await db.activity.updateMany({ where: { userId: r.userId, ...REFUND_ACTIVITY, subtitle: { contains: r.reference } }, data: { pending: false, title: "Remboursement envoyé" } });
+  await notify(r.userId, { kind: "deposit", title: "Remboursement envoyé", body: `${formatEUR(Number(r.amountEur))} sont partis vers votre compte d'origine. Réf. ${r.reference}.`, url: "/account/remboursement", email: { cta: "Voir ma demande" } });
+  await audit(admin.id, "refund.sent", { type: "refund", id }, { bankReference });
+  revalidatePath("/admin", "layout");
+  return { ok: "Remboursement marqué comme envoyé" };
+}
+
+export async function rejectRefund(_: AdminState, form: FormData): Promise<AdminState> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id"));
+  const reason = String(form.get("reason") ?? "").trim();
+  if (reason.length < 4) return { error: "Indiquez le motif, il sera visible par le client." };
+  const r = await db.refundRequest.findUnique({ where: { id } });
+  if (!r) return { error: "Demande introuvable." };
+  try {
+    await db.$transaction(async (tx) => {
+      const claimed = await tx.refundRequest.updateMany({ where: { id, status: { in: ["REQUESTED", "ACCEPTED"] } }, data: { status: "REJECTED", rejectedAt: new Date(), adminNote: reason, processedById: admin.id } });
+      if (claimed.count !== 1) throw new Error("Cette demande a déjà été traitée.");
+      await tx.user.update({ where: { id: r.userId }, data: { cashEur: { increment: Number(r.amountEur).toFixed(2) } } });
+      await tx.activity.updateMany({ where: { userId: r.userId, ...REFUND_ACTIVITY, subtitle: { contains: r.reference } }, data: { pending: false, title: "Remboursement refusé", subtitle: `Réf. ${r.reference} · montant rendu au solde` } });
+    });
+  } catch (e) {
+    return fail(e, "Le refus a échoué.");
+  }
+  await notify(r.userId, { kind: "deposit", title: "Remboursement refusé", body: `${reason} Le montant est de nouveau sur votre solde disponible.`, url: "/account/remboursement", email: { cta: "Voir ma demande" } });
+  await audit(admin.id, "refund.reject", { type: "refund", id }, { reason });
+  revalidatePath("/admin", "layout");
+  return { ok: "Demande refusée, montant rendu au solde disponible" };
 }

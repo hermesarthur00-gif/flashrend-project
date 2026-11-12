@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { IconBuildingBank, IconChartLine, IconChevronRight, IconFileText, IconId, IconMail, IconShieldCheck, IconAlertTriangle } from "@tabler/icons-react";
+import { IconBuildingBank, IconChartLine, IconChevronRight, IconFileText, IconId, IconMail, IconShieldCheck, IconAlertTriangle, IconArrowBackUp } from "@tabler/icons-react";
 import { Badge, IconTile, Page, PageHeading, TopBar } from "@/components/app/primitives";
 import { requireUser } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
@@ -84,6 +84,7 @@ export default async function SettingsPage() {
         </Group>
 
         <Group title="Aide">
+          <Row href="/account/remboursement" Icon={IconArrowBackUp} label="Demander un remboursement" />
           <Row href="/contact" Icon={IconMail} label="Contacter FlashInv" />
           <Row href="/risques" Icon={IconAlertTriangle} label="Comprendre les risques" />
           <Row href="/conditions-generales" Icon={IconFileText} label="Conditions générales" />

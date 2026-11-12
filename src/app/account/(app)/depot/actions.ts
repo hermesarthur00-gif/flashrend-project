@@ -36,7 +36,7 @@ export async function submitDeposit(form: FormData): Promise<{ error?: string }>
 
   const deposit = await db.$transaction(async (tx) => {
     const d = await tx.deposit.create({ data: { userId: user.id, reference: user.reference!, currency, method, declaredAmount: amount, proofId } });
-    await tx.activity.create({ data: { userId: user.id, type: "DEPOSIT", title: "Dépôt en vérification", subtitle: `${formatMoney(amount, currency)} · ${METHOD_LABEL[method]} · réf. ${user.reference}`, pending: true } });
+    await tx.activity.create({ data: { userId: user.id, type: "DEPOSIT", title: "Dépôt en vérification", subtitle: `${formatMoney(amount, currency)} · ${METHOD_LABEL[method]} · réf. ${user.reference}`, pending: true, href: `/account/depot/${d.id}` } });
     return d;
   });
 

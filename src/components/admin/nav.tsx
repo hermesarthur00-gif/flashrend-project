@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { IconLayoutDashboard, IconUsers, IconId, IconArrowDownLeft, IconArrowUpRight, IconChartPie, IconBolt, IconMail, IconSettings, IconHistory, IconBook, IconLogout, IconExternalLink } from "@tabler/icons-react";
+import { IconLayoutDashboard, IconUsers, IconId, IconArrowDownLeft, IconArrowUpRight, IconArrowBackUp, IconChartPie, IconBolt, IconMail, IconSettings, IconHistory, IconBook, IconLogout, IconExternalLink } from "@tabler/icons-react";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ const ITEMS = [
   { href: "/admin/verifications", label: "Vérifications", Icon: IconId, count: "kyc" },
   { href: "/admin/depots", label: "Dépôts", Icon: IconArrowDownLeft, count: "deposits" },
   { href: "/admin/retraits", label: "Retraits", Icon: IconArrowUpRight, count: "withdrawals" },
+  { href: "/admin/remboursements", label: "Remboursements", Icon: IconArrowBackUp, count: "refunds" },
   { href: "/admin/profils", label: "Profils", Icon: IconChartPie },
   { href: "/admin/flash", label: "Flash 24 h", Icon: IconBolt },
   { href: "/admin/emails", label: "E-mails", Icon: IconMail },
@@ -19,7 +20,7 @@ const ITEMS = [
   { href: "/admin/guide", label: "Guide", Icon: IconBook },
 ] as const;
 
-export function AdminNav({ counts, name }: { counts: Record<"kyc" | "deposits" | "withdrawals", number>; name: string }) {
+export function AdminNav({ counts, name }: { counts: Record<"kyc" | "deposits" | "withdrawals" | "refunds", number>; name: string }) {
   const pathname = usePathname();
   const router = useRouter();
   return (

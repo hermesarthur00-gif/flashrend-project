@@ -29,7 +29,7 @@ export async function subscribeFlash(input: { offerId: string; amount: number })
     const debit = await tx.user.updateMany({ where: { id: user.id, cashEur: { gte: amount } }, data: { cashEur: { decrement: amount } } });
     if (debit.count === 0) return false;
     await tx.flashInvestment.create({ data: { userId: user.id, offerId: offer.id, offerName: offer.name, ratePercent: rate, amountEur: amount, gainEur: gain, startsAt, endsAt, seed: randomInt(1, 2_000_000_000) } });
-    await tx.activity.create({ data: { userId: user.id, type: "FLASH", title: "Flash 24 h lancé", subtitle: `${offer.name} · rendement ${rate.toLocaleString("fr-FR")} %`, amountEur: amount } });
+    await tx.activity.create({ data: { userId: user.id, type: "FLASH", href: "/account/flash", title: "Flash 24 h lancé", subtitle: `${offer.name} · rendement ${rate.toLocaleString("fr-FR")} %`, amountEur: amount } });
     return true;
   });
   if (!ok) return { error: `Solde disponible insuffisant (${formatEUR(Number(user.cashEur))}).` };

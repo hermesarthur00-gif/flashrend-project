@@ -53,9 +53,10 @@ const ACT = {
   REBALANCE: { Icon: IconArrowsExchange, tone: "soft" as const, sign: "" },
   PROFILE: { Icon: IconUserCog, tone: "sunken" as const, sign: "" },
   FLASH: { Icon: IconBolt, tone: "flash" as const, sign: "" },
+  REFUND: { Icon: IconArrowBackUp, tone: "sunken" as const, sign: "" },
 };
 
-export type ActivityItem = { id: string; type: keyof typeof ACT; title: string; subtitle: string | null; amountEur: number | null; pending: boolean; createdAt: Date };
+export type ActivityItem = { id: string; type: keyof typeof ACT; title: string; subtitle: string | null; amountEur: number | null; pending: boolean; href?: string | null; createdAt: Date };
 
 export function ActivityList({ items }: { items: ActivityItem[] }) {
   if (!items.length) return <p className="m-0 py-4 text-ink-muted">Aucune opération pour le moment.</p>;
@@ -63,8 +64,8 @@ export function ActivityList({ items }: { items: ActivityItem[] }) {
     <ul className="m-0 list-none p-0">
       {items.map((a) => {
         const t = ACT[a.type];
-        return (
-          <li key={a.id} className="flex items-center gap-3 border-b border-line py-3 last:border-b-0">
+        const body = (
+          <>
             <IconTile tone={t.tone}>
               <t.Icon size={20} stroke={1.75} />
             </IconTile>
@@ -84,6 +85,18 @@ export function ActivityList({ items }: { items: ActivityItem[] }) {
               )}
               {a.pending && <Badge tone="warning">En attente</Badge>}
             </span>
+            {a.href && <IconChevronRight size={18} stroke={1.75} className="shrink-0 text-ink-muted" aria-hidden="true" />}
+          </>
+        );
+        return (
+          <li key={a.id} className="border-b border-line last:border-b-0">
+            {a.href ? (
+              <Link href={a.href} className="-mx-2 flex items-center gap-3 rounded-md px-2 py-3 text-ink hover:bg-surface-sunken">
+                {body}
+              </Link>
+            ) : (
+              <div className="flex items-center gap-3 py-3">{body}</div>
+            )}
           </li>
         );
       })}
@@ -91,6 +104,6 @@ export function ActivityList({ items }: { items: ActivityItem[] }) {
   );
 }
 
-export function toActivity(rows: { id: string; type: string; title: string; subtitle: string | null; amountEur: unknown; pending: boolean; createdAt: Date }[]): ActivityItem[] {
+export function toActivity(rows: { id: string; type: string; title: string; subtitle: string | null; amountEur: unknown; pending: boolean; href?: string | null; createdAt: Date }[]): ActivityItem[] {
   return rows.map((r) => ({ ...r, type: r.type as ActivityItem["type"], amountEur: r.amountEur === null ? null : Number(r.amountEur) }));
 }
