@@ -1,7 +1,7 @@
 import "server-only";
 import { escapeHtml } from "./email";
 
-const APP_URL = () => process.env.NEXT_PUBLIC_APP_URL ?? "https://flashinv.com";
+const APP_URL = () => process.env.NEXT_PUBLIC_APP_URL ?? "https://www.flashinv.com";
 
 /** Gabarit commun : fond crème, bandeau noir, éclair jaune. Tableaux pour la compatibilité des clients mail. */
 function layout({ title, body, cta, footer }: { title: string; body: string; cta?: { label: string; href: string }; footer?: string }) {

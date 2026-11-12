@@ -5,7 +5,7 @@
  */
 export const siteConfig = {
   name: "FlashInv",
-  url: "https://flashinv.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.flashinv.com",
   contact: { email: "contact@flashinv.com" },
   legal: { lastUpdated: "5 novembre 2026" },
 } as const;
