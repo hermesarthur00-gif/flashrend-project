@@ -3,14 +3,16 @@
 import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(ScrollTrigger, useGSAP);
+gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
 /**
  * Animations du site public :
  * - [data-reveal] : montée + fondu à l'entrée dans l'écran (une seule fois)
  * - [data-reveal-group] > * : idem, en cascade
+ * - [data-split] : titre révélé ligne par ligne (masque)
  * - [data-float] : léger flottement en parallaxe au scroll
  * Coupées si l'utilisateur a demandé moins d'animations.
  */
@@ -20,6 +22,43 @@ export function ScrollAnimations({ children }: { children: React.ReactNode }) {
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
+      // Sans mouvement réduit : les titres restent visibles tels quels.
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        document.querySelectorAll("[data-split]").forEach((el) => el.classList.add("is-split"));
+      });
+      // Titres : découpés en lignes une fois la page hydratée (découper avant ferait diverger le HTML serveur et le rendu React).
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const splits: SplitText[] = [];
+        const start = () => {
+          gsap.utils.toArray<HTMLElement>("[data-split]").forEach((el) => {
+            splits.push(
+              SplitText.create(el, {
+                type: "lines",
+                mask: "lines",
+                autoSplit: true,
+                onSplit(self) {
+                  el.classList.add("is-split");
+                  return gsap.from(self.lines, {
+                    yPercent: 112,
+                    rotate: 2.5,
+                    transformOrigin: "0% 100%",
+                    duration: 1.1,
+                    stagger: 0.09,
+                    ease: "expo.out",
+                    scrollTrigger: { trigger: el, start: "top 88%", once: true },
+                  });
+                },
+              }),
+            );
+          });
+        };
+        const id = window.setTimeout(() => (document.readyState === "complete" ? start() : window.addEventListener("load", start, { once: true })), 900);
+        return () => {
+          window.clearTimeout(id);
+          window.removeEventListener("load", start);
+          splits.forEach((sp) => sp.revert());
+        };
+      });
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
           gsap.from(el, {

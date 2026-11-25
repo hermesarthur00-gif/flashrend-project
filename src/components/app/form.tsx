@@ -25,7 +25,7 @@ export function Field({ label, hint, error, className, id, suffix, type, ...prop
           aria-invalid={error ? true : undefined}
           aria-describedby={error || hint ? `${fid}-help` : undefined}
           className={cn(
-            "h-12 w-full rounded-md border border-line-strong bg-surface-raised px-3.5 text-base text-ink outline-none placeholder:text-ink-muted/70 focus:border-ink focus:ring-2 focus:ring-ink/15 aria-invalid:border-down-fill",
+            "h-12 w-full rounded-md border border-line-strong bg-surface-raised px-3.5 text-base text-ink outline-none placeholder:text-ink-muted/70 focus:border-ink aria-invalid:border-down-fill fx-field",
             (isPassword || suffix) && "pr-12",
           )}
           {...props}
@@ -58,7 +58,7 @@ export function SelectField({ label, children, hint, ...props }: React.Component
       <label htmlFor={id} className="text-label">
         {label}
       </label>
-      <select id={id} className="h-12 w-full rounded-md border border-line-strong bg-surface-raised px-3 text-base text-ink outline-none focus:border-ink focus:ring-2 focus:ring-ink/15" {...props}>
+      <select id={id} className="h-12 w-full rounded-md border border-line-strong bg-surface-raised px-3 text-base text-ink outline-none focus:border-ink fx-field" {...props}>
         {children}
       </select>
       {hint && <p className="m-0 text-sm text-ink-muted">{hint}</p>}
@@ -73,7 +73,7 @@ export function TextArea({ label, hint, ...props }: React.ComponentProps<"textar
       <label htmlFor={id} className="text-label">
         {label}
       </label>
-      <textarea id={id} className="min-h-24 w-full rounded-md border border-line-strong bg-surface-raised px-3.5 py-3 text-base text-ink outline-none focus:border-ink focus:ring-2 focus:ring-ink/15" {...props} />
+      <textarea id={id} className="min-h-24 w-full rounded-md border border-line-strong bg-surface-raised px-3.5 py-3 text-base text-ink outline-none focus:border-ink fx-field" {...props} />
       {hint && <p className="m-0 text-sm text-ink-muted">{hint}</p>}
     </div>
   );
@@ -132,7 +132,7 @@ export function OtpInput({ name = "code", length = 6, onComplete, autoFocus = tr
           onKeyDown={(e) => {
             if (e.key === "Backspace" && !digits[i] && i > 0) refs.current[i - 1]?.focus();
           }}
-          className="h-14 w-full min-w-0 rounded-md border border-line-strong bg-surface-raised text-center text-2xl font-bold tabular-nums text-ink outline-none focus:border-ink focus:ring-2 focus:ring-ink/15"
+          className="h-14 w-full min-w-0 rounded-md border border-line-strong bg-surface-raised text-center text-2xl font-bold tabular-nums text-ink outline-none focus:border-ink fx-field"
         />
       ))}
     </div>

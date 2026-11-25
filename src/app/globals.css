@@ -204,9 +204,75 @@
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   ::selection { background: var(--flash); color: var(--on-flash); }
 }
+
+/* ---------- Mouvement : une seule paire de courbes pour tout le site ---------- */
+:root { --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-io: cubic-bezier(0.76, 0, 0.24, 1); }
+
+@keyframes fx-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes fx-pop { 0% { opacity: 0; transform: scale(.92) translateY(8px); } 100% { opacity: 1; transform: none; } }
+@keyframes fx-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fx-shake { 0%, 100% { transform: none; } 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+@keyframes fx-badge { 0% { transform: scale(.4); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes fx-bolt { 0% { opacity: 0; transform: scale(.4) rotate(-14deg); } 55% { opacity: 1; transform: scale(1.12) rotate(4deg); } 100% { opacity: 1; transform: none; } }
+@keyframes fx-bye { from { clip-path: circle(0% at 50% 50%); } to { clip-path: circle(150% at 50% 50%); } }
+@keyframes fx-show { to { visibility: visible; } }
+@keyframes fx-drop { from { opacity: 0; transform: translateY(-100%); } to { opacity: 1; transform: none; } }
+
+/* En-tête public : descend à l'arrivée */
+.header-in { animation: fx-drop .9s var(--ease-out) .1s both; }
+
+/* Page : entrée douce à chaque navigation (template.tsx) */
+.page-in { animation: fx-rise .55s var(--ease-out) both; }
+
+/* Listes : apparition en cascade (data-stagger sur le parent) */
+/* Révélation des titres (SplitText) : le masque cache les lignes avant leur entrée */
+[data-split] { visibility: hidden; animation: fx-show 0s 2.5s forwards; }
+[data-split].is-split { visibility: visible; }
+
+[data-stagger] > * { animation: fx-rise .6s var(--ease-out) both; }
+[data-stagger] > *:nth-child(1) { animation-delay: .02s; }
+[data-stagger] > *:nth-child(2) { animation-delay: .07s; }
+[data-stagger] > *:nth-child(3) { animation-delay: .12s; }
+[data-stagger] > *:nth-child(4) { animation-delay: .17s; }
+[data-stagger] > *:nth-child(5) { animation-delay: .22s; }
+[data-stagger] > *:nth-child(6) { animation-delay: .27s; }
+[data-stagger] > *:nth-child(7) { animation-delay: .32s; }
+[data-stagger] > *:nth-child(n+8) { animation-delay: .36s; }
+
+/* Fenêtres et menus */
+.dlg-backdrop { animation: fx-fade .25s var(--ease-out) both; }
+.dlg-backdrop[data-state="closing"] { animation: fx-fade .18s ease reverse both; }
+.dlg-panel { animation: fx-pop .4s var(--ease-out) both; }
+.dlg-panel[data-state="closing"] { animation: fx-pop .18s ease reverse both; }
+.menu-pop { animation: fx-pop .28s var(--ease-out) both; }
+
+/* Au revoir : le jaune s'ouvre depuis le centre, l'éclair rebondit, le texte monte */
+.bye { animation: fx-bye .9s var(--ease-io) both; }
+.bye-bolt { animation: fx-bolt .8s var(--ease-out) .45s both; }
+.bye-text { animation: fx-rise .7s var(--ease-out) .85s both; }
+
+/* Boutons : un disque de couleur s'étend depuis la gauche au survol */
+.btn-fill { position: relative; overflow: hidden; isolation: isolate; }
+.btn-fill::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--fill); clip-path: circle(0% at 14% 50%); transition: clip-path .6s var(--ease-io); }
+@media (hover: hover) {
+  .btn-fill:hover:not(:disabled)::before { clip-path: circle(160% at 14% 50%); }
+}
+.btn-fill:focus-visible::before { clip-path: circle(160% at 14% 50%); }
+
+/* Champs : halo au focus, secousse sur erreur */
+.fx-field { transition: border-color .2s var(--ease-out), box-shadow .25s var(--ease-out); }
+.fx-field:hover { border-color: var(--ink-muted); }
+.fx-field:focus { box-shadow: 0 0 0 4px color-mix(in srgb, var(--flash) 45%, transparent); }
+.fx-field[aria-invalid="true"] { animation: fx-shake .4s var(--ease-out); }
+
+/* Pastille de compteur : petit rebond à chaque changement (key sur la valeur) */
+.fx-badge { animation: fx-badge .45s var(--ease-out) both; }
+
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .btn-fill::before { display: none; }
 }
 
 /* Éditeur de texte riche de l'admin (e-mails) */

@@ -46,7 +46,7 @@ export function SiteHeader() {
       <header
         onFocusCapture={() => setHidden(false)}
         className={cn(
-          "fixed inset-x-0 top-0 z-30 transition-[transform,background-color,box-shadow] duration-300 ease-out",
+          "header-in fixed inset-x-0 top-0 z-30 transition-[transform,background-color,box-shadow] duration-300 ease-out",
           hidden && !open ? "-translate-y-full" : "translate-y-0",
           scrolled ? "border-b border-line bg-surface/95 shadow-[0_1px_0_rgba(17,17,16,.02)]" : "bg-surface",
         )}

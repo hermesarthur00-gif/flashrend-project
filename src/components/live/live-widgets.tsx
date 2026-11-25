@@ -1,4 +1,5 @@
 "use client";
+import { CountUp } from "@/components/ui/count-up";
 import Link from "next/link";
 import { IconArrowDownRight, IconArrowUpRight, IconChevronRight, IconPlus, IconChartPie, IconBuildingBank } from "@tabler/icons-react";
 import { AllocationDonut, PriceChange } from "@/components/ui/finance";
@@ -28,7 +29,9 @@ export function LiveBalanceCard({ cash, actions = true }: { cash: number; action
         <Stripes count={4} height={64} />
       </div>
       <span className="text-overline relative text-flash">Solde</span>
-      <p className="text-amount-xl relative m-0 mt-1.5 mb-1 tabular-nums">{formatEUR(cash)}</p>
+      <p className="text-amount-xl relative m-0 mt-1.5 mb-1 tabular-nums">
+        <CountUp value={cash} format={formatEUR} />
+      </p>
       <p className="relative m-0 text-xs opacity-75">Disponible, non investi</p>
       {actions && (
         <div className="relative mt-4 grid grid-cols-3 gap-2">
@@ -80,7 +83,9 @@ export function LiveInvestmentCard({ positions, investedNet, cash = 0, href, bar
           <dl className="m-0 mt-3 grid grid-cols-2 gap-3">
             <div>
               <dt className="text-caption text-ink-muted">Montant investi</dt>
-              <dd className="text-amount m-0 mt-0.5 text-lg tabular-nums">{formatEUR(investedNet)}</dd>
+              <dd className="text-amount m-0 mt-0.5 text-lg tabular-nums">
+                <CountUp value={investedNet} format={formatEUR} />
+              </dd>
             </div>
             <div>
               <dt className="text-caption text-ink-muted">Valeur actuelle</dt>

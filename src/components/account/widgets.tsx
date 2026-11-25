@@ -61,7 +61,7 @@ export type ActivityItem = { id: string; type: keyof typeof ACT; title: string; 
 export function ActivityList({ items }: { items: ActivityItem[] }) {
   if (!items.length) return <p className="m-0 py-4 text-ink-muted">Aucune opération pour le moment.</p>;
   return (
-    <ul className="m-0 list-none p-0">
+    <ul data-stagger className="m-0 list-none p-0">
       {items.map((a) => {
         const t = ACT[a.type];
         const body = (

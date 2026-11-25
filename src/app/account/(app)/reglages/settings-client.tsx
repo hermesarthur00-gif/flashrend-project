@@ -1,7 +1,6 @@
 "use client";
 import { useActionState, useState } from "react";
 import { useBrowserValue } from "@/components/app/use-browser-value";
-import { useRouter } from "next/navigation";
 import { IconBell, IconLock, IconLogout, IconMoon, IconPhone } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { Field, SubmitButton, useActionToast } from "@/components/app/form";
@@ -9,6 +8,7 @@ import { IconTile } from "@/components/app/primitives";
 import { Button } from "@/components/ui/button";
 import { usePush } from "@/components/account/push";
 import { authClient, authErrorMessage } from "@/lib/auth-client";
+import { SignOutDialog } from "@/components/ui/sign-out";
 import { cn } from "@/lib/utils";
 import { updateContact } from "./actions";
 
@@ -139,21 +139,14 @@ export function PasswordForm() {
   );
 }
 
-export function SignOutButton() {
-  const router = useRouter();
+export function SignOutButton({ name }: { name?: string }) {
+  const [open, setOpen] = useState(false);
   return (
-    <Button
-      variant="secondary"
-      size="lg"
-      block
-      className="text-down"
-      onClick={async () => {
-        await authClient.signOut();
-        router.replace("/account/connexion");
-        router.refresh();
-      }}
-    >
-      <IconLogout size={20} stroke={1.75} /> Se déconnecter
-    </Button>
+    <>
+      <Button variant="secondary" size="lg" block className="text-down" onClick={() => setOpen(true)}>
+        <IconLogout size={20} stroke={1.75} /> Se déconnecter
+      </Button>
+      <SignOutDialog open={open} onClose={() => setOpen(false)} name={name} />
+    </>
   );
 }

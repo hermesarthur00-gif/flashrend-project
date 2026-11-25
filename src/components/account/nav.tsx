@@ -41,13 +41,13 @@ export function BottomNavView({ pathname }: { pathname: string }) {
           const active = isActive(pathname, href);
           return (
             <li key={href} className="flex flex-1">
-              <Link href={href} aria-current={active ? "page" : undefined} className={cn("flex flex-1 flex-col items-center justify-center gap-0.5 text-[11px] leading-4 font-semibold", active ? "text-ink" : "text-ink-muted")}>
+              <Link href={href} aria-current={active ? "page" : undefined} className={cn("group flex flex-1 flex-col items-center justify-center gap-0.5 text-[11px] leading-4 font-semibold transition-colors duration-300", active ? "text-ink" : "text-ink-muted")}>
                 {primary ? (
-                  <span className="grid size-10 place-items-center rounded-md bg-flash text-on-flash">
+                  <span className="grid size-10 place-items-center rounded-md bg-flash text-on-flash transition-transform duration-300 group-active:scale-90">
                     <Icon size={22} stroke={2} />
                   </span>
                 ) : (
-                  <span className={cn("grid h-7 w-12 place-items-center rounded-full", active && "bg-flash-soft")}>
+                  <span className={cn("grid h-7 w-12 place-items-center rounded-full transition-[background-color,transform] duration-300 group-active:scale-90", active && "bg-flash-soft")}>
                     <Icon size={22} stroke={1.75} />
                   </span>
                 )}
@@ -73,7 +73,7 @@ export function SideNav() {
             key={href}
             href={href}
             aria-current={active ? "page" : undefined}
-            className={cn("flex items-center gap-3 rounded-md px-3 py-2.5 text-[15px] font-semibold text-ink", active ? "bg-flash-soft" : "hover:bg-surface-sunken")}
+            className={cn("flex items-center gap-3 rounded-md px-3 py-2.5 text-[15px] font-semibold text-ink transition-[background-color,transform] duration-300 ease-[var(--ease-out)] active:scale-[.98]", active ? "bg-flash-soft" : "hover:translate-x-0.5 hover:bg-surface-sunken")}
           >
             <Icon size={20} stroke={1.75} />
             <span className="flex-1">{label}</span>

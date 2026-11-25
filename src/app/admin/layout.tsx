@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { ProfileMenu } from "@/components/ui/profile-menu";
 import { Logo } from "@/components/ui/logo";
 import { Skeleton } from "@/components/app/primitives";
 import { AdminNav } from "@/components/admin/nav";
@@ -12,6 +13,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+const adminName = (a: { firstName: string | null; lastName: string | null; email: string }) => `${a.firstName ?? ""} ${a.lastName ?? ""}`.trim() || a.email;
+
+async function MobileMenu() {
+  const admin = await requireAdmin();
+  return <ProfileMenu variant="compact" name={adminName(admin)} email={admin.email} />;
+}
+
 async function NavWithCounts() {
   const admin = await requireAdmin();
   const [kyc, deposits, withdrawals, refunds] = await Promise.all([
@@ -20,7 +28,7 @@ async function NavWithCounts() {
     db.withdrawal.count({ where: { status: "REQUESTED" } }),
     db.refundRequest.count({ where: { status: { in: ["REQUESTED", "ACCEPTED"] } } }),
   ]);
-  return <AdminNav counts={{ kyc, deposits, withdrawals, refunds }} name={`${admin.firstName ?? ""} ${admin.lastName ?? ""}`.trim() || admin.email} />;
+  return <AdminNav counts={{ kyc, deposits, withdrawals, refunds }} name={adminName(admin)} email={admin.email} />;
 }
 
 function ContentSkeleton() {
@@ -43,7 +51,12 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
       <aside className="flex shrink-0 flex-col gap-6 bg-band px-3.5 py-4 text-on-band lg:sticky lg:top-0 lg:h-dvh lg:w-[248px] lg:py-[22px]">
         <div className="flex items-center gap-2.5 px-1.5">
           <Logo tone="dark" size={28} />
-          <span className="ml-auto rounded-xs bg-flash px-2 py-0.5 text-[11px] font-bold tracking-[.06em] text-on-flash">ADMIN</span>
+          <span className="ml-auto rounded-xs bg-flash px-2 py-0.5 text-[11px] font-bold tracking-[.06em] text-on-flash lg:ml-auto">ADMIN</span>
+          <div className="lg:hidden">
+            <Suspense fallback={<Skeleton className="size-10 rounded-full bg-on-band/10" />}>
+              <MobileMenu />
+            </Suspense>
+          </div>
         </div>
         <Suspense
           fallback={

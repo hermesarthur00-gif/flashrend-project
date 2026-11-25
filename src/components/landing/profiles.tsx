@@ -30,7 +30,7 @@ export function Profiles({ allocations }: { allocations?: Record<ProfileId, { sy
 
         <div className="relative flex flex-col gap-4 md:gap-5">
           <p className="text-overline text-ink-muted">Les profils</p>
-          <h2 className="text-h1 md:text-display-lg">Un profil, une répartition</h2>
+          <h2 data-split className="text-h1 md:text-display-lg">Un profil, une répartition</h2>
 
           <div role="tablist" aria-label="Profil" onKeyDown={onKey} className="flex gap-0.5 self-stretch rounded-md bg-surface-sunken p-[3px] md:self-start">
             {ORDER.map((k) => (

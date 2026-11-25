@@ -85,7 +85,7 @@ export function HowItWorks() {
     <section id="comment" className="mx-auto grid max-w-[1200px] gap-3 px-4 pt-14 pb-12 md:grid-cols-12 md:gap-12 md:px-8 md:pt-28 md:pb-24">
       <div data-reveal className="relative flex flex-col gap-3 md:col-span-5 md:gap-4">
         <p className="text-overline text-ink-muted">Comment ça marche</p>
-        <h2 className="text-h1 md:text-display-lg">Trois étapes pour commencer</h2>
+        <h2 data-split className="text-h1 md:text-display-lg">Trois étapes pour commencer</h2>
         <p className="text-ink-muted md:text-body-lg md:max-w-[36ch]">
           Pas de jargon, pas de graphiques à surveiller. Vous décidez du niveau de risque, on s&apos;occupe du reste.
         </p>
@@ -158,7 +158,7 @@ export function Security() {
       <div className="relative grid gap-3 overflow-hidden rounded-xl bg-band px-4 pt-9 pb-4 text-on-band md:grid-cols-2 md:gap-16 md:px-16 md:py-18">
         <div data-reveal className="relative flex flex-col gap-3 md:gap-4">
           <p className="text-overline text-flash">Sécurité</p>
-          <h2 className="text-h1 text-on-band md:text-display-lg">Votre argent, suivi de près</h2>
+          <h2 data-split className="text-h1 text-on-band md:text-display-lg">Votre argent, suivi de près</h2>
           <p className="opacity-80 md:text-body-lg md:max-w-[34ch]">
             Chaque dépôt, chaque placement et chaque retrait est visible dans votre espace, au centime près.
           </p>
@@ -215,7 +215,7 @@ export async function Faq() {
           ?
         </span>
         <p className="relative text-overline text-ink-muted">FAQ</p>
-        <h2 className="relative text-h1 md:text-display-lg">Vos questions</h2>
+        <h2 data-split className="relative text-h1 md:text-display-lg">Vos questions</h2>
         <p className="relative hidden text-ink-muted md:block">
           Une autre question ? Écrivez-nous depuis l&apos;app ou à{" "}
           <a href={`mailto:${siteConfig.contact.email}`} className="font-semibold text-ink underline underline-offset-2">
@@ -269,7 +269,7 @@ export function FinalCta() {
           className="pointer-events-none absolute top-4 -right-12 w-[200px] -rotate-6 drop-shadow-[0_18px_24px_rgba(17,17,16,.25)] md:top-1/2 md:right-16 md:-mt-28 md:w-[400px]"
         />
         <FloatingGlyph name="bnb" size={76} rotate={16} className="top-10 right-[420px] hidden md:block" />
-        <h2 className="relative m-0 max-w-[8ch] font-display text-[40px] leading-10 font-normal tracking-[-0.025em] md:max-w-[12ch] md:text-[64px] md:leading-[62px]">
+        <h2 data-split className="relative m-0 max-w-[8ch] font-display text-[40px] leading-10 font-normal tracking-[-0.025em] md:max-w-[12ch] md:text-[64px] md:leading-[62px]">
           Prêt à placer vos premiers euros ?
         </h2>
         <div className="relative">

@@ -73,7 +73,7 @@ export function useNotificationCount() {
 export function NotificationBadge({ className }: { className?: string }) {
   const { count } = useContext(Ctx);
   if (!count) return null;
-  return <span className={cn("grid h-5 min-w-5 place-items-center rounded-full bg-down-fill px-1 text-[11px] leading-none font-bold text-on-down tabular-nums", className)}>{count > 9 ? "9+" : count}</span>;
+  return <span key={count} className={cn("fx-badge grid h-5 min-w-5 place-items-center rounded-full bg-down-fill px-1 text-[11px] leading-none font-bold text-on-down tabular-nums", className)}>{count > 9 ? "9+" : count}</span>;
 }
 
 /** Cloche en haut à droite, avec le nombre de notifications non lues. */

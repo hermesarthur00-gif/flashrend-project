@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { IconBuildingBank, IconChartLine, IconChevronRight, IconFileText, IconId, IconMail, IconShieldCheck, IconAlertTriangle, IconArrowBackUp } from "@tabler/icons-react";
+import { IconBuildingBank, IconChartLine, IconChevronRight, IconFileText, IconId, IconMail, IconShieldCheck, IconAlertTriangle, IconArrowBackUp, IconShieldLock } from "@tabler/icons-react";
 import { Badge, IconTile, Page, PageHeading, TopBar } from "@/components/app/primitives";
 import { requireUser } from "@/lib/server/session";
 import { db } from "@/lib/server/db";
@@ -90,7 +90,12 @@ export default async function SettingsPage() {
           <Row href="/conditions-generales" Icon={IconFileText} label="Conditions générales" />
         </Group>
 
-        <SignOutButton />
+        {user.role === "ADMIN" && (
+          <Group title="Administration">
+            <Row href="/admin" Icon={IconShieldLock} label="Retour à l'administration" />
+          </Group>
+        )}
+        <SignOutButton name={`${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()} />
       </Page>
     </>
   );
