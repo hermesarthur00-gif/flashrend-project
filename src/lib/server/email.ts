@@ -15,7 +15,7 @@ export function getResend() {
   return client;
 }
 
-export const emailFrom = () => process.env.EMAIL_FROM ?? "FlashInv <no-reply@flashinv.com>";
+export const emailFrom = () => process.env.EMAIL_FROM ?? "FlashRend <no-reply@flashrend.com>";
 
 export function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);

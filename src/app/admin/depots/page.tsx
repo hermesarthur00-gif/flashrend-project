@@ -36,7 +36,7 @@ export default async function DepositsPage({ searchParams }: PageProps<"/admin/d
 
   return (
     <>
-      <AdminHead title="Dépôts" sub="Vérifiez que chaque virement déclaré est bien arrivé sur le compte FlashInv, puis créditez ou refusez." />
+      <AdminHead title="Dépôts" sub="Vérifiez que chaque virement déclaré est bien arrivé sur le compte FlashRend, puis créditez ou refusez." />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <LinkTabs base="/admin/depots" value={tab.key} extra={q ? { q } : undefined} items={TABS.map((t) => ({ key: t.key, label: t.label, count: t.status === "ANNOUNCED" ? pending : undefined }))} />
         <SearchBox placeholder="Référence, client" value={q} hidden={{ statut: tab.key !== "a-rapprocher" ? tab.key : undefined }} />

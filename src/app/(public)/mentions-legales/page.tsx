@@ -45,7 +45,7 @@ export default async function LegalNoticePage() {
         {
           id: "propriete",
           title: "Propriété intellectuelle",
-          body: <p>La marque FlashInv, son logo et l&apos;ensemble des contenus du site sont protégés. Toute reproduction sans autorisation écrite est interdite.</p>,
+          body: <p>La marque FlashRend, son logo et l&apos;ensemble des contenus du site sont protégés. Toute reproduction sans autorisation écrite est interdite.</p>,
         },
       ]}
     />

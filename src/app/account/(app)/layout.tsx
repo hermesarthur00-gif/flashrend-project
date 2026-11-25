@@ -35,7 +35,7 @@ export default function AppLayout({ children }: LayoutProps<"/account">) {
     <SupportChatLift />
     <div className="flex min-h-dvh flex-1 flex-col lg:flex-row">
       <aside className="sticky top-0 hidden h-dvh w-[260px] shrink-0 flex-col gap-7 border-r border-line bg-surface-raised px-4 py-6 lg:flex">
-        <Link href="/account" aria-label="Accueil FlashInv" className="w-fit px-2">
+        <Link href="/account" aria-label="Accueil FlashRend" className="w-fit px-2">
           <Logo size={32} />
         </Link>
         <Suspense

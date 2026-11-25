@@ -52,7 +52,7 @@ export function SiteHeader() {
         )}
       >
         <div className="mx-auto flex h-[68px] max-w-[1200px] items-center gap-10 px-4 md:h-[84px] md:px-8">
-          <Link href="/" aria-label="FlashInv, accueil" className="flex">
+          <Link href="/" aria-label="FlashRend, accueil" className="flex">
             <Logo size={30} />
           </Link>
           <nav aria-label="Navigation du site" className="hidden flex-1 gap-7 text-[15px] font-semibold lg:flex">

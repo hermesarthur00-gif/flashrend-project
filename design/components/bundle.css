@@ -1,4 +1,4 @@
-/* FlashInv components. Values come from tokens.css (var(--*)). */
+/* FlashRend components. Values come from tokens.css (var(--*)). */
 body { margin: 0; font-family: var(--font-sans); background: var(--surface); color: var(--ink); -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 24px; }
 .fi-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .fi-text-up { color: var(--up); }

@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* FlashInv tokens: source design/tokens/tokens.json */
+/* FlashRend tokens: source design/tokens/tokens.json */
 :root, [data-theme="light"] {
   --surface: #F6F4EC;
   --surface-raised: #FFFDF7;
@@ -108,7 +108,7 @@
 }
 
 :root {
-  /* shadcn/ui mapped on FlashInv tokens */
+  /* shadcn/ui mapped on FlashRend tokens */
   --background: var(--surface);
   --foreground: var(--ink);
   --card: var(--surface-raised);

@@ -8,7 +8,7 @@ import { db } from "@/lib/server/db";
 import { LiveRoot } from "@/components/live/live-root";
 
 export const metadata: Metadata = {
-  title: { default: "Admin", template: "%s · Admin FlashInv" },
+  title: { default: "Admin", template: "%s · Admin FlashRend" },
   robots: { index: false, follow: false },
 };
 

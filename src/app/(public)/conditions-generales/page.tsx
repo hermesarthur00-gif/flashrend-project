@@ -12,14 +12,14 @@ export default async function TermsPage() {
     <LegalPage
       eyebrow="Légal"
       title="Conditions générales d'utilisation"
-      intro="Les règles qui encadrent l'utilisation de FlashInv. Lisez-les avant d'ouvrir un compte."
+      intro="Les règles qui encadrent l'utilisation de FlashRend. Lisez-les avant d'ouvrir un compte."
       sections={[
         {
           id: "objet",
           title: "Objet",
           body: (
             <p>
-              Les présentes conditions générales régissent l&apos;accès et l&apos;utilisation du site flashinv.com et de l&apos;application FlashInv, édités par {legal.companyName}, {legal.legalForm} au capital de {legal.shareCapital}, immatriculée au {legal.registration}, dont le siège est situé {legal.address} (« FlashInv »). En créant un compte, vous les acceptez sans réserve.
+              Les présentes conditions générales régissent l&apos;accès et l&apos;utilisation du site flashrend.com et de l&apos;application FlashRend, édités par {legal.companyName}, {legal.legalForm} au capital de {legal.shareCapital}, immatriculée au {legal.registration}, dont le siège est situé {legal.address} (« FlashRend »). En créant un compte, vous les acceptez sans réserve.
             </p>
           ),
         },
@@ -29,7 +29,7 @@ export default async function TermsPage() {
           body: (
             <>
               <p>
-                FlashInv investit les fonds de ses clients sur des actifs numériques (cryptomonnaies) selon le profil choisi par le client : prudent, équilibré ou dynamique. La répartition entre actifs est déterminée et ajustée par FlashInv.
+                FlashRend investit les fonds de ses clients sur des actifs numériques (cryptomonnaies) selon le profil choisi par le client : prudent, équilibré ou dynamique. La répartition entre actifs est déterminée et ajustée par FlashRend.
               </p>
               <p>Le client suit en temps réel son solde, sa répartition, ses opérations et les frais appliqués depuis son espace.</p>
             </>
@@ -46,7 +46,7 @@ export default async function TermsPage() {
                 <li>une vérification d&apos;identité (pièce d&apos;identité et selfie) ;</li>
                 <li>l&apos;activation de la double authentification.</li>
               </ul>
-              <p>FlashInv peut refuser ou suspendre un compte si les vérifications n&apos;aboutissent pas ou en cas de suspicion de fraude.</p>
+              <p>FlashRend peut refuser ou suspendre un compte si les vérifications n&apos;aboutissent pas ou en cas de suspicion de fraude.</p>
             </>
           ),
         },
@@ -55,7 +55,7 @@ export default async function TermsPage() {
           title: "Dépôts",
           body: (
             <p>
-              Les dépôts se font uniquement par virement bancaire en euros, sur le compte du gestionnaire de paiement de FlashInv indiqué dans l&apos;espace du client, avec sa référence personnelle et une preuve du virement. Après vérification de la réception par FlashInv, le montant reçu est crédité en euros sur le solde disponible du client. Le client décide ensuite d&apos;investir tout ou partie de ce solde selon son profil. Un virement sans référence peut retarder la vérification.
+              Les dépôts se font uniquement par virement bancaire en euros, sur le compte du gestionnaire de paiement de FlashRend indiqué dans l&apos;espace du client, avec sa référence personnelle et une preuve du virement. Après vérification de la réception par FlashRend, le montant reçu est crédité en euros sur le solde disponible du client. Le client décide ensuite d&apos;investir tout ou partie de ce solde selon son profil. Un virement sans référence peut retarder la vérification.
             </p>
           ),
         },
@@ -78,7 +78,7 @@ export default async function TermsPage() {
           title: "Risques",
           body: (
             <p>
-              Investir en cryptomonnaies comporte un risque de perte partielle ou totale du capital. FlashInv ne garantit aucun rendement. Le client reconnaît avoir pris connaissance de l&apos;
+              Investir en cryptomonnaies comporte un risque de perte partielle ou totale du capital. FlashRend ne garantit aucun rendement. Le client reconnaît avoir pris connaissance de l&apos;
               <Link href="/risques">avertissement sur les risques</Link>.
             </p>
           ),
@@ -88,7 +88,7 @@ export default async function TermsPage() {
           title: "Sécurité du compte",
           body: (
             <p>
-              Le client est responsable de la confidentialité de ses identifiants et codes. FlashInv ne les demandera jamais par e-mail, téléphone ou message. Toute opération suspecte doit être signalée sans délai à{" "}
+              Le client est responsable de la confidentialité de ses identifiants et codes. FlashRend ne les demandera jamais par e-mail, téléphone ou message. Toute opération suspecte doit être signalée sans délai à{" "}
               <a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a>.
             </p>
           ),
@@ -96,12 +96,12 @@ export default async function TermsPage() {
         {
           id: "resiliation",
           title: "Clôture du compte",
-          body: <p>Le client peut clôturer son compte à tout moment après le retrait de l&apos;ensemble de ses fonds. FlashInv peut clôturer un compte en cas de manquement grave aux présentes conditions, après en avoir informé le client.</p>,
+          body: <p>Le client peut clôturer son compte à tout moment après le retrait de l&apos;ensemble de ses fonds. FlashRend peut clôturer un compte en cas de manquement grave aux présentes conditions, après en avoir informé le client.</p>,
         },
         {
           id: "droit",
           title: "Droit applicable",
-          body: <p>Les présentes conditions sont soumises au droit français. En cas de litige, le client peut contacter FlashInv pour rechercher une solution amiable, puis recourir gratuitement à un médiateur de la consommation : [NOM ET COORDONNÉES DU MÉDIATEUR]. À défaut d&apos;accord, les tribunaux français sont compétents.</p>,
+          body: <p>Les présentes conditions sont soumises au droit français. En cas de litige, le client peut contacter FlashRend pour rechercher une solution amiable, puis recourir gratuitement à un médiateur de la consommation : [NOM ET COORDONNÉES DU MÉDIATEUR]. À défaut d&apos;accord, les tribunaux français sont compétents.</p>,
         },
       ]}
     />

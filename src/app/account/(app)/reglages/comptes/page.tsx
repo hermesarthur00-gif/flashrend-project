@@ -24,7 +24,7 @@ export default async function BankAccountsPage({ searchParams }: PageProps<"/acc
           <AddBankForm defaultHolder={`${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()} />
         </section>
         <Alert tone="info" title="Pourquoi à votre nom ?">
-          Pour protéger votre argent, FlashInv n&apos;envoie de virement que vers un compte dont vous êtes titulaire.
+          Pour protéger votre argent, FlashRend n&apos;envoie de virement que vers un compte dont vous êtes titulaire.
         </Alert>
       </Page>
     </>

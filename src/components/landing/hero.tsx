@@ -24,7 +24,7 @@ export function Hero() {
           <div data-hero-copy className="relative flex flex-col gap-4 md:gap-5">
             <p className="text-overline self-start rounded-sm bg-on-flash px-3 py-1.5 text-flash">Crypto sans prise de tête</p>
             <p className="text-body-lg max-w-[30ch] md:text-[22px] md:leading-8">
-              Vous choisissez un profil et un montant. FlashInv répartit votre argent sur les cryptos qui vous correspondent et suit tout pour vous.
+              Vous choisissez un profil et un montant. FlashRend répartit votre argent sur les cryptos qui vous correspondent et suit tout pour vous.
             </p>
             <div className="flex flex-col gap-2 md:mt-2 md:flex-row md:flex-wrap">
               <ButtonLink href="/account/inscription" variant="band" size="lg">

@@ -3,10 +3,10 @@ import { SupportChat } from "@/components/support-chat";
 import { PwaRegister } from "@/components/account/pwa-register";
 
 export const metadata: Metadata = {
-  title: { default: "Mon compte", template: "%s · FlashInv" },
+  title: { default: "Mon compte", template: "%s · FlashRend" },
   manifest: "/account/manifest.webmanifest",
   robots: { index: false, follow: false },
-  appleWebApp: { capable: true, title: "FlashInv", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "FlashRend", statusBarStyle: "default" },
   icons: { apple: "/account/icons/apple-touch-icon.png" },
 };
 

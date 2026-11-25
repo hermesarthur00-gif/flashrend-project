@@ -70,7 +70,7 @@ export default async function GuidePage() {
           <GuideToc items={SECTIONS} />
         </aside>
         <div className="flex min-w-0 flex-col gap-6">
-          <Section id="prise-en-main" n={1} title="Prise en main" intro="L'admin se trouve sur /admin. On y accède avec un compte FlashInv qui a le rôle administrateur.">
+          <Section id="prise-en-main" n={1} title="Prise en main" intro="L'admin se trouve sur /admin. On y accède avec un compte FlashRend qui a le rôle administrateur.">
             <Sub title="Se connecter">
               <ol>
                 <li>Connectez-vous sur /account/connexion avec votre e-mail et votre mot de passe.</li>
@@ -89,7 +89,7 @@ export default async function GuidePage() {
             </Alert>
           </Section>
 
-          <Section id="tableau-de-bord" n={2} title="Tableau de bord" href="/admin" intro="La vue d'ensemble : ce que FlashInv gère et ce qui attend une action.">
+          <Section id="tableau-de-bord" n={2} title="Tableau de bord" href="/admin" intro="La vue d'ensemble : ce que FlashRend gère et ce qui attend une action.">
             <Sub title="Les indicateurs">
               <ul>
                 <li><strong>Encours total</strong> : valeur en direct des cryptos des clients, plus leurs soldes disponibles non investis.</li>
@@ -164,7 +164,7 @@ export default async function GuidePage() {
             </Sub>
           </Section>
 
-          <Section id="depots" n={5} title="Dépôts" href="/admin/depots" intro="Le client dépose par virement, puis déclare son dépôt avec la preuve. L'admin vérifie la réception sur le compte FlashInv et crédite le solde disponible du client, ou refuse. Rien n'est investi à cette étape.">
+          <Section id="depots" n={5} title="Dépôts" href="/admin/depots" intro="Le client dépose par virement, puis déclare son dépôt avec la preuve. L'admin vérifie la réception sur le compte FlashRend et crédite le solde disponible du client, ou refuse. Rien n'est investi à cette étape.">
             <Sub title="Comment un dépôt arrive">
               <ol>
                 <li>Le client choisit virement classique ou instantané (chacun avec son délai affiché, réglable dans Réglages, Frais et délais). Les dépôts se font uniquement en euros.</li>
@@ -176,7 +176,7 @@ export default async function GuidePage() {
             <Sub title="Vérifier et créditer">
               <ol>
                 <li>Dans À vérifier, cliquez sur la ligne du dépôt. Le panneau affiche le mode, le montant déclaré et la preuve (cliquez pour l&apos;agrandir).</li>
-                <li>Contrôlez sur le relevé bancaire de FlashInv que le virement est bien arrivé, avec la bonne référence et un compte émetteur au nom du client.</li>
+                <li>Contrôlez sur le relevé bancaire de FlashRend que le virement est bien arrivé, avec la bonne référence et un compte émetteur au nom du client.</li>
                 <li>Le montant reçu est prérempli avec le montant déclaré : corrigez-le s&apos;il diffère (frais bancaires).</li>
                 <li>Cliquez sur Confirmer et créditer.</li>
               </ol>
@@ -190,7 +190,7 @@ export default async function GuidePage() {
               <p>Sans ligne sélectionnée, le panneau de droite permet d&apos;enregistrer un virement reçu que le client n&apos;a pas déclaré : référence du client et montant reçu. Le solde du client est crédité de la même façon.</p>
             </Sub>
             <Alert tone="warning" title="Ne créditez qu'un virement réellement reçu">
-              La preuve envoyée par le client ne suffit pas : seule la réception sur le compte FlashInv compte. Un crédit confirmé ne s&apos;annule pas depuis l&apos;admin. Chaque consultation de preuve est notée au Journal.
+              La preuve envoyée par le client ne suffit pas : seule la réception sur le compte FlashRend compte. Un crédit confirmé ne s&apos;annule pas depuis l&apos;admin. Chaque consultation de preuve est notée au Journal.
             </Alert>
           </Section>
 
@@ -213,7 +213,7 @@ export default async function GuidePage() {
             <Sub title="Envoyer un retrait">
               <ol>
                 <li>Dans À envoyer, cliquez sur le retrait. Le plus ancien est sélectionné d&apos;office.</li>
-                <li>Faites le virement depuis la banque de FlashInv : montant « À virer », titulaire et IBAN affichés (bouton pour copier l&apos;IBAN).</li>
+                <li>Faites le virement depuis la banque de FlashRend : montant « À virer », titulaire et IBAN affichés (bouton pour copier l&apos;IBAN).</li>
                 <li>Saisissez la référence du virement donnée par votre banque (facultatif mais conseillé).</li>
                 <li>Cliquez sur Marquer comme envoyé.</li>
               </ol>
@@ -280,7 +280,7 @@ export default async function GuidePage() {
             <Sub title="À l'échéance">
               <p>Une fois le Flash lancé, le client voit une courbe « Progression du rendement » qui se dessine et fluctue pendant 24 h. Elle est propre à chaque investissement et rejoint toujours le rendement fixé par l&apos;offre : ce n&apos;est pas une performance de marché.</p>
               <p>Au bout de 24 h, le capital et le rendement sont versés automatiquement sur le solde disponible du client, qui reçoit une notification et un e-mail. Le versement se fait dès que le client ouvre l&apos;app, par la tâche planifiée quotidienne ou en cliquant sur Clôturer les échéances.</p>
-              <p>Le tableau « À verser à l&apos;échéance » indique la somme à prévoir : le rendement est financé par FlashInv, pas par le client.</p>
+              <p>Le tableau « À verser à l&apos;échéance » indique la somme à prévoir : le rendement est financé par FlashRend, pas par le client.</p>
             </Sub>
           </Section>
 
@@ -293,7 +293,7 @@ export default async function GuidePage() {
                 <li>Ouvrez l&apos;onglet Aperçu pour voir le rendu, puis M&apos;envoyer un test pour le recevoir sur votre adresse.</li>
                 <li>Cliquez sur Envoyer. Pour « Tous », une confirmation est demandée.</li>
               </ol>
-              <Client>un e-mail aux couleurs de FlashInv, signé « L&apos;équipe FlashInv ». Il peut répondre directement.</Client>
+              <Client>un e-mail aux couleurs de FlashRend, signé « L&apos;équipe FlashRend ». Il peut répondre directement.</Client>
             </Sub>
             <Sub title="Suivi">
               <p>Les envois récents listent la date, l&apos;objet, les destinataires et le résultat (envoyés sur total, échecs). Un envoi à tous les clients continue en arrière-plan : la page se met à jour toute seule. Chaque envoi est inscrit au journal.</p>
@@ -327,7 +327,7 @@ export default async function GuidePage() {
               <p>E-mail, téléphone et adresse affichés sur le site. Les messages du formulaire de contact arrivent sur l&apos;e-mail indiqué ici, sauf si une adresse dédiée est configurée chez l&apos;hébergeur.</p>
             </Sub>
             <Sub title="Équipe">
-              <p>La liste des administrateurs. Pour en ajouter un, saisissez l&apos;e-mail d&apos;un compte FlashInv existant (la personne doit d&apos;abord s&apos;inscrire). Retirer le repasse client. Fiche ouvre sa fiche.</p>
+              <p>La liste des administrateurs. Pour en ajouter un, saisissez l&apos;e-mail d&apos;un compte FlashRend existant (la personne doit d&apos;abord s&apos;inscrire). Retirer le repasse client. Fiche ouvre sa fiche.</p>
             </Sub>
           </Section>
 
@@ -356,7 +356,7 @@ export default async function GuidePage() {
             <Sub title="D'une demande de retrait au virement envoyé">
               <ol>
                 <li>Le client désinvestit si besoin (le montant rejoint son solde disponible), ajoute son compte bancaire, demande un retrait et le confirme avec le code reçu par e-mail.</li>
-                <li><strong>Vous</strong> : Retraits, retrait sélectionné, virement fait depuis la banque de FlashInv.</li>
+                <li><strong>Vous</strong> : Retraits, retrait sélectionné, virement fait depuis la banque de FlashRend.</li>
                 <li><strong>Vous</strong> : référence du virement saisie, Marquer comme envoyé.</li>
                 <li>Le client reçoit la notification et l&apos;e-mail « Retrait envoyé ».</li>
               </ol>

@@ -12,7 +12,7 @@ export function AuthBand({ title, sub, glyph = "btc" }: { title: string; sub: st
         <Stripes count={5} height={96} color="var(--flash-hover)" />
       </div>
       <Glyph name={glyph} size={64} rotate={14} className="top-4 right-5" />
-      <Link href="/" aria-label="Retour au site FlashInv" className="relative w-fit">
+      <Link href="/" aria-label="Retour au site FlashRend" className="relative w-fit">
         <Logo size={28} />
       </Link>
       <div className="relative">

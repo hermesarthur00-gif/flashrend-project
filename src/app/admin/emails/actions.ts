@@ -33,7 +33,7 @@ async function readFiles(form: FormData): Promise<{ error: string } | { files: M
   return { files: out, meta: files.map((f) => ({ name: f.name, size: f.size })) };
 }
 
-/** Aperçu fidèle : le message dans le gabarit FlashInv. */
+/** Aperçu fidèle : le message dans le gabarit FlashRend. */
 export async function previewEmail(input: { subject: string; html: string }): Promise<{ html: string }> {
   await requireAdmin();
   return { html: build(input.subject.trim() || "(sans objet)", input.html).mail.html };

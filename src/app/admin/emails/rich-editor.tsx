@@ -132,7 +132,7 @@ function Toolbar({ editor }: { editor: Editor }) {
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (panel === "link") applyLink(); else applyImage(); } if (e.key === "Escape") setPanel(null); }}
             aria-label={panel === "link" ? "Adresse du lien" : "Adresse de l'image"}
-            placeholder={panel === "link" ? "https://flashinv.com ou nom@exemple.com" : "https://… (adresse de l'image, en https)"}
+            placeholder={panel === "link" ? "https://flashrend.com ou nom@exemple.com" : "https://… (adresse de l'image, en https)"}
             inputMode="url"
             className="h-10 min-w-0 flex-1 basis-56 rounded-sm border border-line-strong bg-surface-raised px-3 text-[15px] outline-none focus:border-ink"
           />

@@ -160,7 +160,7 @@ export async function rejectDeposit(_: AdminState, form: FormData): Promise<Admi
   if (!d || d.status !== "ANNOUNCED") return { error: "Ce dépôt a déjà été traité." };
   await db.deposit.update({ where: { id }, data: { status: "REJECTED", note, processedById: admin.id } });
   await db.activity.updateMany({ where: { userId: d.userId, type: "DEPOSIT", pending: true, subtitle: { endsWith: `réf. ${d.reference}` }, createdAt: { gte: new Date(d.announcedAt.getTime() - 5000), lte: new Date(d.announcedAt.getTime() + 5000) } }, data: { pending: false, title: "Dépôt refusé" } });
-  await notify(d.userId, { kind: "deposit", title: "Dépôt refusé", body: note, url: `/account/depot/${d.id}`, email: { lines: ["Nous n'avons pas pu valider votre dépôt.", `Raison : ${note}`, "Rien n'a été débité de votre solde FlashInv."], cta: "Voir le détail" } });
+  await notify(d.userId, { kind: "deposit", title: "Dépôt refusé", body: note, url: `/account/depot/${d.id}`, email: { lines: ["Nous n'avons pas pu valider votre dépôt.", `Raison : ${note}`, "Rien n'a été débité de votre solde FlashRend."], cta: "Voir le détail" } });
   await audit(admin.id, "deposit.reject", { type: "deposit", id }, { note });
   revalidatePath("/admin", "layout");
   return { ok: "Dépôt marqué comme refusé" };
@@ -299,7 +299,7 @@ export async function requestBankChange(_: BankState, form: FormData): Promise<B
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Coordonnées invalides." };
   const data = { ...parsed.data, iban: parsed.data.iban.replace(/\s/g, "").toUpperCase(), swift: parsed.data.swift.replace(/\s/g, "").toUpperCase() };
   try {
-    const codeId = await sendActionCode(admin, "settings-change", data, `Modification des coordonnées bancaires ${data.currency} de FlashInv.`);
+    const codeId = await sendActionCode(admin, "settings-change", data, `Modification des coordonnées bancaires ${data.currency} de FlashRend.`);
     return { ok: "Code envoyé par e-mail", codeId };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Envoi du code impossible." };

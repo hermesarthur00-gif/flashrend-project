@@ -16,7 +16,7 @@ export default function ConfirmEmailPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = "Confirmez votre e-mail · FlashInv";
+    document.title = "Confirmez votre e-mail · FlashRend";
     if (!sessionStorage.getItem("fi-email")) router.replace("/account/connexion");
   }, [router]);
 

@@ -1,4 +1,4 @@
-// FlashInv : schéma de la base (Neon PostgreSQL)
+// FlashRend : schéma de la base (Neon PostgreSQL)
 
 generator client {
   provider = "prisma-client"
@@ -23,7 +23,7 @@ model User {
   updatedAt        DateTime  @updatedAt
   twoFactorEnabled Boolean?  @default(false)
 
-  // FlashInv
+  // FlashRend
   role          Role       @default(CLIENT)
   firstName     String?
   lastName      String?

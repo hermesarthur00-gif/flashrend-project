@@ -4,9 +4,9 @@
  * dans l'admin (Réglages) : voir src/lib/server/settings.ts.
  */
 export const siteConfig = {
-  name: "FlashInv",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.flashinv.com",
-  contact: { email: "contact@flashinv.com" },
+  name: "FlashRend",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.flashrend.com",
+  contact: { email: "contact@flashrend.com" },
   legal: { lastUpdated: "5 novembre 2026" },
 } as const;
 

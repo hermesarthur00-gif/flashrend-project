@@ -17,7 +17,7 @@ export default async function RisksPage() {
           title: "Risque de perte en capital",
           body: (
             <p>
-              <strong>La valeur de votre investissement peut baisser, et vous pouvez perdre tout ou partie de l&apos;argent investi.</strong> FlashInv ne garantit aucun rendement. N&apos;investissez que de l&apos;argent dont vous n&apos;avez pas besoin à court terme.
+              <strong>La valeur de votre investissement peut baisser, et vous pouvez perdre tout ou partie de l&apos;argent investi.</strong> FlashRend ne garantit aucun rendement. N&apos;investissez que de l&apos;argent dont vous n&apos;avez pas besoin à court terme.
             </p>
           ),
         },
@@ -29,7 +29,7 @@ export default async function RisksPage() {
         {
           id: "performances",
           title: "Performances passées",
-          body: <p>Les performances passées ne préjugent pas des performances futures. Les répartitions affichées par profil sont indicatives et peuvent être ajustées par FlashInv selon le marché.</p>,
+          body: <p>Les performances passées ne préjugent pas des performances futures. Les répartitions affichées par profil sont indicatives et peuvent être ajustées par FlashRend selon le marché.</p>,
         },
         {
           id: "stablecoins",
@@ -51,7 +51,7 @@ export default async function RisksPage() {
           title: "Arnaques et usurpations",
           body: (
             <>
-              <p>FlashInv ne vous demandera jamais :</p>
+              <p>FlashRend ne vous demandera jamais :</p>
               <ul>
                 <li>votre mot de passe ou vos codes de vérification ;</li>
                 <li>un virement vers un autre compte que celui affiché dans votre espace ;</li>

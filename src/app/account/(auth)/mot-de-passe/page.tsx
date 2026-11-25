@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = "Mot de passe oublié · FlashInv";
+    document.title = "Mot de passe oublié · FlashRend";
   }, []);
 
   async function requestCode(e: React.FormEvent<HTMLFormElement>) {

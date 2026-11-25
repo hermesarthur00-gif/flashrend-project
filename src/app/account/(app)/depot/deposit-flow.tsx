@@ -77,7 +77,7 @@ export function DepositFlow({ reference, bank, min, delays }: { reference: strin
         <div className="flex flex-col gap-4 px-4 pt-2 pb-6 lg:px-0">
           <div className="relative pr-16">
             <h2 className="text-h2 m-0 mb-1.5 max-w-[16ch]">Comment faites-vous le virement ?</h2>
-            <p className="m-0 text-ink-muted">En euros, depuis un compte bancaire à votre nom. Votre solde est crédité après vérification par FlashInv.</p>
+            <p className="m-0 text-ink-muted">En euros, depuis un compte bancaire à votre nom. Votre solde est crédité après vérification par FlashRend.</p>
             <Glyph name="btc" size={56} rotate={12} className="-top-1.5 right-0" />
           </div>
           <div role="radiogroup" aria-label="Type de virement" className="flex flex-col gap-3">
@@ -119,14 +119,14 @@ export function DepositFlow({ reference, bank, min, delays }: { reference: strin
   }
 
   if (step === 2) {
-    const shareText = ["Virement FlashInv", `Bénéficiaire : ${bank.beneficiary}`, `IBAN : ${bank.iban}`, bank.swift && `BIC / SWIFT : ${bank.swift}`, bank.bankName && `Banque : ${bank.bankName}`, `Référence : ${reference}`].filter(Boolean).join("\n");
+    const shareText = ["Virement FlashRend", `Bénéficiaire : ${bank.beneficiary}`, `IBAN : ${bank.iban}`, bank.swift && `BIC / SWIFT : ${bank.swift}`, bank.bankName && `Banque : ${bank.bankName}`, `Référence : ${reference}`].filter(Boolean).join("\n");
     return (
       <>
         <Head title="Virement en euros" onBack={() => setStep(1)} step={2} />
         <div className="flex flex-col gap-4 px-4 pt-1 pb-6 lg:px-0">
           <p className="m-0 text-ink-muted">Depuis votre banque, faites un {method === "INSTANT" ? "virement instantané" : "virement"} en euros vers ce compte.</p>
           <Alert tone="info" title="Compte de notre gestionnaire de paiement">
-            Ces coordonnées sont celles de notre gestionnaire de paiement, qui reçoit les dépôts pour FlashInv. Le bénéficiaire peut donc être différent de FlashInv : c&apos;est normal.
+            Ces coordonnées sont celles de notre gestionnaire de paiement, qui reçoit les dépôts pour FlashRend. Le bénéficiaire peut donc être différent de FlashRend : c&apos;est normal.
           </Alert>
           <Card>
             <CopyRow label="Bénéficiaire" value={bank.beneficiary} />
@@ -148,7 +148,7 @@ export function DepositFlow({ reference, bank, min, delays }: { reference: strin
               size="lg"
               block
               onClick={async () => {
-                if (navigator.share) await navigator.share({ title: "Coordonnées FlashInv", text: shareText }).catch(() => {});
+                if (navigator.share) await navigator.share({ title: "Coordonnées FlashRend", text: shareText }).catch(() => {});
                 else {
                   await navigator.clipboard.writeText(shareText);
                   toast.success("Coordonnées copiées");

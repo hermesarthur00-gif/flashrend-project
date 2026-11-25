@@ -1,6 +1,6 @@
 {
-  "name": "FlashInv",
-  "short_name": "FlashInv",
+  "name": "FlashRend",
+  "short_name": "FlashRend",
   "description": "Suivez vos placements crypto, déposez et retirez en quelques secondes.",
   "id": "/account/",
   "start_url": "/account?source=pwa",

@@ -8,7 +8,7 @@ import { IconArrowRight, IconEye, IconShieldCheck, iconProps } from "@/component
 
 export const metadata: Metadata = {
   title: "À propos",
-  description: "FlashInv rend l'investissement en crypto simple pour les débutants : un profil, un virement, et nous gérons la répartition.",
+  description: "FlashRend rend l'investissement en crypto simple pour les débutants : un profil, un virement, et nous gérons la répartition.",
 };
 
 const principles = [
@@ -35,7 +35,7 @@ export default function AboutPage() {
       <PageHero
         eyebrow="À propos"
         title="La crypto, enfin à portée de tous."
-        lead="FlashInv est né d'un constat simple : beaucoup de gens veulent investir en crypto, mais ne savent pas par où commencer."
+        lead="FlashRend est né d'un constat simple : beaucoup de gens veulent investir en crypto, mais ne savent pas par où commencer."
         glyph="btc"
       />
 
@@ -45,7 +45,7 @@ export default function AboutPage() {
           <p className="text-overline text-ink-muted">Notre mission</p>
           <h2 className="text-h1 md:text-display-lg">Investir sans y passer ses soirées</h2>
           <p className="text-ink-muted md:text-body-lg">
-            Acheter des cryptos soi-même demande du temps : ouvrir des comptes sur des plateformes, choisir des actifs, surveiller les cours, rééquilibrer. FlashInv fait ce travail pour vous.
+            Acheter des cryptos soi-même demande du temps : ouvrir des comptes sur des plateformes, choisir des actifs, surveiller les cours, rééquilibrer. FlashRend fait ce travail pour vous.
           </p>
           <p className="text-ink-muted md:text-body-lg">
             Vous choisissez le niveau de risque qui vous convient, vous faites un virement, et nous répartissons vos fonds sur un panier de cryptos adapté à votre profil.

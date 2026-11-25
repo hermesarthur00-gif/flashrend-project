@@ -109,7 +109,7 @@ export function Composer({ clientCount, adminEmail }: { clientCount: number; adm
           <label htmlFor="mail-subject" className="text-label">
             Objet
           </label>
-          <input id="mail-subject" value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={150} placeholder="Une information importante de FlashInv" className="h-12 w-full rounded-md border border-line-strong bg-surface-raised px-3.5 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/15" />
+          <input id="mail-subject" value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={150} placeholder="Une information importante de FlashRend" className="h-12 w-full rounded-md border border-line-strong bg-surface-raised px-3.5 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/15" />
         </div>
         <div className="flex gap-1 self-start rounded-md bg-surface-sunken p-0.5" role="tablist" aria-label="Mode">
           <button type="button" role="tab" aria-selected={tab === "edit"} onClick={() => setTab("edit")} className={cn("h-9 rounded-sm px-4 text-sm font-semibold", tab === "edit" ? "bg-surface-raised text-ink" : "text-ink-muted")}>

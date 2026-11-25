@@ -10,7 +10,7 @@ function ensureVapid() {
   const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const priv = process.env.VAPID_PRIVATE_KEY;
   vapidReady = Boolean(pub && priv);
-  if (vapidReady) webpush.setVapidDetails(process.env.VAPID_SUBJECT ?? "mailto:contact@flashinv.com", pub!, priv!);
+  if (vapidReady) webpush.setVapidDetails(process.env.VAPID_SUBJECT ?? "mailto:contact@flashrend.com", pub!, priv!);
   return vapidReady;
 }
 
@@ -44,7 +44,7 @@ export async function notify(
       const mail = noticeEmail({
         title: n.title,
         lines: n.email.lines ?? [n.body],
-        cta: n.url ? { label: n.email.cta ?? "Ouvrir FlashInv", path: n.url } : undefined,
+        cta: n.url ? { label: n.email.cta ?? "Ouvrir FlashRend", path: n.url } : undefined,
       });
       await sendEmail({ to: user.email, ...mail });
     }

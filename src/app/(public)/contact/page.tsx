@@ -8,14 +8,14 @@ import { getPublicConfig } from "@/lib/server/public-config";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Une question sur FlashInv ? Écrivez-nous.",
+  description: "Une question sur FlashRend ? Écrivez-nous.",
 };
 
 export default async function ContactPage() {
   const siteConfig = await getPublicConfig();
   return (
     <>
-      <PageHero eyebrow="Contact" title="Parlons-en." lead="Une question sur FlashInv, votre compte ou un partenariat ? Écrivez-nous, on vous répond par e-mail." glyph="doge" />
+      <PageHero eyebrow="Contact" title="Parlons-en." lead="Une question sur FlashRend, votre compte ou un partenariat ? Écrivez-nous, on vous répond par e-mail." glyph="doge" />
 
       <section className="mx-auto grid max-w-[1200px] gap-10 px-4 pt-12 pb-16 md:grid-cols-12 md:gap-16 md:px-8 md:pt-20 md:pb-24">
         <div data-reveal className="md:col-span-7">
@@ -73,7 +73,7 @@ export default async function ContactPage() {
             <div>
               <h3 className="mb-1 text-base font-bold">Attention aux arnaques</h3>
               <p className="text-body-sm text-ink-muted">
-                FlashInv ne vous demandera jamais votre mot de passe, vos codes ni un virement vers un autre compte que celui affiché dans votre espace.{" "}
+                FlashRend ne vous demandera jamais votre mot de passe, vos codes ni un virement vers un autre compte que celui affiché dans votre espace.{" "}
                 <Link href="/risques" className="font-semibold text-ink underline">En savoir plus</Link>
               </p>
             </div>

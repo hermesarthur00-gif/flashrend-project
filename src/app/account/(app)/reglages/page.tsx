@@ -85,7 +85,7 @@ export default async function SettingsPage() {
 
         <Group title="Aide">
           <Row href="/account/remboursement" Icon={IconArrowBackUp} label="Demander un remboursement" />
-          <Row href="/contact" Icon={IconMail} label="Contacter FlashInv" />
+          <Row href="/contact" Icon={IconMail} label="Contacter FlashRend" />
           <Row href="/risques" Icon={IconAlertTriangle} label="Comprendre les risques" />
           <Row href="/conditions-generales" Icon={IconFileText} label="Conditions générales" />
         </Group>

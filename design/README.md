@@ -1,4 +1,4 @@
-FlashInv place l'argent de ses clients sur des placements crypto. Le public : des débutants et toute personne qui veut investir sans se prendre la tête. Le système sert deux surfaces : le **site public** (énergique, grands blocs jaunes et noirs, animations au scroll) et l'**app** (web mobile first, calme, peu de données à la fois).
+FlashRend place l'argent de ses clients sur des placements crypto. Le public : des débutants et toute personne qui veut investir sans se prendre la tête. Le système sert deux surfaces : le **site public** (énergique, grands blocs jaunes et noirs, animations au scroll) et l'**app** (web mobile first, calme, peu de données à la fois).
 
 ## Principes
 
@@ -92,4 +92,4 @@ FlashInv place l'argent de ses clients sur des placements crypto. Le public : de
 - Tailwind v4 : exposez les tokens dans `@theme inline` (`--color-flash: var(--flash);`, `--color-surface: var(--surface);`, `--font-display: var(--font-display);`, `--radius-lg: var(--radius-lg);` …) pour écrire `bg-flash text-on-flash rounded-lg`.
 - shadcn/ui : branchez ses variables sur les nôtres : `--background: var(--surface)`, `--foreground: var(--ink)`, `--card: var(--surface-raised)`, `--primary: var(--flash)`, `--primary-foreground: var(--on-flash)`, `--secondary: var(--surface-sunken)`, `--muted-foreground: var(--ink-muted)`, `--destructive: var(--down-fill)`, `--border: var(--line)`, `--input: var(--line-strong)`, `--ring: var(--focus)`, `--radius: 0.5rem`.
 - Polices : `next/font/local` avec `fonts/BaticaSans-Regular.woff2` et `fonts/Satoshi-Variable.woff2`, exposées en `--font-display` et `--font-sans`.
-- Les composants du bundle (`window.FlashInv`) sont la référence visuelle et comportementale : reprenez leurs classes `fi-*` de `components/bundle.css` ou recréez-les en composants React/shadcn avec les mêmes tokens.
+- Les composants du bundle (`window.FlashRend`) sont la référence visuelle et comportementale : reprenez leurs classes `fi-*` de `components/bundle.css` ou recréez-les en composants React/shadcn avec les mêmes tokens.

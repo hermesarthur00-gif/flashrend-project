@@ -33,7 +33,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/admin/r
           <SectionForm
             section="legal"
             fields={[
-              { name: "companyName", label: "Raison sociale", value: s.legal.companyName, placeholder: "FlashInv SAS" },
+              { name: "companyName", label: "Raison sociale", value: s.legal.companyName, placeholder: "FlashRend SAS" },
               { name: "legalForm", label: "Forme juridique", value: s.legal.legalForm, placeholder: "SAS" },
               { name: "shareCapital", label: "Capital social", value: s.legal.shareCapital, placeholder: "10 000 €" },
               { name: "registration", label: "RCS et SIREN", value: s.legal.registration, placeholder: "RCS Paris 123 456 789" },
@@ -103,7 +103,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/admin/r
             ))}
           </Table>
           <Panel title="Ajouter un administrateur">
-            <p className="m-0 text-sm text-ink-muted">La personne doit déjà avoir un compte FlashInv. Elle accède à l&apos;admin après sa prochaine connexion.</p>
+            <p className="m-0 text-sm text-ink-muted">La personne doit déjà avoir un compte FlashRend. Elle accède à l&apos;admin après sa prochaine connexion.</p>
             <TeamForm />
           </Panel>
         </div>

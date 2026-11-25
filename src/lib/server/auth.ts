@@ -18,7 +18,7 @@ export async function newReference() {
 }
 
 export const auth = betterAuth({
-  appName: "FlashInv",
+  appName: "FlashRend",
   baseURL: process.env.BETTER_AUTH_URL,
   secret: process.env.BETTER_AUTH_SECRET,
   database: prismaAdapter(db, { provider: "postgresql" }),
@@ -93,7 +93,7 @@ export const auth = betterAuth({
       },
     }),
     twoFactor({
-      issuer: "FlashInv",
+      issuer: "FlashRend",
       skipVerificationOnEnable: true,
       otpOptions: {
         period: 10,

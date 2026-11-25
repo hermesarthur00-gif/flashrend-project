@@ -2,7 +2,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { BOLT_PATH } from "./logo";
 
-/** Pièce FlashInv en volume (noir mat ou jaune). */
+/** Pièce FlashRend en volume (noir mat ou jaune). */
 export function Coin({
   tone = "black",
   size = 96,

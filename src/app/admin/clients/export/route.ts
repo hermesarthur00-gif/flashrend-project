@@ -20,5 +20,5 @@ export async function GET() {
   }
   await db.auditLog.create({ data: { actorId: me.id, action: "clients.export", data: { count: users.length } } });
   const body = "﻿" + rows.map((r) => r.map(cell).join(";")).join("\n");
-  return new Response(body, { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="clients-flashinv-${new Date().toISOString().slice(0, 10)}.csv"` } });
+  return new Response(body, { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="clients-flashrend-${new Date().toISOString().slice(0, 10)}.csv"` } });
 }

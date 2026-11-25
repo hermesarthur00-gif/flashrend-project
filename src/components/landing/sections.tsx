@@ -74,7 +74,7 @@ function StepVisual({ i }: { i: number }) {
     <div className="relative flex h-[110px] flex-col gap-1 overflow-hidden rounded-lg bg-band p-4 text-on-band md:h-[140px]">
       <span className="text-caption text-flash">VIREMENT</span>
       <span className="text-[26px] leading-8 font-bold tabular-nums">500,00 €</span>
-      <span className="text-xs opacity-75">vers FlashInv</span>
+      <span className="text-xs opacity-75">vers FlashRend</span>
       <Stripes count={4} height={64} className="absolute -right-2.5 -bottom-3.5" />
     </div>
   );
@@ -314,13 +314,13 @@ export function SiteFooter() {
           </nav>
         </div>
         <p aria-hidden="true" className="m-0 font-display text-[96px] leading-[.8] tracking-[-0.04em] text-on-band/7 md:text-[200px]">
-          FlashInv
+          FlashRend
         </p>
         <div className="flex flex-col gap-3 border-t border-on-band/20 pt-5 text-xs leading-[18px] opacity-75 md:flex-row md:justify-between md:gap-8 md:pt-6">
           <p className="max-w-[80ch]">
             Investir en crypto comporte un risque de perte en capital. La valeur des actifs peut baisser fortement. Les performances passées ne préjugent pas des performances futures.
           </p>
-          <p className="whitespace-nowrap">© 2026 FlashInv</p>
+          <p className="whitespace-nowrap">© 2026 FlashRend</p>
         </div>
       </div>
     </footer>

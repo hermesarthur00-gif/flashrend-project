@@ -73,7 +73,7 @@ export const security = [
   {
     icon: "bank",
     title: "Virements tracés",
-    text: "Vous déposez sur un compte au nom de FlashInv. Chaque mouvement apparaît dans votre historique.",
+    text: "Vous déposez sur un compte au nom de FlashRend. Chaque mouvement apparaît dans votre historique.",
   },
   { icon: "shield", title: "Double authentification", text: "Un code est demandé à la connexion et pour chaque retrait." },
   { icon: "eye", title: "Tout est visible", text: "Solde, répartition et frais en temps réel dans l'app." },
@@ -82,7 +82,7 @@ export const security = [
 export const getFaq = (siteConfig: { withdrawalDelay: string; fees: string }) => [
   {
     q: "Faut-il s'y connaître en crypto ?",
-    a: "Non. Vous choisissez un profil, FlashInv s'occupe de la répartition et des ajustements. Vous suivez l'évolution depuis l'app.",
+    a: "Non. Vous choisissez un profil, FlashRend s'occupe de la répartition et des ajustements. Vous suivez l'évolution depuis l'app.",
   },
   {
     q: "Comment déposer de l'argent ?",
@@ -93,7 +93,7 @@ export const getFaq = (siteConfig: { withdrawalDelay: string; fees: string }) =>
     a: `Oui, depuis l'app. Le retrait est envoyé par virement sur votre compte bancaire sous ${siteConfig.withdrawalDelay}.`,
   },
   {
-    q: "Combien coûte FlashInv ?",
+    q: "Combien coûte FlashRend ?",
     a: `${siteConfig.fees}. Tous les frais sont affichés dans l'app avant chaque opération.`,
   },
   {

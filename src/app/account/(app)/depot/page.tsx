@@ -34,7 +34,7 @@ export default async function DepositPage() {
       {!bank.iban ? (
         <div className="px-4 pt-6">
           <Alert tone="warning" title="Dépôts momentanément indisponibles">
-            Les coordonnées bancaires de FlashInv ne sont pas encore renseignées. Réessayez un peu plus tard.
+            Les coordonnées bancaires de FlashRend ne sont pas encore renseignées. Réessayez un peu plus tard.
           </Alert>
         </div>
       ) : (

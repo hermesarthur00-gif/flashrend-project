@@ -80,7 +80,7 @@ export default async function DepositTrackingPage({ params }: PageProps<"/accoun
           <Step state="done" title="Dépôt déclaré" sub={`${declared} · ${formatDateTime(d.announcedAt)}`} />
           <Step
             state={rejected ? "failed" : credited ? "done" : "current"}
-            title={rejected ? "Virement non accepté" : credited ? "Virement reçu par FlashInv" : "Vérification par FlashInv"}
+            title={rejected ? "Virement non accepté" : credited ? "Virement reçu par FlashRend" : "Vérification par FlashRend"}
             sub={
               rejected
                 ? "Rien n'a été crédité."

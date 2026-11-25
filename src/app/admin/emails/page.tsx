@@ -26,7 +26,7 @@ export default async function EmailsPage() {
   return (
     <>
       <AutoRefresh active={sending} />
-      <AdminHead title="E-mails" sub="Écrivez à tous vos clients, à un client ou à une adresse. Le message est mis dans le gabarit FlashInv." />
+      <AdminHead title="E-mails" sub="Écrivez à tous vos clients, à un client ou à une adresse. Le message est mis dans le gabarit FlashRend." />
       <Composer clientCount={clientCount} adminEmail={admin.email} />
       <Panel title="Envois récents">
         <Table head={["Date", "Objet", "Destinataires", "Résultat", "Par"]} align={["left", "left", "left", "left", "left"]}>

@@ -1,6 +1,6 @@
 # Logo
 
-Le logo FlashInv en SVG inline : symbole seul ou version horizontale avec le logotype.
+Le logo FlashRend en SVG inline : symbole seul ou version horizontale avec le logotype.
 
 **Props** : `variant` (`horizontal` par défaut, `symbol`), `size` (hauteur en px, 32 par défaut), `tone` (`auto` suit le thème ; `light` pour un fond clair ; `dark` pour un fond sombre ou `band`).
 

@@ -22,15 +22,15 @@ const batica = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: "FlashInv · Investir en crypto, sans tracas",
-    template: "%s · FlashInv",
+    default: "FlashRend · Investir en crypto, sans tracas",
+    template: "%s · FlashRend",
   },
   description:
-    "Choisissez un profil et un montant : FlashInv répartit votre argent sur les cryptos qui vous correspondent et suit tout pour vous.",
+    "Choisissez un profil et un montant : FlashRend répartit votre argent sur les cryptos qui vous correspondent et suit tout pour vous.",
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    siteName: "FlashInv",
+    siteName: "FlashRend",
   },
 };
 

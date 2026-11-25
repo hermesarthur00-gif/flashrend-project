@@ -2,7 +2,7 @@
 
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
-/** Notifications internes (composant Sonner de shadcn/ui, aux couleurs FlashInv). */
+/** Notifications internes (composant Sonner de shadcn/ui, aux couleurs FlashRend). */
 export function Toaster(props: ToasterProps) {
   return (
     <Sonner

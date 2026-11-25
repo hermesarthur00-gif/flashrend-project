@@ -44,7 +44,7 @@ export default async function AssetPage({ params }: PageProps<"/account/portefeu
             <Card>
               <AssetLiveChart symbol={symbol} name={asset.name} fallback={history} />
             </Card>
-            <Alert tone="flash" title="Géré par FlashInv">
+            <Alert tone="flash" title="Géré par FlashRend">
               Vous ne choisissez pas les cryptos une par une : leur part évolue avec votre profil.
             </Alert>
           </div>

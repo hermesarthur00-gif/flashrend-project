@@ -66,7 +66,7 @@ export function Profiles({ allocations }: { allocations?: Record<ProfileId, { sy
               <span className="text-amount-sm">{p.risk}/5</span>
             </div>
           </div>
-          <p className="text-caption hidden text-ink-muted md:block">Répartition indicative, ajustée par FlashInv selon le marché.</p>
+          <p className="text-caption hidden text-ink-muted md:block">Répartition indicative, ajustée par FlashRend selon le marché.</p>
         </div>
 
         <div className="relative flex justify-center">
@@ -74,7 +74,7 @@ export function Profiles({ allocations }: { allocations?: Record<ProfileId, { sy
             <AllocationDonut items={allocation} size={180} />
           </div>
         </div>
-        <p className="text-caption text-ink-muted md:hidden">Répartition indicative, ajustée par FlashInv selon le marché.</p>
+        <p className="text-caption text-ink-muted md:hidden">Répartition indicative, ajustée par FlashRend selon le marché.</p>
       </div>
     </section>
   );

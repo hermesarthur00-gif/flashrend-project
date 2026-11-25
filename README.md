@@ -1,6 +1,6 @@
-# FlashInv
+# FlashRend
 
-FlashInv (flashinv.com) investit l'argent de ses clients en crypto. Le client choisit un profil (prudent, équilibré ou dynamique), FlashInv répartit les fonds à sa place. Dépôts par virement en dollars ou en euros sur le compte FlashInv.
+FlashRend (flashrend.com) investit l'argent de ses clients en crypto. Le client choisit un profil (prudent, équilibré ou dynamique), FlashRend répartit les fonds à sa place. Dépôts par virement en dollars ou en euros sur le compte FlashRend.
 
 ## État
 

@@ -1,5 +1,5 @@
-/* FlashInv : service worker de l'espace client (portée /account/). */
-const CACHE = "flashinv-v1";
+/* FlashRend : service worker de l'espace client (portée /account/). */
+const CACHE = "flashrend-v1";
 const OFFLINE = "/account/offline.html";
 
 self.addEventListener("install", (event) => {
@@ -22,10 +22,10 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: "FlashInv", body: event.data ? event.data.text() : "" };
+    data = { title: "FlashRend", body: event.data ? event.data.text() : "" };
   }
   event.waitUntil(
-    self.registration.showNotification(data.title || "FlashInv", {
+    self.registration.showNotification(data.title || "FlashRend", {
       body: data.body || "",
       icon: "/account/icons/icon-192.png",
       badge: "/account/icons/badge-96.png",

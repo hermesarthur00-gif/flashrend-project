@@ -73,7 +73,7 @@ export function BankSettings({ bank, email }: { bank: Settings["bank"]; email: s
       ) : (
         <form action={reqAction} key={currency} className="flex flex-col gap-3.5">
           <input type="hidden" name="currency" value={currency} />
-          <Field label="Bénéficiaire" name="beneficiary" defaultValue={b.beneficiary} placeholder="ex. FlashInv SAS" required />
+          <Field label="Bénéficiaire" name="beneficiary" defaultValue={b.beneficiary} placeholder="ex. FlashRend SAS" required />
           <Field label="IBAN" name="iban" defaultValue={b.iban} placeholder="ex. FR76 3000 6000 0112 3456 7890 189" spellCheck={false} required />
           <div className="grid gap-3.5 sm:grid-cols-2">
             <Field label="BIC / SWIFT" name="swift" defaultValue={b.swift} placeholder="ex. AGRIFRPP" spellCheck={false} />
