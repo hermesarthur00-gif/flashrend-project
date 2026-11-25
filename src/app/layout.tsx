@@ -22,16 +22,17 @@ const batica = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: "FlashRend · Investir en crypto, sans tracas",
-    template: "%s · FlashRend",
+    default: `${siteConfig.name} · Investir en crypto, sans tracas`,
+    template: `%s · ${siteConfig.name}`,
   },
   description:
-    "Choisissez un profil et un montant : FlashRend répartit votre argent sur les cryptos qui vous correspondent et suit tout pour vous.",
+    `Choisissez un profil et un montant : ${siteConfig.name} répartit votre argent sur les cryptos qui vous correspondent et suit tout pour vous.`,
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    siteName: "FlashRend",
+    siteName: siteConfig.name,
   },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
